@@ -1,0 +1,126 @@
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>ROME GLTF</title>
+
+		<!-- Reference to Three.js by MrDoob -->
+    	<!-- Three.js library by MrDoob: https://github.com/mrdoob/three.js -->
+
+        <style>
+            body {
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Step 1: Load required external libraries -->
+        <!-- Substep 1.1: Load Three.js library -->
+        <script src="files/js/three.js"></script>
+        <!-- Substep 1.2: Load GLTF2Loader for loading 3D models -->
+        <script src="files/js/GLTF2Loader.js"></script>
+
+        <script>
+
+            // Step 2: Set up the WebGL renderer
+
+            // Substep 2.1: Create a new WebGLRenderer object
+            var renderer = new THREE.WebGLRenderer();
+            // Substep 2.2: Set the pixel ratio of the renderer to match the device's pixel density
+            renderer.setPixelRatio( window.devicePixelRatio );
+            // Substep 2.3: Set the size of the renderer to match the window size
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            // Substep 2.4: Set the render loop (animate function)
+            renderer.animate( render );
+            // Substep 2.5: Append the renderer's output (the canvas) to the HTML body
+            document.body.appendChild( renderer.domElement );
+
+            // Step 3: Create a new scene
+
+            var scene = new THREE.Scene();
+            // Substep 3.1: Set the background color of the scene
+            scene.background = new THREE.Color( 0xdddddd );
+
+            // Step 4: Add lights to the scene
+
+            // Substep 4.1: Add a directional light to illuminate the objects in the scene
+            var light = new THREE.DirectionalLight( 0xffffff, 1.25 );
+            // Substep 4.2: Position the directional light
+            light.position.set( 1, 1, 1 );
+            // Substep 4.3: Add the directional light to the scene
+            scene.add( light );
+
+            // Substep 4.4: Add a hemisphere light for more ambient lighting
+            var light = new THREE.HemisphereLight();
+            // Substep 4.5: Add the hemisphere light to the scene
+            scene.add( light );
+
+            // Step 5: Set up the camera
+            // Substep 5.1: Create a perspective camera with a field of view of 40 degrees and an aspect ratio
+            var camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight );
+
+            // Step 6: Declare variables for later use (mixer for animations and sphere for bounding sphere)
+            var mixer, sphere;
+
+            // Step 7: Load the 3D model using GLTF2Loader
+            var loader = new THREE.GLTF2Loader();
+            // Substep 7.1: Load the model from the URL (specified in the query string)
+            loader.load( location.search.substr( 1 ), function ( gltf ) {
+
+                // Substep 7.2: Ensure all materials in the model are rendered double-sided
+                gltf.scene.traverse( function ( child ) {
+                    if ( 'material' in child ) {
+                        child.material.side = THREE.DoubleSide;
+                    }
+                });
+
+                // Step 8: Compute the bounding sphere of the loaded model for camera positioning
+                sphere = new THREE.Box3()
+                    .expandByObject( gltf.scene )
+                    .getBoundingSphere();
+
+                // Step 9: Handle animations in the GLTF model, if any
+                var animations = gltf.animations;
+                if ( animations && animations.length ) {
+                    // Substep 9.1: Create an AnimationMixer for handling model animations
+                    mixer = new THREE.AnimationMixer( gltf.scene );
+                    // Substep 9.2: Loop through all animations and start playing them
+                    for ( var i = 0; i < animations.length; i++ ) {
+                        var animation = animations[i];
+                        mixer.clipAction( animation ).play();
+                    }
+                }
+
+                // Substep 7.3: Add the loaded 3D model to the scene
+                scene.add( gltf.scene );
+            });
+
+            // Step 10: Set up a time tracker for animations
+            var prevTime = performance.now() / 2000;
+
+            // Step 11: Define the render function, which updates the scene and camera
+            function render() {
+                // Substep 11.1: Track the current time
+                var time = performance.now() / 1500;
+
+                // Substep 11.2: If the bounding sphere is defined, position the camera around the model
+                if ( sphere ) {
+                    camera.position.set( Math.cos( time ), 1.5, Math.sin( time ) ).multiplyScalar( sphere.radius );
+                    // Substep 11.3: Make the camera look at the center of the bounding sphere (i.e., the model)
+                    camera.lookAt( sphere.center );
+                }
+
+                // Substep 11.4: If animations are loaded, update the mixer with the time delta
+                if ( mixer ) {
+                    mixer.update( time - prevTime );
+                }
+
+                // Substep 11.5: Render the scene from the perspective of the camera
+                renderer.render( scene, camera );
+
+                // Substep 11.6: Update the previous time variable for the next frame
+                prevTime = time;
+            }
+        </script>
+    </body>
+</html>

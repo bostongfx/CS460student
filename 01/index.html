@@ -44,13 +44,34 @@
 
       #bonus {
         width: 100%;
+        justify-content: center;
+        align-items: center;
+        gap: 20px; 
+        margin-top: 20px;
+
+      .model-container {
+      text-align: center;           /* Centers the container contents horizontally */
       }
 
-    
+      .model-frame {
+        display: inline-block;        /* Aligns models horizontally */
+        margin: 0 15px;               /* Adds space between the models */
+        text-align: center;           /* Centers the model name below the iframe */
+
+      }
+
+      .viewer {
+        width:550px;
+        height: 200px;
+        border: none;                 /* Removes iframe border */
+      }
+
       #description, #technology, #comparison {
       text-align: justify;
       padding: 10px;
       }
+
+    }
 
     </style>
   </head>
@@ -93,10 +114,23 @@
       </p>
 
       <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
-      </div>
-
+        <h2>3D Models</h2>
+        <div class="model-container">
+            <div class="model-frame">
+                <iframe class="viewer" src="viewer.html?birdsA_parrot.gltf" ></iframe>
+                <h3>Parrot</h3>
+            </div>
+            <div class="model-frame">
+                <iframe class="viewer" src="viewer.html?birdsA_eagle.gltf" ></iframe>
+                <h3>Eagle</h3>
+            </div>
+            <div class="model-frame">
+                <iframe class="viewer" src="viewer.html?birds_vulture.gltf" ></iframe>
+                <h3>Vulture</h3>
+            </div>
+        </div>
     </div>
 
   </body>
+
 </html>

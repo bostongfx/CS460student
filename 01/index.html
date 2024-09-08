@@ -3,20 +3,23 @@
     <title>CS460.org Assignment 1</title>
     <style>
       body {
-        background: black;
-        color: white;
+        background: hsl(0, 0%, 0%);
+        color: rgb(255, 255, 255);
         font-family: sans-serif;
         text-align: center;
         font-size: 20pt;
       }
 
       .demo {
+        background: hsl(0, 0%, 6%);
+        border-radius: 20px;
+        padding: 5%;
         margin: auto;
-        width:50%;
+        width: 50%;
       }
 
       #screenshot {
-        float:left;
+        float: left;
         margin-right: 20px;
         margin-bottom: 20px;
         max-width: 300px;
@@ -37,35 +40,89 @@
         width: 100%;
       }
 
+      .models-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .model-card {
+        background: hsl(0, 0%, 7%);
+        height: 250px;
+        width: 500px;
+        box-shadow: rgba(255, 255, 255, 0.2) 0px 2px 1px -1px, rgba(255, 255, 255, 0.14) 0px 1px 1px 0px, rgba(255, 255, 255, 0.12) 0px 1px 3px 0px;
+        border-radius: 15px;
+        padding-bottom: 10%;
+        margin-bottom: 10%;
+        align-self: center;
+      }
+
+      .viewer {
+        border: none;
+      }
+
     </style>
   </head>
   <body>
-
-    <img id='cube' src='https://cs460.org/gfx/cube.png'>
+    <img id="cube" src="https://cs460.org/gfx/cube.png" />
 
     <h1>RO.ME "3 DREAMS OF BLACK"</h1>
 
-    <div class='demo'>
-
+    <div class="demo">
       <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
-      <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
+      <img id="screenshot" src="./assets/ROME_Screenshot.png" />
+
+      <p id="description">
+        <!-- TODO: FILL IN YOUR DESCRIPTION -->
+        RO.ME is a very interesting webgl demo! I really like the nostalgic
+        music it plays in the background and the way the camera moves around the
+        scene. It feels like a story-mode game. It was very surprising to find
+        out that it was made more than a decade ago and the graphics and
+        everything still look amazing. I think it definitely had a major impact
+        on what can be done in the browser just by using webgl. I believe the
+        time this web game was made was also the time when I used to play online
+        web games on miniclip.com and now I know how they were made as well.
       </p>
-      <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
+      <p id="technology">
+        <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
+        Technology: Three.js, WebGL, JavaScript, HTML/CSS, AJAX
       </p>
-      <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
+      <p id="comparison">
+        <!-- TODO: FILL IN THE COMPARISON -->
+        <img id="screenshot" src="./assets/CloudCastles_Screenshot.png" />
+        Comparison: Another webgl demo that I found was the
+        <a href="https://www.cloudcastles.gg">Cloud Castles</a>. It displays
+        floating rocks with each rock having a warrior or dragon or something
+        along those lines on top of them. The interaction with this demo is very
+        limited compared to RO.ME as you can only move from one castle to
+        another. The camera view is fixed and it doesn't have a video like
+        RO.ME. The graphics are pretty modern and I relly like the setting of
+        the demo mostly because I really like mythical creatures, especially
+        dragons. This demo reminds me a lot of Game of Thrones and The Elder
+        Scrolls video game series.
       </p>
 
-
-      <div id='bonus'>
+      <div id="bonus">
         <!-- TODO: BONUS TASK GOES HERE -->
+        <!-- 3D Models by MrDoob https://github.com/mrdoob/rome-gltf/ -->
+        <!-- Three.js library by MrDoob: https://github.com/mrdoob/three.js -->
+
+        <h2>3D-Models</h2>
+        <div class="models-container">
+            <div class="model-card">
+              <h3>Wolf</h3>
+              <iframe class="viewer" src="viewer.html?assets/quadruped_wolf.gltf" ></iframe>
+            </div>
+            <div class="model-card">
+              <h3>Goat</h3>
+              <iframe class="viewer" src="viewer.html?assets/goat.gltf" ></iframe>
+            </div>
+            <div class="model-card">
+              <h3>Eagle</h3>
+              <iframe class="viewer" src="viewer.html?assets/birdsA_eagle.gltf" ></iframe>
+            </div>
       </div>
-
     </div>
-
   </body>
 </html>

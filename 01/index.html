@@ -38,6 +38,9 @@
       }
 
     </style>
+    <script type="text/javascript" 
+      src="https://get.goXTK.com/xtk_edge.js">
+    </script>
   </head>
   <body>
 
@@ -79,6 +82,25 @@
         <iframe class="viewer" src="viewer.html?assets/quadruped_panther.gltf"></iframe>
         <iframe class="viewer" src="viewer.html?assets/quadruped_fox.gltf"></iframe>
         <iframe class="viewer" src="viewer.html?assets/birds_raven.gltf"></iframe>
+        <script>
+          window.onload = function() {
+              r = new X.renderer3D(); // create render
+              r.init(); // Initialize
+              s = new X.cube();
+              s.texture.file = "assets/sponge.jpg";
+              s.transform.rotateX(1);
+              s.transform.rotateY(1);
+              r.add(s);
+  
+              r.render();
+
+              r.onRender = function() {
+                s.transform.rotateX(1);
+                s.transform.rotateY(1);
+                s.transform.rotateZ(3);
+              }
+          }
+      </script>
       </div>
 
     </div>

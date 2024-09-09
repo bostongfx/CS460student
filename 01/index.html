@@ -35,8 +35,16 @@
       }
 
       #bonus {
-        width: 100%;
-      }
+        display: inline-block;
+				width: 800px;
+			}
+      .viewer {
+				border: 0px;
+				width: 200px;
+				height: 200px;
+				padding: 10px;
+			}
+      
 
     </style>
   </head>
@@ -73,14 +81,19 @@
         <a href="https://blobmixer.14islands.com/" target="_blank">Blobmixer</a> takes a more playful approach. 
         Instead of focusing on a story, Blobmixer invites users to experiment with abstract forms, creating animated 
         "blobs" by adjusting various settings. RO.ME leans towards artistic storytelling, whereas Blobmixer is more 
-        about fun and creative exploration. Both projects highlight the versatility of WebGL, but they offer very 
-        different experiences—one immersive and artistic, the other light-hearted and experimental. - GPT4o
+        about fun and creative expl oration. Both projects highlight the versatility of WebGL, but they offer very 
+        different experiences immersive and artistic, the other light-hearted and experimental. - GPT4o
       </p>
 
 
-      <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
+      <div id="bonus">
+        <!-- Viewer based on code from mrdoob's rome-gltf: https://github.com/mrdoob/rome-gltf -->
+        <h2>Bonus: 3D Animated Models - from ROME GLTF</h2>
+        <iframe class="viewer" src="viewer.html?model\alligator.gltf"></iframe>
+			  <iframe class="viewer" src="viewer.html?model\birds_raven.gltf"></iframe>
+			  <iframe class="viewer" src="viewer.html?model\birds_vulture.gltf"></iframe>
       </div>
+      
 
     </div>
 

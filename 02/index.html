@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+
+    <style>
+      body {
+        background: #000000;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <script>
+      window.onload = function() { // Executed only when everything is fully loaded
+        r = new X.renderer3D() // Create new 3D renderer
+        r.init() // Initialize renderer
+
+        c = new X.cube(); // Create a new cube
+        c.color = [1, 1, 1]; // RGB
+        c.center=[10, 0, 0]; // x y z
+
+        c2 = new X.cube(); // Create a second cube
+        c2.color = [0, 0, 1]; // RGB
+
+        r.add(c) // Add the cube to the 3D renderer
+
+        r.add(c2); // Add second cube
+
+        for (var i=0; i<1000; i++) {
+            c_i = new X.cube();
+            c_i.center = [30 * i, 30, 0];
+            r.add(c_i);
+        }
+
+        r.render(); // Render Cube
+      }
+    </script>
+  
+</head>
+<body>
+
+</body>
+</html>

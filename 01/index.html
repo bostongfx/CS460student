@@ -16,9 +16,9 @@
       }
 
       #screenshot {
-        float:left;
         margin-right: 20px;
         margin-bottom: 20px;
+        float: left;
         max-width: 300px;
         border: thin solid white;
       }
@@ -34,38 +34,67 @@
       }
 
       #bonus {
-        width: 100%;
+        text-align: justify;
       }
 
+      ul {
+        text-align: left; /* Make bullets points align correctly.*/
+      }
+
+      #models {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .viewer {
+        border: 0;
+        width: 200px;
+        height: 200px;
+        padding: 10px;
+      }
     </style>
   </head>
   <body>
-
-    <img id='cube' src='https://cs460.org/gfx/cube.png'>
+    <img id='cube' src='https://cs460.org/gfx/cube.png' alt="cube">
 
     <h1>RO.ME "3 DREAMS OF BLACK"</h1>
 
     <div class='demo'>
-
-      <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
+      <img id='screenshot' src='images/ROME-Screenshot.png' alt="RO.ME Screenshot">
       <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
+        RO.ME is an interactive music video for the song "3 Dreams of Black" by Danger Mouse, Daniele Luppi, and Norah Jones.
+        The music video utilizes WebGL to give an interactive experience with the user, allowing them to look around the
+        music video with just mouse movement. The video also features 2D and 3D graphics, as well as video. Aside from just
+        looking around, some scenes also generate objects at the cursor location, such as grass, birds, deer, etc. Other scenes
+        also alter how the music video looks around the cursor, changing the background into triangle-like pixels in a radius.
+        The video also features a wide variety of environments, including scenes inside a car, in a building, on train-tracks,
+        and in a desert. The interactive music video was created in 2013 and was one-of-a-kind, and so its use of WebGL was
+        quite instrumental in creating awareness of the technology and what it could do!
       </p>
       <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
-      </p>
+        Technology: The interactive film RO.ME was created using several technologies, including WebGL, JavaScript, and HTML5!
+        In particular, WebGL is hardware accelerated, so it enables the use of your computer's video/graphics card to render the
+        graphics of the interactive movie! Moreover, WebGL relies on HTML's canvas element and JavaScript to deliver the experience.
       <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
+        Comparison: The interactive story I have chosen is called <a href="https://www.airforce.com/intothestorm/">Into The Storm</a>
+        from the U.S. Air Force. There are quite a few differences between Into The Storm and RO.ME. While both are interactive
+        stories utilizing WebGL, Into The Storm tells a story of a rescue mission whereas RO.ME is an interactive music video. Another difference
+        is that the interactive elements of both stories are quite different. For example, in RO.ME the location of the cursor
+        may either cause a camera effect or generate grass and plants at its location. In Into The Storm however, there is scrolling
+        to traverse a mountain, click-dragging to land a helicopter, and so on. There are also points in which the user can click
+        on text boxes, which will lead to an Air Force member describing their journey or providing advice on what to do in
+        dangerous situations. Another difference is that, while RO.ME intertwines video with interactive elements, the entirety
+        of Into The Storm is interactive; there are no video elements.
       </p>
-
-
       <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
+        <p>Bonus: Three animated models are provided below: an alligator (left), a raven (middle) and a vulture (right)!</p>
+        <!--The format of the code below was taken from mrdoob's repository: https://github.com/mrdoob/rome-gltf/-->
+        <div id='models'>
+          <iframe class="viewer" src='viewer.html?files/models/alligator.gltf'></iframe>
+          <iframe class="viewer" src='viewer.html?files/models/birds_raven.gltf'></iframe>
+          <iframe class="viewer" src='viewer.html?files/models/birds_vulture.gltf'></iframe>
+        </div>
       </div>
-
     </div>
-
   </body>
 </html>

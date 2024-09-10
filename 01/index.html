@@ -12,11 +12,11 @@
 
       .demo {
         margin: auto;
-        width:50%;
+        width: 50%;
       }
 
       #screenshot {
-        float:left;
+        float: left;
         margin-right: 20px;
         margin-bottom: 20px;
         max-width: 300px;
@@ -37,35 +37,45 @@
         width: 100%;
       }
 
+      #viewer {
+        width: 200px;
+        height: 200px;
+      }
     </style>
   </head>
   <body>
-
-    <img id='cube' src='https://cs460.org/gfx/cube.png'>
+    <img id="cube" src="https://cs460.org/gfx/cube.png" />
 
     <h1>RO.ME "3 DREAMS OF BLACK"</h1>
 
-    <div class='demo'>
-
-      <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
-      <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
+    <div class="demo">
+      <img id="screenshot" src="rome_screenshot.png" />
+      <p id="description">
+        When I first launched RO.ME, i was stunned by the beatufuly transitions between videos and actual interactable code . I experiences three
+        different stages of the dream. The first part was in the city, where I could move rows of colorful animals across the city and the buildings.
+        Then there was a transition to a movie-like cutscene. I was then transformed into a field where i could move a herd of black bison around the
+        field with the power of my cursor. Finally, the final "dream" includes me exploring the desert using flying birds. I was in the first person
+        point of view, and the only way I could travel across the desert was to use my cursor to fly the birds in a certain direction. Since the demo
+        was created in 2011, I believe this is a very revolutional website because it uses WEBGL to render the components using your machine's gpu.
+        This has a great impact on what future websites will look like, because this gives people creativity to make their websites look more flashy
+        and interactive.
       </p>
-      <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
-      </p>
-      <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
+      <p id="technology">Technology: WEBGL, 2D Graphics, video, 3D graphics, Javascript, HTML 5</p>
+      <p id="comparison">
+        <img id="screenshot" src="azarian_screenshot.png" />
+        Comparison: Another story that can be compared to RO.ME is called The Azarian Journey. Link <a href="https://le-voyage-azarien.art/">here</a>.
+        This story goes around a couple of trees where the French narrator describes his experiences with nature and talks about the atmosphere of forests.
+        This is relatable to the RO.ME experience because here you can use your cursor to move the camera around the tree, and see different angles that you
+        would not have seen before. It also has nature sounds in the background to immerse you more into the enviroment.
       </p>
 
-
-      <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
+      <div id="bonus">
+      <h1>BONUS CONTENT:</h1>
+      <p>github repo used: <a href="https://github.com/mrdoob/rome-gltf">REPO</a></p>
+      <iframe id="viewer" src="bonus/viewer.html?birdsA_parrot.gltf"></iframe>
+			<iframe id="viewer" src="bonus/viewer.html?quadruped_bear.gltf"></iframe>
+			<iframe id="viewer" src="bonus/viewer.html?quadruped_horse.gltf"></iframe>
       </div>
-
     </div>
-
   </body>
 </html>

@@ -1,71 +1,84 @@
 <html>
-  <head>
-    <title>CS460.org Assignment 1</title>
-    <style>
-      body {
-        background: black;
-        color: white;
-        font-family: sans-serif;
-        text-align: center;
-        font-size: 20pt;
-      }
 
-      .demo {
-        margin: auto;
-        width:50%;
-      }
+<head>
+  <title>CS460.org Assignment 1</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      font-size: 20pt;
+    }
 
-      #screenshot {
-        float:left;
-        margin-right: 20px;
-        margin-bottom: 20px;
-        max-width: 300px;
-        border: thin solid white;
-      }
+    .demo {
+      margin: auto;
+      width: 50%;
+    }
 
-      #description {
-        text-align: justify;
-      }
-      #technology {
-        text-align: justify;
-      }
-      #comparison {
-        text-align: justify;
-      }
+    #screenshot {
+      float: left;
+      margin-right: 20px;
+      margin-bottom: 20px;
+      max-width: 300px;
+      border: thin solid white;
+    }
 
-      #bonus {
-        width: 100%;
-      }
+    #description {
+      text-align: justify;
+    }
 
-    </style>
-  </head>
-  <body>
+    #technology {
+      text-align: justify;
+    }
 
-    <img id='cube' src='https://cs460.org/gfx/cube.png'>
+    #comparison {
+      text-align: justify;
+    }
 
-    <h1>RO.ME "3 DREAMS OF BLACK"</h1>
+    #bonus {
+      width: 100%;
+    }
+  </style>
+</head>
 
-    <div class='demo'>
+<body>
 
-      <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
-      <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
-      </p>
-      <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
-      </p>
-      <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
-      </p>
+  <img id='cube' src='https://cs460.org/gfx/cube.png'>
+
+  <h1>RO.ME "3 DREAMS OF BLACK"</h1>
+
+  <div class='demo'>
+
+    <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
+    <img id='screenshot' src='./rome-screenshot.png'>
+    <p id='description'>
+      Rome was a super interesting browser-based interactive movie / music video! It's great to see developers
+      collaborating with artsts in this way, and it seems like it was a great strategy for bringing some attention /
+      showing off what WebGL can do.
+    </p>
+    <p id='technology'>
+      Technology: The technologies used in the project were WebGL and THREE.js. It's interesting that THREE.js never
+      gets mentioned in the <a href="https://bostongfx.github.io/tech/">tech video</a>, but you can see in the console
+      and in some of the B-Roll in the video that they're using THREE.js.
+    </p>
+    <p id='comparison'>
+      Comparison: My favorite other intractive story was <a href="https://dillasdonuts.shop/">dillasdonuts.shop</a>!
+      It's a site that showcases an album that I really like by an artist who has long since passed. It's a great way of
+      preserving his legacy, and it also just looks really cool. Like RO.ME, it uses THREE.js, but has more of a
+      traditionaly website user flow, with different pages to view different songs off of Dilla's album.
+    </p>
 
 
-      <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
-      </div>
-
+    <div style="margin-bottom: 20vh;" id='bonus'>
+      <h1 style="margin-top: .2rem; padding-bottom: .5rem; font-size: 10em; weight: black; background: radial-gradient(#e66465, #9198e5); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">BONUS</h1>
+      <iframe class="viewer" src="viewer.html?models/goat.gltf"></iframe>
+      <iframe class="viewer" src="viewer.html?models/alligator.gltf"></iframe>
+      <iframe class="viewer" src="viewer.html?models/frog.gltf"></iframe>
     </div>
 
-  </body>
+  </div>
+
+</body>
+
 </html>

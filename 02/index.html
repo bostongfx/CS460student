@@ -13,6 +13,21 @@
         overflow: hidden !important; 
       }
     </style>
+
+    <script>
+      window.onload = function() {
+      
+          r = new X.renderer3D();
+          r.init();
+
+          c = new X.cube();
+          c.color = [255, 255, 255]
+
+          r.add(c);
+          r.render();
+    }
+    </script>
+
   </head>
   <body>
   </body>

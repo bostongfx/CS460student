@@ -51,6 +51,10 @@
         c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
       }
       // map keys 1-7 to colors
+      if (e.code == 'Digit0') {
+        // black
+        c.color = [0, 0, 0];
+      }
       if (e.code == 'Digit1') {
         // white
         c.color = [1, 1, 1];

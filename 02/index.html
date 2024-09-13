@@ -17,9 +17,14 @@
   </head>
   <body>
     <script>
+      let CAMERAS = [];
+      let CUBE_IDS = {};
       let CUBE_SIDELENGTH = 10;
       let GAP = 0;
       let SPINSPINSPIN = false;
+      let CAM_CYCLE = false;
+      let current_cam = 0;
+      let interval_id = 0;
       window.onload = function() {
         r = new X.renderer3D();
         r.init();
@@ -33,7 +38,6 @@
             r.camera.rotate([1, 0]);
           }
         }
-
         r.render();
       }
       window.onkeypress = function(e) {
@@ -95,6 +99,30 @@
             break;
           case "KeyB":
             SPINSPINSPIN = !(SPINSPINSPIN);
+            break;
+          case "KeyC":
+            new_cam_value = new Float32Array(Object.values(r.camera.view));
+            CAMERAS.push(new_cam_value);
+            console.log(new_cam_value);
+            break;
+          case "KeyV":
+            CAM_CYCLE = !(CAM_CYCLE);
+            if (CAM_CYCLE) {
+              interval_id = setInterval(
+                function() {
+                  console.log(CAMERAS[current_cam]);
+                  r.camera.view = new Float32Array(Object.values(CAMERAS[current_cam++]));
+                  if (current_cam >= CAMERAS.length) {
+                    current_cam = 0;
+                  }
+                  console.log("Cam Shift");
+                  console.log(r.camera.view);
+                }, 1000
+              )
+            } else if (interval_id) {
+              clearInterval(interval_id);
+              interval_id = 0;
+            }
             break;
           default:
             console.log(e.code);

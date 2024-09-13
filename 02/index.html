@@ -1,16 +1,89 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script src="02/loader.js"></script>
+
     <title>CS460.org Assignment 2</title>
+
     <style>
       body {
-        background-color:#000;
+        background-color: #000;
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important; 
+        overflow: hidden !important;
       }
     </style>
+
+    <script>
+      window.onload = function () {
+        r = new X.renderer3D(); // Create a 3D renderer
+        r.init(); // Initialize the renderer
+
+        cube = new X.cube();  // Create the first cube
+        cube.color = [1, 157 / 255, 80 / 255];  // Cube color
+        cube.center = [0, 0, 0];  // x, y, z position
+
+        r.add(cube); // Add the cube to the scene
+        r.render();  // Render the scene
+      }
+
+      // Key events for cube movements and color changes
+      window.onkeypress = function (e) {
+        if (e.code == 'KeyD') {
+          cube.transform.translateX(-10 - 2);  // Move right
+        } else if (e.code == 'KeyA') {
+          cube.transform.translateX(10 + 2);  // Move left
+        } else if (e.code == 'KeyW') {
+          cube.transform.translateZ(10 + 2);  // Move up
+        } else if (e.code == 'KeyS') {
+          cube.transform.translateZ(-10 - 2);  // Move down
+        } else if (e.code == 'KeyQ') {
+          cube.transform.translateY(10 + 2);  // Move forward
+        } else if (e.code == 'KeyE') {
+          cube.transform.translateY(-10 - 2);  // Move backward
+        }
+
+        // Change the cube's color
+        else if (e.code == 'Digit1') {
+          cube.color = [1, 1, 1];  // White
+        } else if (e.code == 'Digit2') {
+          cube.color = [1, 0, 0];  // Red
+        } else if (e.code == 'Digit3') {
+          cube.color = [0, 1, 0];  // Green
+        } else if (e.code == 'Digit4') {
+          cube.color = [0, 0, 1];  // Blue
+        } else if (e.code == 'Digit5') {
+          cube.color = [1, 1, 0];  // Yellow
+        } else if (e.code == 'Digit6') {
+          cube.color = [1, 0.75, 0.8];  // Pink
+        } else if (e.code == 'Digit7') {
+          cube.color = [0, 1, 1];  // Cyan
+        } else if (e.code == 'Digit0') {
+          cube.color = [0, 0, 0];  // Black
+        }
+
+      /// Space key to add a new cube
+      if (e.code == "Space") {
+        e.preventDefault();
+        new_cube = new X.cube();  // Create new cube
+        new_cube.color = [0,1,0];  // Green
+        new_cube.transform.matrix = new Float32Array(cube.transform.matrix);  // Copy transformation
+        new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = 20;  // Set cube size
+        new_cube.center = [25,0,0];  // Set new cube's position
+        r.add(new_cube);  // Add new cube to scene
+        r.render(); 
+    }
+
+      };
+
+      
+ 
+
+    </script>
+
   </head>
+
   <body>
   </body>
 </html>

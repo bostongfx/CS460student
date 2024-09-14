@@ -66,9 +66,11 @@ document.addEventListener('keypress', e => {
 
         // download
         case 'o':
+            download()
             break;
         // upload
         case 'l':
+            upload('scene.json')
             break;
 
         // place block

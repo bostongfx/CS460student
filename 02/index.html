@@ -15,6 +15,11 @@
     </style>
 
     <script>
+      // Define constants
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+
+      // Function to create a 3D cube
       window.onload = function() {
       
           r = new X.renderer3D();
@@ -25,7 +30,41 @@
 
           r.add(c);
           r.render();
-    }
+      } 
+
+      //Function that is listening to keyboard events
+      window.onkeypress = function(e) {
+
+          // Type D means moving to the right 
+          if (e.code == 'KeyD') {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+          }
+
+          // Type A means moving to the left
+          else if (e.code == 'KeyA') {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP);
+          }
+
+          // Type W means moving up 
+          else if (e.code == 'KeyW') {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+          } 
+
+          // Type S means moving down 
+          else if (e.code == 'KeyS') {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+          } 
+
+          // Type Q means moving forward 
+          else if (e.code == 'KeyQ') {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP);
+          } 
+
+          // Type E means moving backward 
+          else if (e.code == 'KeyE') {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+          } 
+      }
     </script>
 
   </head>

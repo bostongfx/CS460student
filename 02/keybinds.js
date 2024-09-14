@@ -6,27 +6,35 @@ document.addEventListener('keypress', e => {
         // Colors
         // white
         case '1':
+            cube.color = [1,1,1]
             break;
         // red
         case '2':
+            cube.color = [1,0,0]
             break;
         // green
         case '3':
+            cube.color = [0,1,0]
             break;
         // blue
         case '4':
+            cube.color = [0,0,1]
             break;
         // yellow
         case '5':
+            cube.color = [1,1,0]
             break;
         // pink
         case '6':
+            cube.color = [1,192/255,203/255]
             break;
         // cyan
         case '7':
+            cube.color = [0,1,1]
             break;
         // black
         case '0':
+            cube.color = [0,0,0]
             break;
 
         // Movement

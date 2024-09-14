@@ -2,7 +2,8 @@ CUBE_SIDELENGTH = 10
 GAP = 2
 document.addEventListener('keypress', e => {
     const key = e.key
-    switch (key) {
+    
+    switch (key) { 
         // Colors
         // white
         case '1':
@@ -70,11 +71,14 @@ document.addEventListener('keypress', e => {
         case 'l':
             break;
 
-        case '1':
-            break;
-        case '1':
-            break;
-        case '1':
-            break;            
+        // place block
+        case ' ':
+            new_cube = new X.cube()
+            new_cube.color = cube.color
+            new_cube.transform.matrix = new Float32Array(cube.transform.matrix)
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH
+            
+            r.add(new_cube)
+            break;        
     }
 })

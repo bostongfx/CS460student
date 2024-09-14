@@ -1,5 +1,5 @@
 window.onload = function() {
-    var r = new X.renderer3D();
+    r = new X.renderer3D();
     r.init();
     
     cube = new X.cube();

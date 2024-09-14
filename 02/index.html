@@ -104,6 +104,17 @@
           else if (e.code == 'Digit0') {
             c.color = [0, 0, 0];
           }
+
+          // Type Space means creating a new cube with the selected color and position
+          else if (e.code == 'Space') {
+            new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+
+            r.add(new_cube);
+            
+          }
       }
     </script>
 

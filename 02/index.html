@@ -64,6 +64,46 @@
           else if (e.code == 'KeyE') {
             c.transform.translateY(-CUBE_SIDELENGTH - GAP);
           } 
+
+          // Type 1 means changing the color of the cube to white
+          else if (e.code == 'Digit1') {
+            c.color = [255, 255, 255];
+          }
+
+          // Type 2 means changing the color of the cube to red
+          else if (e.code == 'Digit2') {
+            c.color = [255, 0, 0];
+          }
+
+          // Type 3 means changing the color of the cube to green
+          else if (e.code == 'Digit3') {
+            c.color = [0, 128, 0];
+          }
+
+          // Type 4 means changing the color of the cube to blue
+          else if (e.code == 'Digit4') {
+            c.color = [0, 0, 255];
+          }
+
+          // Type 5 means changing the color of the cube to yellow
+          else if (e.code == 'Digit5') {
+            c.color = [255, 255, 0];
+          }
+
+          // Type 6 means changing the color of the cube to pink 
+          else if (e.code == 'Digit6') {
+            c.color = [0.66, 0.2, 0.58];
+          } 
+
+          // Type 7 means changing the color of the cube to cyan
+          else if (e.code == 'Digit7') {
+            c.color = [0, 255, 255];
+          }
+
+          // Type 0 means changing the color of the cube to black
+          else if (e.code == 'Digit0') {
+            c.color = [0, 0, 0];
+          }
       }
     </script>
 

@@ -1,5 +1,7 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -10,6 +12,25 @@
         overflow: hidden !important; 
       }
     </style>
+
+    <script>
+
+      window.onload = function() {
+
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube();
+        c.color = [1, 0, 0];
+
+        r.add(c);
+
+        r.render();
+
+      }
+
+    </script>
+
   </head>
   <body>
   </body>

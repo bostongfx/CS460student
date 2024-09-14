@@ -1,7 +1,10 @@
 <html>
   <head>
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-    <script src="02/loader.js"></script>
+
+    <script>  var CUBE_SIDELENGTH = 20 </script>
+
+    <script src="./loader.js"></script>
 
     <title>CS460.org Assignment 2</title>
 
@@ -44,6 +47,8 @@
           cube.transform.translateY(-10 - 2);  // Move backward
         }
 
+        
+
         // Change the cube's color
         else if (e.code == 'Digit1') {
           cube.color = [1, 1, 1];  // White
@@ -65,20 +70,27 @@
 
       /// Space key to add a new cube
       if (e.code == "Space") {
-        e.preventDefault();
-        new_cube = new X.cube();  // Create new cube
-        new_cube.color = [0,1,0];  // Green
-        new_cube.transform.matrix = new Float32Array(cube.transform.matrix);  // Copy transformation
-        new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = 20;  // Set cube size
-        new_cube.center = [25,0,0];  // Set new cube's position
-        r.add(new_cube);  // Add new cube to scene
-        r.render(); 
-    }
+          new_cube = new X.cube();  // Create new cube
+          new_cube.color = cube.color;  // Assign the same color as the current cube
+          new_cube.transform.matrix = new Float32Array(cube.transform.matrix);  // Copy transformation
+          new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;  // Set cube size
+          r.add(new_cube);  // Add the new cube to the scene
+          r.render();  // Re-render the scene
+        }
+
+      if (e.code == "KeyO") {
+          download ();
+      }
+      
+      if (e.code == "KeyL") {
+          console.log("Uploading scene...");
+          upload ("./scene.json");
+      }
+
 
       };
 
       
- 
 
     </script>
 

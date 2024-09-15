@@ -27,6 +27,9 @@
 
       var camera = false;  // Boolean flag to track camera rotation
       var r, cube;  // Move r and cube declarations to a broader scope
+      var CAMERAS = [];
+      var isCycling = false;
+      var interval = null;  // Ensure the interval is declared properly
 
       window.onload = function () {
         // Create and initialize the 3D renderer
@@ -42,14 +45,12 @@
         r.add(cube);
         r.render();
 
-        // Add camera rotation logic 
-
+        // Add camera rotation logic
         r.onRender = function () {
           if (camera) {
-            r.camera.rotate([1,0]) // Rotate the camera by 1 degree in the X direction
+            r.camera.rotate([1,0]); // Rotate the camera by 1 degree in the X direction
           }
         }
-
       };
 
       // Key events for cube movements, color changes, and camera rotation
@@ -114,6 +115,39 @@
           camera = !camera;
         }
 
+        // Store current camera view in CAMERAS list
+        if (e.code == "KeyC") {
+          CAMERAS[CAMERAS.length] = new Float32Array(r.camera.view); // Add the current camera view at the next available index
+          console.log('Camera view stored:', r.camera.view);
+        }
+
+        // Cycling through CAMERAS with the V key
+        if (e.code == "KeyV") {
+          console.log("V key pressed");
+
+          // Ensure there are views to cycle through
+          if (CAMERAS.length > 0) {
+            if (isCycling) {
+              console.log("Stopping cycling...");
+              clearInterval(interval);  // Stop the camera cycling
+              interval = null;  // Reset the interval
+              isCycling = false;  // Update the flag to indicate cycling has stopped
+              console.log("Cycling stopped");
+            } else {
+              var time = 0;
+              console.log("Starting cycling...");
+              interval = setInterval(function() {
+                console.log('Cycling to camera view:', CAMERAS[time % CAMERAS.length]);  // Log camera cycling
+                r.camera.view = new Float32Array(CAMERAS[time % CAMERAS.length]);  // Cycle through the camera views
+                time++;
+              }, 1000);  // Update camera every second
+              isCycling = true;  // Update the flag to indicate cycling is active
+              console.log("Cycling started");
+            }
+          } else {
+            console.log("No camera views stored in CAMERAS to cycle through.");
+          }
+        }
       };
     </script>
 

@@ -1,9 +1,14 @@
 <html>
   <head>
+    <!-- XTK library -->
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
 
-    <script>  var CUBE_SIDELENGTH = 20 </script>
+    <!-- Set cube side length as a constant -->
+    <script>
+      var CUBE_SIDELENGTH = 20;
+    </script>
 
+    <!-- Load additional JavaScript file for scene management -->
     <script src="./loader.js"></script>
 
     <title>CS460.org Assignment 2</title>
@@ -19,38 +24,53 @@
     </style>
 
     <script>
-      window.onload = function () {
-        r = new X.renderer3D(); // Create a 3D renderer
-        r.init(); // Initialize the renderer
 
-        cube = new X.cube();  // Create the first cube
-        cube.color = [1, 157 / 255, 80 / 255];  // Cube color
+      var camera = false;  // Boolean flag to track camera rotation
+      var r, cube;  // Move r and cube declarations to a broader scope
+
+      window.onload = function () {
+        // Create and initialize the 3D renderer
+        r = new X.renderer3D();  // Initialize the renderer globally
+        r.init();
+
+        // Create the first cube and set its color and position
+        cube = new X.cube();  // Initialize the cube globally
+        cube.color = [1, 1, 1];  // White
         cube.center = [0, 0, 0];  // x, y, z position
 
-        r.add(cube); // Add the cube to the scene
-        r.render();  // Render the scene
-      }
+        // Add the cube to the renderer and render the scene
+        r.add(cube);
+        r.render();
 
-      // Key events for cube movements and color changes
-      window.onkeypress = function (e) {
-        if (e.code == 'KeyD') {
-          cube.transform.translateX(-10 - 2);  // Move right
-        } else if (e.code == 'KeyA') {
-          cube.transform.translateX(10 + 2);  // Move left
-        } else if (e.code == 'KeyW') {
-          cube.transform.translateZ(10 + 2);  // Move up
-        } else if (e.code == 'KeyS') {
-          cube.transform.translateZ(-10 - 2);  // Move down
-        } else if (e.code == 'KeyQ') {
-          cube.transform.translateY(10 + 2);  // Move forward
-        } else if (e.code == 'KeyE') {
-          cube.transform.translateY(-10 - 2);  // Move backward
+        // Add camera rotation logic 
+
+        r.onRender = function () {
+          if (camera) {
+            r.camera.rotate([1,0]) // Rotate the camera by 1 degree in the X direction
+          }
         }
 
-        
+      };
 
-        // Change the cube's color
-        else if (e.code == 'Digit1') {
+      // Key events for cube movements, color changes, and camera rotation
+      window.onkeypress = function (e) {
+        // Move the cube with WASDQE keys
+        if (e.code == 'KeyD') {
+          cube.transform.translateX(-10-2);  // Move right
+        } else if (e.code == 'KeyA') {
+          cube.transform.translateX(10+2);  // Move left
+        } else if (e.code == 'KeyW') {
+          cube.transform.translateZ(10+2);  // Move up
+        } else if (e.code == 'KeyS') {
+          cube.transform.translateZ(-10-2);  // Move down
+        } else if (e.code == 'KeyQ') {
+          cube.transform.translateY(10+2);  // Move forward
+        } else if (e.code == 'KeyE') {
+          cube.transform.translateY(-10-2);  // Move backward
+        }
+
+        // Change the cube's color with number keys 1-7, 0
+        if (e.code == 'Digit1') {
           cube.color = [1, 1, 1];  // White
         } else if (e.code == 'Digit2') {
           cube.color = [1, 0, 0];  // Red
@@ -68,9 +88,9 @@
           cube.color = [0, 0, 0];  // Black
         }
 
-      /// Space key to add a new cube
-      if (e.code == "Space") {
-          new_cube = new X.cube();  // Create new cube
+        // Space key to add a new cube with the same properties as the current cube
+        if (e.code == "Space") {
+          var new_cube = new X.cube();  // Create a new cube
           new_cube.color = cube.color;  // Assign the same color as the current cube
           new_cube.transform.matrix = new Float32Array(cube.transform.matrix);  // Copy transformation
           new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;  // Set cube size
@@ -78,20 +98,23 @@
           r.render();  // Re-render the scene
         }
 
-      if (e.code == "KeyO") {
-          download ();
-      }
-      
-      if (e.code == "KeyL") {
-          console.log("Uploading scene...");
-          upload ("./scene.json");
-      }
+        // Save scene with the O key
+        if (e.code == "KeyO") {
+          download();
+        }
 
+        // Load scene with the L key
+        if (e.code == "KeyL") {
+          console.log("Uploading scene...");
+          upload("./scene2.json");
+        }
+
+        // KeyB to activate camera rotation on/off
+        if (e.code == "KeyB") {
+          camera = !camera;
+        }
 
       };
-
-      
-
     </script>
 
   </head>

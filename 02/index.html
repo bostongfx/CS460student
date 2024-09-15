@@ -2,7 +2,7 @@
   <head>
     <title>CS460.org Assignment 2</title>
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-    <script type="text/javascript" src="02/loader.js"></script>
+    <script src="/02/loader.js"></script> <!--PLEASE NOTE INITIAL PATHING FOR LOCALHOST USES /02/-->
     <style>
       body {
         background-color:#000;
@@ -12,7 +12,103 @@
         overflow: hidden !important; 
       }
     </style>
+    <script>
+        // Values below provided by hints in part 2
+        CUBE_SIDELENGTH = 10;
+        GAP = 2;
 
+        togglerotateCamera = false; // Boolean to toggle given in instructions part 7
+  
+        // Note the code below for onload and generating a cube was taken from professor Haehn's slides and teachings.
+        window.onload = function() {
+          r = new X.renderer3D();
+          r.init();
+          c = new X.cube();
+          c.color = [1, 1, 1]; 
+          c.center = [0, 0, 0];
+          r.add(c);
+  
+          // This code snippet direct inspiration from part 7 code snippet given, made into a toggle check as per instructions using if statmeent
+          r.onRender = function() {
+          if (togglerotateCamera) {
+            r.camera.rotate([1, 0]);
+          }
+        };
+          r.render();
+        };
+  
+        // Note: Code below is directly inspired by Assignment 2 instructions, provided by Professor Haehn. (Part 2)
+        // Listen for keypress events
+        window.onkeypress = function(e) {
+          // Move right when 'D' clicked
+          if (e.code === 'KeyD') {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+          } 
+          // Move left when 'A' clicked
+          else if (e.code === 'KeyA') {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP);
+          } 
+          // Move forward when 'W' clicked
+          else if (e.code === 'KeyW') {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP);
+          } 
+          // Move backward when 'S' clicked
+          else if (e.code === 'KeyS') {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+          } 
+          // Move up when 'Q' clicked
+          else if (e.code === 'KeyQ') {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+          } 
+          // Move down when 'E' clicked
+          else if (e.code === 'KeyE') {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+          }
+        // Note this code is inspired by Assignment 2 instructions hint, provided by Professor Haehn. (Part 3)
+        if (e.code === 'Digit1') {
+          c.color = [1, 1, 1];  // White
+        } else if (e.code === 'Digit2') {
+          c.color = [1, 0, 0];  // Red
+        } else if (e.code === 'Digit3') {
+          c.color = [0, 1, 0];  // Green
+        } else if (e.code === 'Digit4') {
+          c.color = [0, 0, 1];  // Blue
+        } else if (e.code === 'Digit5') {
+          c.color = [1, 1, 0];  // Yellow
+        } else if (e.code === 'Digit6') {
+          c.color = [1, 0, 1];  // Pink 
+        } else if (e.code === 'Digit7') {
+          c.color = [0, 1, 1];  // Cyan
+        } else if (e.code === 'Digit0') {
+          c.color = [0, 0, 0];  // Black
+        }
+
+          // Note code is EXACTLY copied from Assignment 2 instructions, provided by Professor Haehn (Part 4). What it does:creates a new cube with the selected color and position.
+          if (e.code === 'Space') {
+          var new_cube = new X.cube();
+          new_cube.color = c.color;
+          new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+          new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+          r.add(new_cube);
+        }
+
+  // Part 5 coded out
+  if (e.code === 'KeyO') {
+    console.log("Download triggered");  // The code wasnt working, used console to try to debug *edit: Issue was pathing for loader.js
+    download(); 
+  }
+
+  if (e.code === 'KeyL') {
+    upload('scene.json');  
+  }
+
+  // Part 7 toggle for camera rotation
+  if (e.code === 'KeyB') {
+          togglerotateCamera = !togglerotateCamera;  // Toggle the boolean
+        }
+          r.render();
+        };
+      </script>
   </head>
   <body>
   </body>

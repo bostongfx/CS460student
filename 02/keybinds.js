@@ -1,6 +1,5 @@
 CUBE_SIDELENGTH = 10
 GAP = 2
-let toggleRotate = false
 document.addEventListener('keypress', e => {
     const key = e.key 
     switch (key) { 
@@ -84,16 +83,7 @@ document.addEventListener('keypress', e => {
             break;  
             
         case 'b':
-
             toggleRotate = !toggleRotate
-            debugger
-            if (toggleRotate) {
-                r.onRender = function () {
-                    if (toggleRotate) r.camera.rotate([1,0])
-                }
-            } else {
-                r.onRender = null
-            }
             break;
     }
 })

@@ -10,6 +10,46 @@
         overflow: hidden !important; 
       }
     </style>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script>
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+      const COLORS = [[0,0,0], [1,1,1], [1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1]];
+      window.onload = function() {
+
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube(CUBE_SIDELENGTH);
+        c.color = [1, 1, 1]; // r g b
+        c.center = [CUBE_SIDELENGTH, 0, 0]; // x y z
+        
+        r.add(c);
+        r.render();
+
+      };
+      window.onkeypress = function(e){
+        if(e.code == 'KeyA'){
+          c.transform.translateX(CUBE_SIDELENGTH + GAP);
+        } else if(e.code == 'KeyD'){
+          c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+        } else if(e.code == 'KeyW'){
+          c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+        } else if(e.code == 'KeyS'){
+          c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+        } else if(e.code == 'KeyQ'){
+          c.transform.translateY(CUBE_SIDELENGTH + GAP);
+        } else if(e.code == 'KeyE'){
+          c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+        } else if(e.key>=0 && e.key<8){
+          c.color = COLORS[e.key];
+        }
+        //O = Download
+        //L = Upload
+        //B = toggleRotate
+        //Space = add new cube
+      }
+    </script>
   </head>
   <body>
   </body>

@@ -3,6 +3,7 @@
     <title>CS460.org Assignment 2</title>
 
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
 
     <style>
       body {
@@ -18,7 +19,7 @@
       // Define constants
       const CUBE_SIDELENGTH = 10;
       const GAP = 2;
-
+ 
       // Function to create a 3D cube
       window.onload = function() {
       
@@ -113,8 +114,18 @@
             new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
 
             r.add(new_cube);
-            
           }
+
+          // Type Key O means downloading the scene
+          else if (e.code == 'KeyO') {
+            download();
+          }
+
+          // Type Key L means uploading the scene
+          else if (e.code == 'KeyL') {
+            upload("scene.json");
+          }
+
       }
     </script>
 

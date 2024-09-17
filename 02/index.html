@@ -1,6 +1,7 @@
 <html>
   <head>
-    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>;
+    <script type = "text/javascript" src="loader.js"></script>;
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -82,9 +83,19 @@
           else if (e.code == 'Digit6') {
             c.color = [1, 0, 1];
           } 
-
+          // change cube color to cyan
           else if (e.code == 'Digit7') {
             c.color = [0, 1, 1];
+          }
+          
+
+          else if (e.code == 'KeySpacebar') {
+            new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+
+            r.add(new_cube);
           }
         } 
 

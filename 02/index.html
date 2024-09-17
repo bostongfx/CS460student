@@ -17,10 +17,15 @@
 
   window.onload = function() { 
 
-    camera = new X.camera(0, 0);
     CUBE_SIDELENGTH = 10;
     GAP = 2;
+
     isCameraSpinning = false;
+
+    cameras = [];
+    currentCamera = 0;
+    isCameraAuto = false;
+    cameraTimer = null;
 
     r = new X.renderer3D();
     r.init();
@@ -35,7 +40,7 @@
 
 </script>
 
-<script src = "loader.js"></script>
+<script type = "text/javascript" src = "loader.js"></script>
 
 <script> 
   window.onkeypress = function(key){
@@ -93,11 +98,11 @@
 
     // Place cube
     if (key.code == "Space"){
-    new_cube = new X.cube();
-    new_cube.color = c.color;
-    new_cube.transform.matrix = new Float32Array(c.transform.matrix);
-    new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
-    r.add(new_cube);
+      new_cube = new X.cube();
+      new_cube.color = c.color;
+      new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+      new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+      r.add(new_cube);
     }
 
     // loader.js method calls
@@ -121,10 +126,33 @@
       }
     }
 
+    // Automatic Camera Movement
+    // Store Current Camera
+    if (key.code == "KeyC"){
+      cameras.push(r.camera.view);
+    }
+    // Toggle Camera Loop
+    else if (key.code == "KeyV"){
+      isCameraAuto = !isCameraAuto;
+      if (isCameraAuto){
+        cameraTimer = setInterval(intervalID, 1000);
+      }
+      else{
+        clearInterval(cameraTimer);
+      }
+    }
   }
 
 </script>
-
+<script>
+  function intervalID(){
+    currentCamera = (currentCamera + 1) % cameras.length;
+    r.onRender = function(){
+      r.camera.view = new Float32Array(Object.values(cameras[currentCamera]));
+    }
+    console.log(currentCamera);
+    }
+</script>
   </head>
   <body>
   </body>

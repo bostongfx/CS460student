@@ -67,6 +67,11 @@
         } if (e.code === 'KeyL') {
           console.log("uploaded");
           upload("scene.json");
+        } if (e.code === 'KeyB') {
+          r.onRender = function() {
+          // spin the camera in X direction by 1 degree
+          r.camera.rotate([1, 0]);
+          }
         }
 
       });

@@ -1,16 +1,99 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
     <title>CS460.org Assignment 2</title>
     <style>
       body {
-        background-color:#000;
+        background-color:#000000;
         margin: 0;
         padding: 0;
         height: 100%;
         overflow: hidden !important; 
       }
     </style>
+    <script> 
+
+      window.onload = function() {
+
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube();
+        c.color = [1, 1, 1]; //r g b
+        c.center = [10, 0, 0]; // x y z
+        
+        r.add(c);
+        r.render();
+
+        CUBE_SIDELENGTH = 10;
+        GAP = 2;
+
+        window.onkeypress = function(e) {
+          
+          if (e.code == 'KeyD') { // D --> moves right
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+          }
+          // A --> moves left
+          else if (e.code == 'KeyA') { 
+            c.transform.translateX(CUBE_SIDELENGTH + GAP);
+          } 
+          // S moves down
+          else if (e.code == 'KeyS') { 
+            c.transform.translateZ(-CUBE_SIDELENGTH + GAP);
+          } 
+          // W moves up
+          else if (e.code == 'KeyW') { 
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+          } 
+          // Q moves back
+          else if (e.code == 'KeyQ') { 
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+          } 
+          // E moves forward
+          else if (e.code == 'KeyE') { 
+            c.transform.translateY(CUBE_SIDELENGTH + GAP);
+          }
+
+          // change cube color to black
+          else if (e.code == 'Digit0') {
+            c.color = [0, 0, 0];
+          } 
+          // change cube color to white
+          else if (e.code == 'Digit1') {
+            c.color = [1, 1, 1];
+          }
+          // change cube color to red
+          else if (e.code == 'Digit2') {
+            c.color = [1, 0, 0];
+          } 
+          // change cube color to green
+          else if (e.code == 'Digit3') {
+            c.color = [0, 1, 0];
+          } 
+          // change cube color to blue 
+          else if (e.code == 'Digit4') {
+            c.color = [0, 0, 1];
+          } 
+          // change cube color to yellow
+          else if (e.code == 'Digit5') {
+            c.color = [1, 1, 0];
+          } 
+          // change cube color to pink
+          else if (e.code == 'Digit6') {
+            c.color = [1, 0, 1];
+          } 
+
+          else if (e.code == 'Digit7') {
+            c.color = [0, 1, 1];
+          }
+        } 
+
+    };
+
+    </script>
+
   </head>
+  
   <body>
   </body>
 </html>

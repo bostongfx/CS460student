@@ -52,22 +52,22 @@
         // Listen for keypress events to move the cube
         window.onkeypress = function(e) {
           switch(e.code) {
-            case 'KeyD': // Move right (x-axis positive)
+            case 'KeyA': // Move left (x-axis positive)
               c.transform.translateX(CUBE_SIDELENGTH - GAP);
               break;
-            case 'KeyA': // Move left (x-axis negative)
+            case 'KeyD': // Move right (x-axis negative)
               c.transform.translateX(-(CUBE_SIDELENGTH + GAP));
               break;
-            case 'KeyQ': // Move up (y-axis positive)
+            case 'KeyQ': // Move forward (y-axis positive)
               c.transform.translateY(CUBE_SIDELENGTH - GAP);
               break;
-            case 'KeyE': // Move down (y-axis negative)
+            case 'KeyE': // Move backward (y-axis negative)
               c.transform.translateY(-(CUBE_SIDELENGTH + GAP));
               break;
-            case 'KeyS': // Move forward (z-axis positive)
+            case 'KeyW': // Move up(z-axis positive)
               c.transform.translateZ(CUBE_SIDELENGTH - GAP);
               break;
-            case 'KeyW': // Move backward (z-axis negative)
+            case 'KeyS': // Move down (z-axis negative)
               c.transform.translateZ(-(CUBE_SIDELENGTH + GAP));
             // Change color based on keypress
             case 'Digit1': 

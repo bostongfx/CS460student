@@ -18,9 +18,13 @@
         /* Constants */
         const CUBE_SIDELENGTH = 10; // Length of a side of a cube
         const GAP = 2; // The gap between cubes
+        CAMERAS = [] // Global CAMERAS list
+        currentCamera = 0; // Index of the current camera
+        let intervalID; // Interval ID
 
         /* Flags */
         let rotateFlag = true; // Used for enabling/disabling rotation
+        let cameraFlag = true; // Used for enabling/disabling camera rotation
 
         /* Initialize renderer and cube */
         r = new X.renderer3D();
@@ -49,7 +53,7 @@
           }
 
           /* Colors */
-          if (e.code === "Digit1") {
+            else if (e.code === "Digit1") {
             c.color = [1, 1, 1]; // Make cube white
           } else if (e.code === "Digit2") {
             c.color = [1, 0, 0]; // Make cube red
@@ -68,35 +72,56 @@
           }
 
           /* Make new cube*/
-          if (e.code === "Space") {
-            let new_cube = new X.cube();
-            new_cube.color = c.color;
-            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
-            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
-
-            r.add(new_cube);
+            else if (e.code === "Space") {
+              let new_cube = new X.cube();
+              new_cube.color = c.color;
+              new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+              new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+              r.add(new_cube);
           }
 
           /* Upload/Download Scene */
-          if (e.code === "KeyO") {
+            else if (e.code === "KeyO") {
             download();
           } else if (e.code === "KeyL") {
             upload("scene.json");
           }
 
           /* Rotate */
-          if (e.code === "KeyB") {
-            if (rotateFlag) {
-              r.onRender = function() {
-                r.camera.rotate([1, 0]);
-                rotateFlag = false;
-              }
-            } else {
-              r.onRender = function() {
-                r.camera.rotate([0, 0]);
-                rotateFlag = true;
+            else if (e.code === "KeyB") {
+              if (rotateFlag) {
+                r.onRender = function() {
+                  r.camera.rotate([1, 0]);
+                  rotateFlag = false;
+                }
+              } else {
+                r.onRender = function() {
+                  r.camera.rotate([0, 0]);
+                  rotateFlag = true;
               }
             }
+          }
+
+          /* Store current camera/toggle camera loop */
+            else if (e.code === "KeyC") {
+              CAMERAS.push(new Float32Array(Object.values(r.camera.view)));
+          } else if (e.code === "KeyV") {
+              if (cameraFlag) {
+                intervalID = setInterval(func, 1000);
+                cameraFlag = false;
+              } else {
+                clearInterval(intervalID);
+                cameraFlag = true;
+              }
+
+              function func() {
+                if (currentCamera <= CAMERAS.length - 1) {
+                  r.camera.view = new Float32Array(Object.values(CAMERAS[currentCamera++]));
+                } else if (currentCamera === CAMERAS.length) {
+                  currentCamera = 0;
+                  r.camera.view = CAMERAS[currentCamera++];
+                }
+              }
           }
         }
       }

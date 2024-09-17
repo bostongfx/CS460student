@@ -23,7 +23,7 @@
         let rotateFlag = true; // Used for enabling/disabling rotation
 
         /* Initialize renderer and cube */
-        let r = new X.renderer3D();
+        r = new X.renderer3D();
         r.init();
         c = new X.cube();
         c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH;
@@ -34,39 +34,41 @@
         window.onkeypress = function(e) {
 
           /* Movement */
-          if (e.code == "KeyD") {
+          if (e.code === "KeyD") {
             c.transform.translateX(-CUBE_SIDELENGTH - GAP); // Move left
-          } else if (e.code == "KeyA") {
+          } else if (e.code === "KeyA") {
             c.transform.translateX(CUBE_SIDELENGTH + GAP); // Move right
-          } else if (e.code == "KeyS") {
+          } else if (e.code === "KeyS") {
             c.transform.translateZ(-CUBE_SIDELENGTH - GAP); // Move down
-          } else if (e.code == "KeyW") {
+          } else if (e.code === "KeyW") {
             c.transform.translateZ(CUBE_SIDELENGTH + GAP); // Move up
-          } else if (e.code == "KeyQ") {
+          } else if (e.code === "KeyQ") {
             c.transform.translateY(CUBE_SIDELENGTH + GAP); // Move forward
-          } else if (e.code == "KeyE") {
+          } else if (e.code === "KeyE") {
             c.transform.translateY(-CUBE_SIDELENGTH - GAP); // Move backward
           }
 
           /* Colors */
-          if (e.code == "Digit1") {
+          if (e.code === "Digit1") {
             c.color = [1, 1, 1]; // Make cube white
-          } else if (e.code == "Digit2") {
+          } else if (e.code === "Digit2") {
             c.color = [1, 0, 0]; // Make cube red
-          } else if (e.code == "Digit3") {
+          } else if (e.code === "Digit3") {
             c.color = [0, 1, 0]; // Make cube green
-          } else if (e.code == "Digit4") {
+          } else if (e.code === "Digit4") {
             c.color = [0, 0, 1]; // Make cube blue
-          } else if (e.code == "Digit5") {
+          } else if (e.code === "Digit5") {
             c.color = [1, 1, 0]; // Make cube yellow
-          } else if (e.code == "Digit6") {
+          } else if (e.code === "Digit6") {
             c.color = [1, 0.75, 0.8]; // Make cube pink
-          } else if (e.code == "Digit7") {
+          } else if (e.code === "Digit7") {
             c.color = [0, 1, 1]; // Make cube cyan
+          } else if (e.code === "Digit0") {
+            c.color = [0, 0, 0]; // Make cube black
           }
 
           /* Make new cube*/
-          if (e.code == "Space") {
+          if (e.code === "Space") {
             let new_cube = new X.cube();
             new_cube.color = c.color;
             new_cube.transform.matrix = new Float32Array(c.transform.matrix);
@@ -76,14 +78,14 @@
           }
 
           /* Upload/Download Scene */
-          if (e.code == "KeyO") {
+          if (e.code === "KeyO") {
             download();
-          } else if (e.code == "KeyL") {
+          } else if (e.code === "KeyL") {
             upload("scene.json");
           }
 
           /* Rotate */
-          if (e.code == "KeyB") {
+          if (e.code === "KeyB") {
             if (rotateFlag) {
               r.onRender = function() {
                 r.camera.rotate([1, 0]);

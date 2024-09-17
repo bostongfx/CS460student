@@ -19,8 +19,11 @@
       // Define constants
       const CUBE_SIDELENGTH = 10;
       const GAP = 2;
+
+      // Define boolean variable rotating for rotation state
+      var rotating = false;
  
-      // Function to create a 3D cube
+      // Function to create a 3D cube & rotate it
       window.onload = function() {
       
           r = new X.renderer3D();
@@ -31,6 +34,14 @@
 
           r.add(c);
           r.render();
+
+          // Rotating function (depends on the rotation state)
+          r.onRender = function() {
+            if(rotating) {
+              // spin the camera in X direction by 1 degree
+              r.camera.rotate([1, 0]);
+            }
+          }
       } 
 
       //Function that is listening to keyboard events
@@ -93,12 +104,12 @@
 
           // Type 6 means changing the color of the cube to pink 
           else if (e.code == 'Digit6') {
-            c.color = [0.66, 0.2, 0.58];
+            c.color = [1, 0, 1];
           } 
 
           // Type 7 means changing the color of the cube to cyan
           else if (e.code == 'Digit7') {
-            c.color = [0, 255, 255];
+            c.color = [0, 1, 1];
           }
 
           // Type 0 means changing the color of the cube to black
@@ -124,6 +135,11 @@
           // Type Key L means uploading the scene
           else if (e.code == 'KeyL') {
             upload("scene.json");
+          }
+
+          // Type Key B means rotating on/off the scene
+          else if (e.code == 'KeyB') {
+            rotating = !rotating;
           }
 
       }

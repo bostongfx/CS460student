@@ -10,7 +10,49 @@
         overflow: hidden !important; 
       }
     </style>
-  </head>
+  <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+  <style>
+      body {
+          background: #f0f0f0;
+          margin: 0px;
+          padding: 0px;
+      }
+  </style>
+  <script>
+      // wait until everything is loaded
+      // if you want privacy, you can add 'var'
+      window.onload = function() {
+          // create a new X.renderer
+          r = new X.renderer3D();
+          r.init();
+          
+          c = new X.cube();
+          c.color = [0, 1, 1];
+          c.center = [50, 0, 0];
+
+          c2 = new X.cube();
+          c2.color = [1, 0, 1];
+
+          // add the mesh
+          r.add(c);
+          r.add(c2);
+
+          for (var i = 0; i < 10; i++) {
+              var c_i = new X.cube();
+              c_i.center = [30*i, 0, 0];
+              r.add(c_i);
+          }
+          
+          window.onkeypress = function(e){
+            if (e.keyCode == 97) {
+              c.center = [c.center[0]-1, c.center[1], c.center[2]];
+            }
+          }
+          // .. and render it
+          r.render();
+      };
+    </script>
+    </head>
   <body>
   </body>
 </html>

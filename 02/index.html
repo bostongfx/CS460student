@@ -11,10 +11,19 @@
       }
     </style>
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
     <script>
       const CUBE_SIDELENGTH = 10;
-      const GAP = 2;
+      const GAP = 1;
       const COLORS = [[0,0,0], [1,1,1], [1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1]];
+      var rotateVal = 0;
+      function makeCube(c, r){
+        newCube = new X.cube();
+        newCube.lengthX = newCube.lengthY = newCube.lengthZ = CUBE_SIDELENGTH;
+        newCube.transform.matrix = new Float32Array(c.transform.matrix);
+        newCube.color = c.color;
+        r.add(newCube);
+      }
       window.onload = function() {
 
         r = new X.renderer3D();
@@ -22,11 +31,14 @@
 
         c = new X.cube(CUBE_SIDELENGTH);
         c.color = [1, 1, 1]; // r g b
-        c.center = [CUBE_SIDELENGTH, 0, 0]; // x y z
+        c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH;
+        c.center = [0, 0, 0]; // x y z
         
         r.add(c);
         r.render();
-
+        r.onRender = function(){
+          r.camera.rotate([rotateVal,0]);
+        }
       };
       window.onkeypress = function(e){
         if(e.code == 'KeyA'){
@@ -41,14 +53,19 @@
           c.transform.translateY(CUBE_SIDELENGTH + GAP);
         } else if(e.code == 'KeyE'){
           c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+        } else if(e.code == 'KeyO'){
+          download();
+        } else if(e.code == 'KeyL'){
+          upload("scene.json");
+        } else if(e.code == 'Space'){
+          makeCube(c, r);
+        } else if(e.code == 'KeyB'){
+          rotateVal = 1-rotateVal;
         } else if(e.key>=0 && e.key<8){
           c.color = COLORS[e.key];
         }
-        //O = Download
-        //L = Upload
-        //B = toggleRotate
-        //Space = add new cube
       }
+
     </script>
   </head>
   <body>

@@ -13,6 +13,9 @@
       }
     </style>
     <script>
+
+      let isSpinning = false;
+
       window.onload = function () {
         r = new X.renderer3D();
         r.init();
@@ -67,16 +70,22 @@
         } if (e.code === 'KeyL') {
           console.log("uploaded");
           upload("/02/scene.json");
-        } if (e.code === 'KeyB') {
-          r.onRender = function() {
-          // spin the camera in X direction by 1 degree
-          r.camera.rotate([1, 0]);
+        } 
+        if (e.code === 'KeyB') {
+          if (!isSpinning) {
+            // Start spinning
+            r.onRender = function () {
+              r.camera.rotate([1, 0]); // Rotate 1 degree in the X direction
+            };
+            isSpinning = true; // Update flag
+          } else {
+            // Stop spinning
+            r.onRender = null; // Remove the onRender function to stop spinning
+            isSpinning = false; // Update flag
           }
         }
-
       });
 
-      
     </script>
 
 

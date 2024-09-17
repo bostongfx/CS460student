@@ -1,5 +1,8 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -11,6 +14,129 @@
       }
     </style>
   </head>
-  <body>
+  <body> 
+  <script>
+
+    CUBE_SIDELENGTH = 10;
+    GAP = 2;
+    rotating = false;
+
+    window.onload = function() {
+      
+      r = new X.renderer3D();
+      r.init();
+
+      c = new X.cube();
+      c.color = [0.7, 0, 0.9];
+      c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH + 0.001;
+
+      r.render();
+      r.add(c);
+    };
+
+    window.onkeypress = function(e) {
+      let cubes = [];
+      switch (e.code) {
+        
+        case 'KeyD':
+        c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+        break;
+
+        
+        case 'KeyA':
+        c.transform.translateX(CUBE_SIDELENGTH + GAP);
+        break;
+
+       
+        case 'KeyW':
+        c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+        break;
+
+        case 'KeyS':
+        c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+        break;
+
+        case 'KeyE':
+        c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+        break;
+
+        case 'KeyQ':
+        c.transform.translateY(CUBE_SIDELENGTH + GAP);
+        break;
+
+        case 'Digit1':
+        c.color = [1, 1, 1];
+        break;
+
+        case 'Digit2':
+        c.color = [1, 0, 0];
+        break;
+
+        case 'Digit3':
+        c.color = [0, 1, 0];
+        break;
+
+        case 'Digit4':
+        c.color = [0, 0, 1];
+        break;
+          
+        case 'Digit5':
+        c.color = [1, 1, 0];
+        break;
+
+        case 'Digit6':
+        c.color = [1, 0.7, 0.8];
+        break;
+
+        case 'Digit7':
+        c.color = [0, 1, 1];
+        break;
+
+        case 'Space':
+        console.log("ADDING");
+        new_cube = new X.cube();
+        new_cube.color = c.color;
+        new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+        new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+        r.add(new_cube);
+        cubes.push(new_cube);
+        break;
+
+        case 'KeyO':
+        download();
+        break;
+
+        case 'KeyL':
+        upload("scene.json");
+        break;
+
+        case 'KeyB':
+        if (rotating) {
+          rotating = false;
+          //stop spining
+          r.onRender = function() {}
+        } else {
+          rotating = true;
+          //spin
+          r.onRender = function() {
+            r.camera.rotate([1,0]);
+          }
+        }
+        break;
+
+        default:
+        break;
+      }
+
+      cubes.forEach(cube => {
+        console.log("TESTING " + cube.center + c.center);
+        if (c.center == cube.center) {
+          console.log("TESTING 2 ");
+          c.color = [0,0,0];
+        }
+      });
+    };
+
+  </script>
   </body>
 </html>

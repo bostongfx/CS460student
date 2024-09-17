@@ -69,27 +69,23 @@
       
         } if (e.code === 'KeyL') {
           console.log("uploaded");
-          upload("/02/scene.json");
+          upload("scene.json");
         } 
         if (e.code === 'KeyB') {
           if (!isSpinning) {
-            // Start spinning
             r.onRender = function () {
-              r.camera.rotate([1, 0]); // Rotate 1 degree in the X direction
+              r.camera.rotate([1, 0]); 
             };
-            isSpinning = true; // Update flag
+            isSpinning = true;
           } else {
-            // Stop spinning
-            r.onRender = null; // Remove the onRender function to stop spinning
-            isSpinning = false; // Update flag
+            r.onRender = null;
+            isSpinning = false;
           }
         }
       });
 
     </script>
-
-
-
   </head>
   <body></body>
 </html>
+

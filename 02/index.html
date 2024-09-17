@@ -47,36 +47,28 @@
 
         // add the cube
         r.add(c);
-          
-        // Function to move the cube based on key
-        const moveCube = (axis, amount) => {
-          switch(axis) {
-            case 'x': c.transform.translateX(amount); break;
-            case 'y': c.transform.translateY(amount); break;
-            case 'z': c.transform.translateZ(amount); break;
-          }
-        };
+      
 
         // Listen for keypress events to move the cube
         window.onkeypress = function(e) {
           switch(e.code) {
             case 'KeyD': // Move right (x-axis positive)
-              moveCube('x', CUBE_SIDELENGTH - GAP);
+              c.transform.translateX(CUBE_SIDELENGTH - GAP);
               break;
             case 'KeyA': // Move left (x-axis negative)
-              moveCube('x', -(CUBE_SIDELENGTH + GAP));
+              c.transform.translateX(-(CUBE_SIDELENGTH + GAP));
               break;
             case 'KeyQ': // Move up (y-axis positive)
-              moveCube('y', CUBE_SIDELENGTH - GAP);
+              c.transform.translateY(CUBE_SIDELENGTH - GAP);
               break;
             case 'KeyE': // Move down (y-axis negative)
-              moveCube('y', -(CUBE_SIDELENGTH + GAP));
+              c.transform.translateY(-(CUBE_SIDELENGTH + GAP));
               break;
             case 'KeyS': // Move forward (z-axis positive)
-              moveCube('z', CUBE_SIDELENGTH - GAP);
+              c.transform.translateZ(CUBE_SIDELENGTH - GAP);
               break;
             case 'KeyW': // Move backward (z-axis negative)
-              moveCube('z', -(CUBE_SIDELENGTH + GAP));
+              c.transform.translateZ(-(CUBE_SIDELENGTH + GAP));
             // Change color based on keypress
             case 'Digit1': 
             case 'Digit2': 

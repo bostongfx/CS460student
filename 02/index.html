@@ -10,49 +10,106 @@
         overflow: hidden !important; 
       }
     </style>
-  <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-  <style>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <style>
       body {
           background: #f0f0f0;
           margin: 0px;
           padding: 0px;
       }
-  </style>
-  <script>
+    </style>
+    <script>
+      // Define constants for movement
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+
+      // Define color map for keys 1-7 and 0
+      const colorMap = {
+        'Digit1': [1, 1, 1],    // white
+        'Digit2': [1, 0, 0],    // red
+        'Digit3': [0, 1, 0],    // green
+        'Digit4': [0, 0, 1],    // blue
+        'Digit5': [1, 1, 0],    // yellow
+        'Digit6': [1, 0, 1],    // pink
+        'Digit7': [0, 1, 1],    // cyan
+        'Digit0': [0, 0, 0]     // black
+      };
+
       // wait until everything is loaded
-      // if you want privacy, you can add 'var'
       window.onload = function() {
-          // create a new X.renderer
-          r = new X.renderer3D();
-          r.init();
+        // create a new X.renderer
+        var r = new X.renderer3D();
+        r.init();
           
-          c = new X.cube();
-          c.color = [0, 1, 1];
-          c.center = [50, 0, 0];
+        var c = new X.cube();
+        c.color = [0, 1, 1];  // cyan cube
+        c.center = [50, 0, 0];
 
-          c2 = new X.cube();
-          c2.color = [1, 0, 1];
-
-          // add the mesh
-          r.add(c);
-          r.add(c2);
-
-          for (var i = 0; i < 10; i++) {
-              var c_i = new X.cube();
-              c_i.center = [30*i, 0, 0];
-              r.add(c_i);
-          }
+        // add the cube
+        r.add(c);
           
-          window.onkeypress = function(e){
-            if (e.keyCode == 97) {
-              c.center = [c.center[0]-1, c.center[1], c.center[2]];
-            }
+        // Function to move the cube based on key
+        const moveCube = (axis, amount) => {
+          switch(axis) {
+            case 'x': c.transform.translateX(amount); break;
+            case 'y': c.transform.translateY(amount); break;
+            case 'z': c.transform.translateZ(amount); break;
           }
-          // .. and render it
-          r.render();
+        };
+
+        // Listen for keypress events to move the cube
+        window.onkeypress = function(e) {
+          switch(e.code) {
+            case 'KeyD': // Move right (x-axis positive)
+              moveCube('x', CUBE_SIDELENGTH - GAP);
+              break;
+            case 'KeyA': // Move left (x-axis negative)
+              moveCube('x', -(CUBE_SIDELENGTH + GAP));
+              break;
+            case 'KeyQ': // Move up (y-axis positive)
+              moveCube('y', CUBE_SIDELENGTH - GAP);
+              break;
+            case 'KeyE': // Move down (y-axis negative)
+              moveCube('y', -(CUBE_SIDELENGTH + GAP));
+              break;
+            case 'KeyS': // Move forward (z-axis positive)
+              moveCube('z', CUBE_SIDELENGTH - GAP);
+              break;
+            case 'KeyW': // Move backward (z-axis negative)
+              moveCube('z', -(CUBE_SIDELENGTH + GAP));
+            // Change color based on keypress
+            case 'Digit1': 
+            case 'Digit2': 
+            case 'Digit3': 
+            case 'Digit4': 
+            case 'Digit5': 
+            case 'Digit6': 
+            case 'Digit7': 
+            case 'Digit0':
+              c.color = colorMap[e.code]; // Update color based on key
+              break;
+          }
+        };
+        // Add new cube when SPACE is pressed
+        window.onkeydown = function(e) {
+          if (e.code == 'Space') {
+            // Create a new cube with the same color and position as the current one
+            var new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix); // Copy current cube's position
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH; // Set cube size
+            r.add(new_cube); // Add the new cube to the scene
+
+            // Optional: adjust new cube's position slightly so it's not exactly on top of the current cube
+            new_cube.transform.translateX(CUBE_SIDELENGTH + GAP); 
+          }
+        };
+          
+        // Render the scene with the cube
+        r.render();
       };
     </script>
-    </head>
+  </head>
   <body>
   </body>
 </html>

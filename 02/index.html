@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
   <head>
     <title>CS460.org Assignment 2</title>
     <style>
@@ -18,6 +18,8 @@
         /* Constants */
         const CUBE_SIDELENGTH = 10; // Length of a side of a cube
         const GAP = 2; // The gap between cubes
+
+        /* Global/Local Variables */
         CAMERAS = [] // Global CAMERAS list
         currentCamera = 0; // Index of the current camera
         let intervalID; // Interval ID
@@ -107,14 +109,15 @@
               CAMERAS.push(new Float32Array(Object.values(r.camera.view)));
           } else if (e.code === "KeyV") {
               if (cameraFlag) {
-                intervalID = setInterval(func, 1000);
+                intervalID = setInterval(camSwitch, 1000);
                 cameraFlag = false;
               } else {
                 clearInterval(intervalID);
                 cameraFlag = true;
               }
 
-              function func() {
+              /* Helper function used to cycle through the cameras in the CAMERAS array */
+              function camSwitch() {
                 if (currentCamera <= CAMERAS.length - 1) {
                   r.camera.view = new Float32Array(Object.values(CAMERAS[currentCamera++]));
                 } else if (currentCamera === CAMERAS.length) {

@@ -16,7 +16,7 @@ function download() {
   // create JSON object
   var out = {};
   out['cubes'] = ALL_CUBES;
-  out['camera'] = CAMERAS;
+  out['camera'] = CAMERAS; // Change value to the CAMERAS array
 
   // from https://stackoverflow.com/a/30800715
   var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out));

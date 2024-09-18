@@ -1,16 +1,96 @@
 <html>
   <head>
     <title>CS460.org Assignment 2</title>
+    <script
+      type="text/javascript"
+      src="https://get.goXTK.com/xtk_edge.js"
+    ></script>
     <style>
       body {
-        background-color:#000;
+        background-color: #000;
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important; 
+        overflow: hidden !important;
       }
     </style>
+    <script type="text/javascript" src="./loader.js"></script>
+    <script>
+      // Constants
+      const CUBE_SIDELENGTH = 20;
+      const GAP = 2;
+      let isRotating = false;
+
+      // Function renders main cube
+      window.onload = function () {
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube();
+        c.color = [1, 1, 1];
+
+        r.add(c);
+        r.render();
+
+        // Commands to modify cube on keypress
+        window.onkeypress = function (e) {
+          if (e.code == "KeyD") {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP); // move right
+          } else if (e.code == "KeyA") {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP); // move left
+          } else if (e.code == "KeyQ") {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP); // move forward
+          } else if (e.code == "KeyE") {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP); // move backward
+          } else if (e.code == "KeyW") {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP); // move up
+          } else if (e.code == "KeyS") {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP); // move down
+          } else if (e.code == "Digit1") {
+            c.color = [1, 1, 1]; // white
+          } else if (e.code == "Digit2") {
+            c.color = [1, 0, 0]; // red
+          } else if (e.code == "Digit3") {
+            c.color = [0, 1, 0]; // green
+          } else if (e.code == "Digit4") {
+            c.color = [0, 0, 1]; // blue
+          } else if (e.code == "Digit5") {
+            c.color = [1, 1, 0]; // yellow
+          } else if (e.code == "Digit6") {
+            c.color = [1, 0.75, 0.8]; // pink
+          } else if (e.code == "Digit7") {
+            c.color = [0, 1, 1]; // cyan
+          } else if (e.code == "Digit0") {
+            c.color = [0, 0, 0]; // black
+          } else if (e.code == "Space") {
+            // Place cube on screen
+            new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX =
+              new_cube.lengthY =
+              new_cube.lengthZ =
+                CUBE_SIDELENGTH;
+            r.add(new_cube);
+          } else if (e.code == "KeyO") {
+            download(); // download json of current layout of cubes
+          } else if (e.code == "KeyL") {
+            upload("scene.json"); // upload json of layout of cubes from scene.json
+          } else if (e.code === "KeyB") {
+            // rotate camera
+            if (!isRotating) {
+              r.onRender = function () {
+                r.camera.rotate([1, 0]);
+              };
+              isRotating = true;
+            } else {
+              r.onRender = r.camera.rotate([0, 0]);
+              isRotating = false;
+            }
+          }
+        };
+      };
+    </script>
   </head>
-  <body>
-  </body>
+  <body></body>
 </html>

@@ -18,14 +18,14 @@
       var r = new X.renderer3D();
       var isRotationOn = true;
 
-      let CUBE_SIDE_LENGTH = 10;
+      let CUBE_SIDELENGTH = 10;
       let GAP = 2;
       
       window.onload = function() {
         r.init();
         
         var cube = new X.cube();
-        cube.lengthX = cube.lengthY = cube.lengthZ = CUBE_SIDE_LENGTH;
+        cube.lengthX = cube.lengthY = cube.lengthZ = CUBE_SIDELENGTH;
         // add the object
         r.add(cube);
       
@@ -40,17 +40,17 @@
       window.onkeypress = function(e) {
         var cube = r.Ha[r.Ha.length - 1];
         if (e.code == 'KeyD') {
-          cube.transform.translateX(-CUBE_SIDE_LENGTH - GAP);
+          cube.transform.translateX(-CUBE_SIDELENGTH - GAP);
         } else if (e.code == 'KeyA') {
-          cube.transform.translateX(CUBE_SIDE_LENGTH + GAP);
+          cube.transform.translateX(CUBE_SIDELENGTH + GAP);
         } else if (e.code == 'KeyW') {
-          cube.transform.translateZ(CUBE_SIDE_LENGTH + GAP);
+          cube.transform.translateZ(CUBE_SIDELENGTH + GAP);
         } else if (e.code == 'KeyS') {
-          cube.transform.translateZ(-CUBE_SIDE_LENGTH - GAP);
+          cube.transform.translateZ(-CUBE_SIDELENGTH - GAP);
         } else if (e.code == 'KeyQ') {
-          cube.transform.translateY(CUBE_SIDE_LENGTH + GAP);
+          cube.transform.translateY(CUBE_SIDELENGTH + GAP);
         } else if (e.code == 'KeyE') {
-          cube.transform.translateY(-CUBE_SIDE_LENGTH - GAP);
+          cube.transform.translateY(-CUBE_SIDELENGTH - GAP);
         } else if (e.code == 'Digit1') {
           // white
           cube.color = [1, 1, 1];
@@ -80,8 +80,8 @@
           var newCube = new X.cube();
           console.log(cube.transform.matrix);
           newCube.transform.matrix = new Float32Array(cube.transform.matrix)
-          newCube.transform.translateX(CUBE_SIDE_LENGTH + GAP);
-          newCube.lengthX = newCube.lengthY = newCube.lengthZ = CUBE_SIDE_LENGTH;
+          newCube.transform.translateX(CUBE_SIDELENGTH + GAP);
+          newCube.lengthX = newCube.lengthY = newCube.lengthZ = CUBE_SIDELENGTH;
           r.add(newCube);
         } else if (e.code == 'KeyO') {
           // download the scene as a JSON file

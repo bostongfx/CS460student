@@ -17,9 +17,13 @@
     <script type="text/javascript" src="./loader.js"></script>
     <script>
       // Constants
-      const CUBE_SIDELENGTH = 20;
-      const GAP = 2;
-      let isRotating = false;
+      const CUBE_SIDELENGTH = 20; // store cude side length
+      const GAP = 2; // store gap between cubes
+      let isRotating = false; // boolean to track camera rotation
+
+      var CAMERAS = []; // CAMERAS list to store camera views
+      let isCycling = false; // boolean to track camera rotation
+      let interval = null; // interval check for camera rotation
 
       // Function renders main cube
       window.onload = function () {
@@ -32,8 +36,8 @@
         r.add(c);
         r.render();
 
-        // Commands to modify cube on keypress
         window.onkeypress = function (e) {
+          // Commands to modify cube on keypress
           if (e.code == "KeyD") {
             c.transform.translateX(-CUBE_SIDELENGTH - GAP); // move right
           } else if (e.code == "KeyA") {
@@ -46,7 +50,10 @@
             c.transform.translateZ(CUBE_SIDELENGTH + GAP); // move up
           } else if (e.code == "KeyS") {
             c.transform.translateZ(-CUBE_SIDELENGTH - GAP); // move down
-          } else if (e.code == "Digit1") {
+          }
+
+          // Commands to modify cube color on keypress
+          else if (e.code == "Digit1") {
             c.color = [1, 1, 1]; // white
           } else if (e.code == "Digit2") {
             c.color = [1, 0, 0]; // red
@@ -62,8 +69,10 @@
             c.color = [0, 1, 1]; // cyan
           } else if (e.code == "Digit0") {
             c.color = [0, 0, 0]; // black
-          } else if (e.code == "Space") {
-            // Place cube on screen
+          }
+
+          // Place cube on screen at current location
+          else if (e.code == "Space") {
             new_cube = new X.cube();
             new_cube.color = c.color;
             new_cube.transform.matrix = new Float32Array(c.transform.matrix);
@@ -72,12 +81,20 @@
               new_cube.lengthZ =
                 CUBE_SIDELENGTH;
             r.add(new_cube);
-          } else if (e.code == "KeyO") {
-            download(); // download json of current layout of cubes
-          } else if (e.code == "KeyL") {
-            upload("scene.json"); // upload json of layout of cubes from scene.json
-          } else if (e.code === "KeyB") {
-            // rotate camera
+          }
+
+          // download json of current layout of cubes
+          else if (e.code == "KeyO") {
+            download();
+          }
+
+          // upload json of layout of cubes from scene.json
+          else if (e.code == "KeyL") {
+            upload("scene.json");
+          }
+
+          // rotate camera view with the B key
+          else if (e.code === "KeyB") {
             if (!isRotating) {
               r.onRender = function () {
                 r.camera.rotate([1, 0]);
@@ -88,9 +105,41 @@
               isRotating = false;
             }
           }
+
+          // Stores current camera view into the CAMERAS list
+          if (e.code == "KeyC") {
+            CAMERAS[CAMERAS.length] = new Float32Array(r.camera.view);
+            console.log("Camera view stored");
+          }
+
+          // cycles through camera views stored in CAMERAS array
+          if (e.code == "KeyV") {
+            if (CAMERAS.length > 0) {
+              // stops cycling if already cycling
+              if (isCycling) {
+                clearInterval(interval);
+                interval = null;
+                isCycling = false;
+                console.log("Cycling stopped");
+              }
+              // starts cycling if not already cycling
+              else {
+                console.log("Cycling through camera views");
+                var time = 0;
+                interval = setInterval(function () {
+                  r.camera.view = new Float32Array(
+                    CAMERAS[time % CAMERAS.length]
+                  );
+                  time++;
+                }, 1000);
+                isCycling = true;
+              }
+            }
+          }
         };
       };
     </script>
   </head>
+
   <body></body>
 </html>

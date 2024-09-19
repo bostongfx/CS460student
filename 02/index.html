@@ -8,8 +8,11 @@
       const CUBE_SIDELENGTH = 10;
       const GAP = 2;
 
-      // Define boolean variable rotating for rotation state
-      var rotating = false;
+      CAMERAS = [];
+      cyclingInterval = null;
+      currentCameraIndex = 0;
+
+      
 
       const colorMap = {
         'white': [255, 255, 255],
@@ -64,10 +67,30 @@
               toggle = !toggle
               r.onRender = function() {
               // spin the camera in X direction by 1 degree
-
               if (toggle === true){
                   r.camera.rotate([1, 0]);
                 }
+              }
+            },
+
+            'KeyC': function() {
+              // Store the current camera view
+              CAMERAS.push(new Float32Array(r.camera.view));
+            },
+            'KeyV': function() {
+              if (cyclingInterval) {
+                // Stop the current cycling
+                clearInterval(cyclingInterval);
+                cyclingInterval = null;
+              } else {
+                // Start cycling through cameras
+                cyclingInterval = setInterval(() => {
+                  if (CAMERAS.length > 0) {
+                    // Switch to the next camera
+                    currentCameraIndex = (currentCameraIndex + 1) % CAMERAS.length;
+                    r.camera.view = CAMERAS[currentCameraIndex];
+                  }
+                }, 1000); // Cycle every second
               }
             }
 
@@ -78,13 +101,6 @@
           r.add(cube);
           r.render();
 
-          // Rotating function (depends on the rotation state)
-          r.onRender = function() {
-            if(rotating) {
-              // spin the camera in X direction by 1 degree
-              r.camera.rotate([1, 0]);
-            }
-          };
 
           window.onkeypress = function(e) {
             if (keyActionList[e.code]) {

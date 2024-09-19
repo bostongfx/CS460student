@@ -18,6 +18,10 @@
 
         r = new X.renderer3D();
         r.init();
+        var spin = false;
+        r.onRender = function() {
+          r.camera.rotate([1, 0]);
+        }
 
         c = new X.cube();
         c.color = [1, 1, 1]; //r g b
@@ -40,7 +44,7 @@
           } 
           // S moves down
           else if (e.code == 'KeyS') { 
-            c.transform.translateZ(-CUBE_SIDELENGTH + GAP);
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
           } 
           // W moves up
           else if (e.code == 'KeyW') { 
@@ -100,9 +104,19 @@
 
           // 'O' to download and 'L' to upload
           else if (e.code == 'KeyO') {
-            loader.js.download();
+            download();
           } else if (e.code == 'KeyL') {
-            loader.js.upload("scene.json");
+            upload("scene.json");
+          } 
+
+          // press b to spin camera or stop spinning camera
+          else if (e.code == 'KeyB') {
+            if (spin == false) {
+              spin = true;
+            } else {
+              spin = false;
+            }
+            
           }
 
         } 

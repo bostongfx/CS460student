@@ -1,5 +1,8 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goxtk.com/xtk_edge.js"></script>
+    <script src="loader.js"></script>
+
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -10,6 +13,129 @@
         overflow: hidden !important; 
       }
     </style>
+
+    <script>
+      var CUBE_SIDELENGTH = 10;
+      var GAP = 2;
+      var rotateCamera = false;
+      var CAMERAS = [];
+      var cameraInterval = null;
+      var index = 0;
+
+      window.onload = function() {
+
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube();
+        c.color = [1, 1, 1];
+
+        r.add(c);
+
+        // Camera rotation rendering loop
+        r.onRender = function() {
+          if (rotateCamera) {
+            r.camera.rotate([1, 0]); // Rotation in X-direction
+          }
+        };
+
+        r.render();
+
+        //Setting up window.onkeypress callback to listen to keyboard events
+        window.onkeypress = function (e) {
+
+          // Save current camera view on 'C'
+          if (e.code == 'KeyC') {
+            CAMERAS.push(r.camera.view.slice());  // Save a copy of the camera's current view
+          }
+
+          // Cycle through saved camera views on 'V'
+          if (e.code == 'KeyV') {
+            if (cameraInterval == null) {
+              cameraInterval = setInterval(function() {
+                index = (index + 1) % CAMERAS.length;  // Cycle through the camera views
+                r.camera.view = CAMERAS[index];  // Set the current camera view
+                r.render();  // Re-render with the new camera view
+              }, 500);  // Switch camera every 500ms
+            } else {
+              clearInterval(cameraInterval);  // Stop cycling camera views
+              cameraInterval = null;
+            }
+          }
+
+          // Toggle camera rotation on 'B'
+          if (e.code == 'KeyB') {
+            rotateCamera = !rotateCamera; // Toggle camera rotation on/off
+          }
+
+          // Move the cube based on arrow key presses
+          if (e.code == "KeyD") {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+          } else if (e.code == "KeyA") {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP);
+          } else if (e.code == "KeyW") {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+          } else if (e.code == "KeyS") {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+          } else if (e.code == "KeyQ") {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP);
+          } else if (e.code == "KeyE") {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+          }
+
+          // Color changes with number keys
+          switch (e.code) {
+            case 'Digit1':
+              c.color = [1, 1, 1]; // white
+              break;
+            case 'Digit2':
+              c.color = [1, 0, 0]; // red
+              break;
+            case 'Digit3':
+              c.color = [0, 1, 0]; // green
+              break;
+            case 'Digit4':
+              c.color = [0, 0, 1]; // blue
+              break;
+            case 'Digit5':
+              c.color = [1, 1, 0]; // yellow
+              break;
+            case 'Digit6':
+              c.color = [1, 0, 1]; // pink
+              break;
+            case 'Digit7':
+              c.color = [0, 1, 1]; // cyan
+              break;
+            case 'Digit0':
+              c.color = [0, 0, 0]; // black
+              break;
+          }
+
+          // Add new cube on spacebar press
+          if (e.code == 'Space') {
+            var new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+            r.add(new_cube);
+          }
+
+          // Save scene on 'O'
+          if (e.code == 'KeyO') {
+            download();
+          }
+
+          // Load scene on 'L'
+          if (e.code == 'KeyL') {
+            upload('scene(1).json');
+          }
+
+          r.render();  // Re-render after any changes
+        };
+
+      };
+    </script>
+
   </head>
   <body>
   </body>

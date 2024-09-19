@@ -11,6 +11,7 @@
       }
     </style>
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
     <style>
       body {
           background: #f0f0f0;
@@ -35,10 +36,11 @@
         'Digit0': [0, 0, 0]     // black
       };
 
+      var r;
       // wait until everything is loaded
       window.onload = function() {
         // create a new X.renderer
-        var r = new X.renderer3D();
+        r = new X.renderer3D();
         r.init();
           
         var c = new X.cube();
@@ -78,12 +80,13 @@
             case 'Digit6': 
             case 'Digit7': 
             case 'Digit0':
-              c.color = colorMap[e.code]; // Update color based on key
+              c.color = colorMap[e.code]; // Update color based on key'
+            case 'KeyO':
+              download();
+            case 'KeyL':
+              upload('scene.json');
               break;
           }
-        };
-        // Add new cube when SPACE is pressed
-        window.onkeydown = function(e) {
           if (e.code == 'Space') {
             // Create a new cube with the same color and position as the current one
             var new_cube = new X.cube();
@@ -95,8 +98,11 @@
             // Optional: adjust new cube's position slightly so it's not exactly on top of the current cube
             // new_cube.transform.translateX(CUBE_SIDELENGTH + GAP); 
           }
+
         };
-          
+        
+
+      
         // Render the scene with the cube
         r.render();
       };

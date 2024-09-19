@@ -88,8 +88,8 @@
             c.color = [0, 1, 1];
           }
           
-
-          else if (e.code == 'KeySpacebar') {
+          // 'Space' to add another cube
+          else if (e.code == 'Space') {
             new_cube = new X.cube();
             new_cube.color = c.color;
             new_cube.transform.matrix = new Float32Array(c.transform.matrix);
@@ -97,6 +97,14 @@
 
             r.add(new_cube);
           }
+
+          // 'O' to download and 'L' to upload
+          else if (e.code == 'KeyO') {
+            loader.js.download();
+          } else if (e.code == 'KeyL') {
+            loader.js.upload("scene.json");
+          }
+
         } 
 
     };

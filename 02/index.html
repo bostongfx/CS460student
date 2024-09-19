@@ -10,6 +10,33 @@
         overflow: hidden !important; 
       }
     </style>
+
+    <script type="text/javascript" src="https://get.goTXK.com/xtk_edge.js"></script>
+
+    <script>
+
+      window.onload = function() {
+
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube();
+        c.color = [1, 1, 1];
+        c.center = [0, 0, 0];
+        c.lengthX = c.lengthY = c.lengthZ = 19.9
+
+        r.add(c);
+        
+        c2 = new X.cube();
+        c2.color = [0, 0, 1];
+        c2.center = [15, 0, 0];
+        
+        r.add(c2);
+
+        r.render();
+        
+      }
+    </script>
   </head>
   <body>
   </body>

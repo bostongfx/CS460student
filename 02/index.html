@@ -1,5 +1,8 @@
 <html>
   <head>
+    <script tyep="text/javascript"
+        src="https://get.goXTK.com/xtk_edge.js">
+      </script>
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -10,6 +13,36 @@
         overflow: hidden !important; 
       }
     </style>
+    <script>
+            
+            
+      window.onload = function() {
+
+      CUBE_SIDELENGTH = 20;
+      GAP = 5;  
+      r = new X.renderer3D();
+      r.init();
+      c = new X.cube();
+      c.color = [255,0,0];
+      r.add(c);
+      r.render();
+  };
+      window.onkeypress = function(e) {
+        if (e.code == 'KeyD') {
+          console.log('D was pressed');
+          c.transform.translateX(-
+            CUBE_SIDELENGTH - GAP);
+          
+        } else if (e.code == 'KeyA') {
+
+          console.log('A was pressed');
+          c.transform.translateX(
+            CUBE_SIDELENGTH + GAP);
+          
+        }
+      };
+
+</script>
   </head>
   <body>
   </body>

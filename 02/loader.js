@@ -33,6 +33,7 @@ function download() {
 function upload(scene) {
 
   var req = new XMLHttpRequest();
+  const CUBE_SIDELENGTH = 20;
   req.responseType = 'json';
   req.open('GET', scene, true);
   req.onload  = function() {

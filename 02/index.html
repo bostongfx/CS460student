@@ -75,7 +75,7 @@
           else if (e.code == "Digit0") { // 0: Black
             c.color = [0,0,0];
           }
-          else if (e.code == "Space") { // Backward
+          else if (e.code == "Space") { // Add new cube
             new_cube = new X.cube();
             new_cube.color = c.color;
             new_cube.transform.matrix = new Float32Array(c.transform.matrix);
@@ -97,12 +97,6 @@
           }
           else if (e.code == "KeyB") {
             rotating = !rotating; // switches the rotating on or off
-          }
-          else if (e.code == "KeyC") {
-            
-            CAMERAS.push(r.camera.view);
-            console.log(CAMERAS);
-            
           }
         };
 

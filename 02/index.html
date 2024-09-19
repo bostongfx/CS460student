@@ -1,43 +1,41 @@
 <html>
-  <head>
-    <title>CS460.org Assignment 2</title>
-    <style>
-      body {
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important; 
-      }
-    </style>
-    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-    <script src="loader.js"></script>
-  </head>
-  <body>
-    <script type="text/javascript">
-      var r = new X.renderer3D();
-      var isRotationOn = true;
 
-      let CUBE_SIDELENGTH = 10;
-      let GAP = 2;
-      
-      window.onload = function() {
-        r.init();
-        
-        var cube = new X.cube();
-        cube.lengthX = cube.lengthY = cube.lengthZ = CUBE_SIDELENGTH;
-        // add the object
-        r.add(cube);
-      
-        // .. and render it
-        r.render();
-      };
+<head>
+  <title>CS460.org Assignment 2</title>
+  <style>
+    body {
+      background-color: #000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden !important;
+    }
+  </style>
+  <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+  <script src="loader.js"></script>
+</head>
 
-      r.onRender = function() {
-        r.camera.rotate([1, 0]);
-      };
-      
-      window.onkeypress = function(e) {
+<body>
+  <script type="text/javascript">
+    var r = new X.renderer3D();
+    var isRotationOn = true;
+    var stopCameraSwitch = true;
+    var cameraViewPosition = 0;
+    var CAMERAS = []
+    let interval;
+
+    let CUBE_SIDELENGTH = 10;
+    let GAP = 2;
+
+    window.onload = function () {
+      r.init();
+
+      var cube = new X.cube();
+      cube.lengthX = cube.lengthY = cube.lengthZ = CUBE_SIDELENGTH;
+      // add the object
+      r.add(cube);
+
+      window.onkeypress = function (e) {
         var cube = r.Ha[r.Ha.length - 1];
         if (e.code == 'KeyD') {
           cube.transform.translateX(-CUBE_SIDELENGTH - GAP);
@@ -78,7 +76,6 @@
         } else if (e.code == 'Space') {
           // add a new cube
           var newCube = new X.cube();
-          console.log(cube.transform.matrix);
           newCube.transform.matrix = new Float32Array(cube.transform.matrix)
           newCube.transform.translateX(CUBE_SIDELENGTH + GAP);
           newCube.lengthX = newCube.lengthY = newCube.lengthZ = CUBE_SIDELENGTH;
@@ -94,19 +91,46 @@
           console.log(isRotationOn);
           console.log(r.camera);
           if (isRotationOn) {
-            r.onRender = function() {
+            r.onRender = function () {
               r.camera.rotate([0, 0]);
-            };
+            }
+
             isRotationOn = !isRotationOn;
           } else {
-            r.onRender = function() {
+            r.onRender = function () {
               r.camera.rotate([1, 0]);
-            };
+            }
             isRotationOn = !isRotationOn;
           }
+        } else if (e.code == "KeyC") {
+          CAMERAS.push(new Float32Array(r.camera.view));
+        } else if (e.code == "KeyV") {
+          if (stopCameraSwitch) {
+            stopCameraSwitch = false;
+            interval = setInterval(() => {
+              r.camera.view = CAMERAS[cameraViewPosition];
+              cameraViewPosition = (cameraViewPosition + 1) % CAMERAS.length;
+            }, 1000);
+
+          } else {
+            stopCameraSwitch = true;
+            clearInterval(interval);
+          }
+
         }
 
       };
-    </script>
-  </body>
+
+      r.onRender = function () {
+        r.camera.rotate([1, 0]);
+      };
+
+      // .. and render it
+      r.render();
+    };
+
+
+  </script>
+</body>
+
 </html>

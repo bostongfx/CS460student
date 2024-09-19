@@ -1,6 +1,98 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"> </script>
+    <script type="text/javascript" src="loader.js"> </script>
     <title>CS460.org Assignment 2</title>
+    <script>
+      // Define constants
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+
+      // Define boolean variable rotating for rotation state
+      var rotating = false;
+
+      const colorMap = {
+        'white': [255, 255, 255],
+        'red': [255, 0, 0],
+        'green': [0, 255, 0],
+        'blue': [0, 0, 255],
+        'yellow': [255, 255, 0],
+        'pink': [255, 0, 255],
+        'cyan':[0, 255, 255],
+        'black': [0, 0, 0],
+      };
+
+
+      // Function to create a 3D cube & rotate it
+      window.onload = function() {
+
+          r = new X.renderer3D();
+          r.init();
+
+          cube = new X.cube();
+          cube.color = [255, 255, 255];
+
+          toggle = false;
+
+          // Define actions for different keys as functions
+          const keyActionList = {
+            'KeyD': function() { cube.transform.translateX(-CUBE_SIDELENGTH - GAP); },
+            'KeyA': function() { cube.transform.translateX(CUBE_SIDELENGTH + GAP); },
+            'KeyW': function() { cube.transform.translateZ(CUBE_SIDELENGTH + GAP); },
+            'KeyS': function() { cube.transform.translateZ(-CUBE_SIDELENGTH - GAP); },
+            'KeyQ': function() { cube.transform.translateY(CUBE_SIDELENGTH + GAP); },
+            'KeyE': function() { cube.transform.translateY(-CUBE_SIDELENGTH - GAP); },
+            'Digit1': function() { cube.color = colorMap['white']; /* white */ },
+            'Digit2': function() { cube.color = colorMap['red']; /* red */ },
+            'Digit3': function() { cube.color = colorMap['green']; /* green */ },
+            'Digit4': function() { cube.color = colorMap['blue']; /* blue */ },
+            'Digit5': function() { cube.color = colorMap['yellow']; /* yellow */ },
+            'Digit6': function() { cube.color = colorMap['pink']; /* pink */ },
+            'Digit7': function() { cube.color = colorMap['cyan']; /* cyan */ },
+            'Digit0': function() { cube.color = colorMap['black']; /* black */ },
+            'Space': function() { 
+              cube2 = new X.cube();
+              cube2.color = cube.color;
+              cube2.transform.matrix = new Float32Array(cube.transform.matrix);
+              cube2.lengthX = cube2.lengthY = cube2.lengthZ = CUBE_SIDELENGTH;
+
+              r.add(cube2); 
+            },
+            'KeyO': function() { download() },
+            'KeyL': function() { upload("scene.json") },
+            'KeyB': function() {
+              toggle = !toggle
+              r.onRender = function() {
+              // spin the camera in X direction by 1 degree
+
+              if (toggle === true){
+                  r.camera.rotate([1, 0]);
+                }
+              }
+            }
+
+
+
+          };
+
+          r.add(cube);
+          r.render();
+
+          // Rotating function (depends on the rotation state)
+          r.onRender = function() {
+            if(rotating) {
+              // spin the camera in X direction by 1 degree
+              r.camera.rotate([1, 0]);
+            }
+          };
+
+          window.onkeypress = function(e) {
+            if (keyActionList[e.code]) {
+              keyActionList[e.code]();  // Call the function associated with the pressed key
+            }
+          };
+      }
+    </script>
     <style>
       body {
         background-color:#000;
@@ -10,6 +102,7 @@
         overflow: hidden !important; 
       }
     </style>
+
   </head>
   <body>
   </body>

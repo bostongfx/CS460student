@@ -23,6 +23,7 @@
       // Define constants for movement
       const CUBE_SIDELENGTH = 10;
       const GAP = 2;
+      let rotationActive = false;  // To toggle camera rotation
 
       // Define color map for keys 1-7 and 0
       const colorMap = {
@@ -49,9 +50,8 @@
 
         // add the cube
         r.add(c);
-      
 
-        // Listen for keypress events to move the cube
+        // Listen for keypress events to move the cube and rotate camera
         window.onkeypress = function(e) {
           switch(e.code) {
             case 'KeyA': // Move left (x-axis positive)
@@ -71,6 +71,7 @@
               break;
             case 'KeyS': // Move down (z-axis negative)
               c.transform.translateZ(-(CUBE_SIDELENGTH + GAP));
+              break;
             // Change color based on keypress
             case 'Digit1': 
             case 'Digit2': 
@@ -80,13 +81,19 @@
             case 'Digit6': 
             case 'Digit7': 
             case 'Digit0':
-              c.color = colorMap[e.code]; // Update color based on key'
+              c.color = colorMap[e.code]; // Update color based on key
+              break;
+            case 'KeyB': // Toggle rotation on/off with B key
+              rotationActive = !rotationActive;
+              break;
             case 'KeyO':
               download();
+              break;
             case 'KeyL':
               upload('scene.json');
               break;
           }
+
           if (e.code == 'Space') {
             // Create a new cube with the same color and position as the current one
             var new_cube = new X.cube();
@@ -94,15 +101,17 @@
             new_cube.transform.matrix = new Float32Array(c.transform.matrix); // Copy current cube's position
             new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH; // Set cube size
             r.add(new_cube); // Add the new cube to the scene
-
-            // Optional: adjust new cube's position slightly so it's not exactly on top of the current cube
-            // new_cube.transform.translateX(CUBE_SIDELENGTH + GAP); 
           }
-
         };
-        
 
-      
+        // Modify the onRender function to rotate the camera if rotationActive is true
+        r.onRender = function() {
+          if (rotationActive) {
+            // Spin the camera in X direction by 1 degree
+            r.camera.rotate([1, 0]);
+          }
+        };
+
         // Render the scene with the cube
         r.render();
       };

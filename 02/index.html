@@ -3,30 +3,23 @@
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
     <script type="text/javascript" src="loader.js"></script>
       <style>
-
           body {
-              background: #111111;
+              background: #000000;
               margin: 0px;
               padding: 0px;
           }
-
       </style>
-
       <script>
-        
 
           window.onload = function() {
-
-              r = new X.renderer3D();
-              r.init();
-
-
-              c = new X.cube();
-              c.color = [1, 1, 1]; // r g b
-              c.center = [0, 0, 0] // x y z 
-              GAP = 0
-              CUBE_SIDELENGTH = 25
-
+            r = new X.renderer3D();
+            r.init();
+            c = new X.cube();
+            c.color = [1, 1, 1]; // r g b
+            c.center = [0, 0, 0] // x y z 
+            GAP = 0
+            CUBE_SIDELENGTH = 25
+            spin = false
             window.onkeypress = function(e) {
                 if (e.code == 'KeyD') {
                     c.transform.translateX(-CUBE_SIDELENGTH - GAP)
@@ -67,19 +60,22 @@
                 } else if (e.code == 'KeyO') {
                     download()
                 } else if (e.code =='KeyL') {
-                    upload('scene.json')
+                    upload(scene.json)
+                } else if (e.code == 'KeyB') {
+                    spin = !spin;
                 }
-            }
-            
+                r.onRender = function() {
+                    if (spin) {
+                    r.camera.rotate([1,0]);
+                    }
+                }
+            } 
                 r.add(c);
-                r.render();
-
-          };
+                r.render();      
+        };
 
       </script>
-
   </head>
-
   <body>
   </body>
 </html>

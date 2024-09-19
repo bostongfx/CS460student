@@ -3,7 +3,7 @@ function download() {
   // get all cubes
   ALL_CUBES = [];
 
-  for (var i = 0; i<r.Ha.length; i++) {
+  for (var i = 0; i < r.Ha.length; i++) {
     // note: r.Ha are all objects in the scene
 
     var color = r.Ha[i].color;
@@ -16,13 +16,13 @@ function download() {
   // create JSON object
   var out = {};
   out['cubes'] = ALL_CUBES;
-  out['camera'] = r.camera.view;
+  out['camera'] = CAMERAS;
 
   // from https://stackoverflow.com/a/30800715
   var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out));
 
   var downloadAnchorNode = document.createElement('a');
-  downloadAnchorNode.setAttribute("href",     dataStr);
+  downloadAnchorNode.setAttribute("href", dataStr);
   downloadAnchorNode.setAttribute("download", "scene.json");
   document.body.appendChild(downloadAnchorNode); // required for firefox
   downloadAnchorNode.click();
@@ -35,7 +35,7 @@ function upload(scene) {
   var req = new XMLHttpRequest();
   req.responseType = 'json';
   req.open('GET', scene, true);
-  req.onload  = function() {
+  req.onload = function() {
     loaded = req.response;
 
     // parse cubes
@@ -55,12 +55,16 @@ function upload(scene) {
 
     }
 
+    for (var cameraView in loaded['camera']) {
+      CAMERAS.push(new Float32Array(Object.values(loaded['camera'][cameraView])));
+    }
+
     // restore camera
-    r.camera.view = new Float32Array(Object.values(loaded['camera']));
+    r.camera.view = new Float32Array(Object.values(loaded['camera'][0]));
 
 
   };
   req.send(null);
-  
+
 }
 

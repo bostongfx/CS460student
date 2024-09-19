@@ -1,11 +1,11 @@
 <html></html>
   <head>
-      <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
       <style>
 
           body {
-              background: #000000;
+              background: #111111;
               margin: 0px;
               padding: 0px;
           }
@@ -13,6 +13,7 @@
       </style>
 
       <script>
+        
 
           window.onload = function() {
 
@@ -24,10 +25,9 @@
               c.color = [1, 1, 1]; // r g b
               c.center = [0, 0, 0] // x y z 
               GAP = 0
-              CUBE_SIDELENGTH = 20
+              CUBE_SIDELENGTH = 25
 
             window.onkeypress = function(e) {
-                
                 if (e.code == 'KeyD') {
                     c.transform.translateX(-CUBE_SIDELENGTH - GAP)
                 } else if (e.code == 'KeyA') {
@@ -64,8 +64,11 @@
                     new_cube.transform.matrix = new Float32Array(c.transform.matrix);
                     new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
                     r.add(new_cube);
+                } else if (e.code == 'KeyO') {
+                    download()
+                } else if (e.code =='KeyL') {
+                    upload('scene.json')
                 }
-                
             }
             
                 r.add(c);

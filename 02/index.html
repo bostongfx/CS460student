@@ -59,8 +59,6 @@
                     r.add(new_cube);
                 } else if (e.code == 'KeyO') {
                     download()
-                } else if (e.code =='KeyL') {
-                    upload(scene.json)
                 } else if (e.code == 'KeyB') {
                     spin = !spin;
                 }
@@ -68,7 +66,10 @@
                     if (spin) {
                     r.camera.rotate([1,0]);
                     }
-                }
+                } 
+                if (e.code =='KeyL') {
+                    upload(scene.json)
+                } 
             } 
                 r.add(c);
                 r.render();      

@@ -16,7 +16,6 @@
   <script>
 
     let spin = false;
-    CAMERAS = [];
     
     window.onload = function () {
 
@@ -124,15 +123,6 @@
         } else if (spin == false) {
           spin = true;
         }
-      
-      } else if (e.code == 'KeyC') {
-        console.log('C was pressed');
-        cameras.push(r.camera.view);
-      
-      } else if (e.code == 'KeyV') {
-        console.log('V was pressed');
-        
-      
       } 
 
     }

@@ -14,7 +14,6 @@
     }
   </style>
   <script>
-
     let spin = false;
     
     window.onload = function () {
@@ -37,7 +36,7 @@
       r.onRender = function() {
         // spin the camera in X direction by 1 degree if spin is true
         if (spin == true) {
-          r.camera.rotate([2, 0]);
+          r.camera.rotate([1, 0]);
         }
       }
     };

@@ -20,6 +20,7 @@
     CUBE_SIDELENGTH = 10;
     GAP = 2;
     rotating = false;
+    cameras = [];
 
     window.onload = function() {
       
@@ -64,6 +65,10 @@
         c.transform.translateY(CUBE_SIDELENGTH + GAP);
         break;
 
+        case 'Digit0':
+        c.color = [0, 0, 0]
+        break;
+
         case 'Digit1':
         c.color = [1, 1, 1];
         break;
@@ -93,13 +98,12 @@
         break;
 
         case 'Space':
-        console.log("ADDING");
+        console.log("ADDING A CUBE WITH COLOR "+ c.color);
         new_cube = new X.cube();
         new_cube.color = c.color;
         new_cube.transform.matrix = new Float32Array(c.transform.matrix);
         new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
         r.add(new_cube);
-        cubes.push(new_cube);
         break;
 
         case 'KeyO':
@@ -124,17 +128,38 @@
         }
         break;
 
+        /*case 'Delete':
+        cubes.forEach(cube => {
+          console.log("cube 1: " + cube.center);
+          console.log("cube 2: " + cube.center);
+          if (c.center == cube.center) {
+            console.log("TESTING 2 ");
+            c.color = [0,0,0];
+          }
+        }); 
+        break;*/
+        
+        case 'KeyC':
+        cameras.push(r.camera.position);
+        console.log("Camera angle saved");
+        break;
+
+        case 'KeyV':
+        console.log("looping angles");
+        i = 1;
+          cameras.forEach(pos => {
+            console.log("angle " + i);
+            setTimeout(setCameraPosition(pos), 3000);
+            i++;
+          });
+
         default:
         break;
       }
 
-      cubes.forEach(cube => {
-        console.log("TESTING " + cube.center + c.center);
-        if (c.center == cube.center) {
-          console.log("TESTING 2 ");
-          c.color = [0,0,0];
-        }
-      });
+      function setCameraPosition (position) {
+      r.camera.position = position;
+      }
     };
 
   </script>

@@ -1,7 +1,7 @@
 <html>
   <head>
     <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-    <script type="text/javascript" src="loader.js"></script>
+    <script type="text/javascript" src="./loader.js"></script>
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -14,6 +14,11 @@
     </style>
     <script>
       var cameraRotate = false;
+      var CAMERAS = [];
+      var isCameraCycling = false;
+      var interval = null;
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
 
       window.onload = function() {
 
@@ -30,11 +35,8 @@
       c = new X.cube();
       c.color = [0, 1, 1]; // r g b
       c.center = [10, 0, 0]; // x y z
-      c.lengthX= 19.9;
+      c.lengthX = 19.9;
 
-      CUBE_SIDELENGTH = 10;
-      GAP = 2;
-      
       // handle keyboard events to move the cube
       window.onkeypress = function(e) {
         // cube movement
@@ -120,10 +122,37 @@
         else if (e.code == 'KeyB') {
           cameraRotate = !cameraRotate;
         }
+
+        // store camera
+        else if (e.code == 'KeyC') {
+          CAMERAS.push(new Float32Array(Object.values(r.camera.view)));
+          console.log('Camera stored:', r.camera.view);
+        }
+
+        // toggle camera list
+        else if (e.code == 'KeyV') {
+          console.log('V was pressed');
+          if (CAMERAS.length) {
+            console.log('Cameras exist');
+            if (isCameraCycling) {
+              console.log('Stopping camera cycling');
+              clearInterval(interval);
+              interval = null;
+            }
+            else {
+              console.log('Starting camera cycling');
+              var time = 0;
+              interval = setInterval(function() {
+                r.camera.view = new Float32Array(Object.values(CAMERAS[time % CAMERAS.length])); // Cycle through the camera views
+                time++;
+              }, 1000);
+            }
+            isCameraCycling = !isCameraCycling;
+          }
+        }
       }
 
       r.add(c);
-
       r.render();
     }
     

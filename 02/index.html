@@ -16,7 +16,8 @@
   </head>
   <body> 
   <script>
-
+    view_1 = {};
+    looping_angles = false;
     CUBE_SIDELENGTH = 10;
     GAP = 2;
     rotating = false;
@@ -28,7 +29,7 @@
       r.init();
 
       c = new X.cube();
-      c.color = [0.7, 0, 0.9];
+      c.color = [1,1,1];
       c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH + 0.001;
 
       r.render();
@@ -117,7 +118,7 @@
         case 'KeyB':
         if (rotating) {
           rotating = false;
-          //stop spining
+          //stop spinning
           r.onRender = function() {}
         } else {
           rotating = true;
@@ -128,38 +129,40 @@
         }
         break;
 
-        /*case 'Delete':
-        cubes.forEach(cube => {
-          console.log("cube 1: " + cube.center);
-          console.log("cube 2: " + cube.center);
-          if (c.center == cube.center) {
-            console.log("TESTING 2 ");
-            c.color = [0,0,0];
-          }
-        }); 
-        break;*/
-        
         case 'KeyC':
-        cameras.push(r.camera.position);
-        console.log("Camera angle saved");
+        cameras.push(new Float32Array(r.camera.view));
+        console.log("Camera view " + r.camera.view + " saved. Currently saved " + cameras.length + " angles");
         break;
 
         case 'KeyV':
-        console.log("looping angles");
-        i = 1;
-          cameras.forEach(pos => {
-            console.log("angle " + i);
-            setTimeout(setCameraPosition(pos), 3000);
-            i++;
-          });
+          i = 0;
+          if (!looping_angles) {
+            console.log("looping views");
+            loop = setInterval(nextView, 1000);
+
+            looping_angles = true;
+          } else {
+            console.log("stopping view change");
+            clearInterval(loop);
+            looping_angles = false;
+          }
+        
+        break;
 
         default:
         break;
       }
 
-      function setCameraPosition (position) {
-      r.camera.position = position;
-      }
+      function nextView() {
+              if (i < cameras.length) {
+                r.camera.view = cameras[i];
+              } else {
+                i = 0;
+                r.camera.view = cameras[i];
+              }
+              console.log("next view");
+              i++;
+            }
     };
 
   </script>

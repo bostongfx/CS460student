@@ -63,7 +63,7 @@
               controls.enabled = false;
               
               // Create a new torus knot  (which is also the last object torus knot)
-              var geometry2 = new THREE.TorusKnotGeometry( 10, 1, 150, 8 );
+              var geometry2 = new THREE.TorusKnotGeometry( 20, 4, 150, 100 );
               var material2 = new THREE.MeshBasicMaterial( {color: HOT_PINK} );
               LASTOBJECT = new THREE.Mesh( geometry2, material2 );
 
@@ -133,7 +133,7 @@
         scene.add( light );
 
         // configure torus knot
-        var geometry = new THREE.TorusKnotGeometry( 10, 1, 150, 8 );
+        var geometry = new THREE.TorusKnotGeometry( 20, 4, 150, 100 );
         var material = new THREE.MeshBasicMaterial( {color: "yellow"} );
 
         var torusKnot = new THREE.Mesh( geometry, material );

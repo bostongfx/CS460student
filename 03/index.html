@@ -106,6 +106,12 @@
 
         scene.add( torusKnot );
 
+        // This event re-enables the orbit controls when the mouse button is released, 
+        // allowing the user to freely rotate the camera again.
+        renderer.domElement.onmouseup = function( e ) {
+            controls.enabled = true;
+        }
+
 
         //
         // The invisible plane

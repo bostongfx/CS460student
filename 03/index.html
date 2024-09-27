@@ -2,7 +2,7 @@
   <head>
     <style>
       html, body { 
-        background-color:#000;
+        background-color:#fffcfc;
         margin: 0;
         padding: 0;
         height: 100%;
@@ -28,10 +28,137 @@
 
       var renderer, controls, scene, camera;
 
+      let torus; // Declare torus globally so we can reference it later
+      let LASTOBJECT = null;
+      let isDragging = false;
+
+
       window.onload = function() {
 
         // Three.js code goes here
- 
+        scene = new THREE.Scene();
+
+        scene.background = new THREE.Color(0xffffff);
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        // interaction
+        controls = new OrbitControls(camera, renderer.domElement);
+        
+        renderer.domElement.onclick = function( e ){
+
+            if (!e.shiftKey) return ;
+
+            isDragging = true;
+            controls.enabled = false;
+
+            var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
+
+            var vp_coords = new THREE.Vector2( 
+                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+
+            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vp_coords_near, camera);
+            var intersects = raycaster.intersectObject(invisible_plane);
+
+            if (intersects.length > 0) {
+              
+              var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+              var material = new THREE.MeshBasicMaterial({ color: 'hotpink' }); // Hotpink color
+              var torus = new THREE.Mesh(geometry, material);
+
+              // Update torus position
+              torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            }
+
+              scene.add(torus);
+
+              LASTOBJECT = torus;
+          
+          };
+
+          renderer.domElement.onmouseup = function () { // render: draw | domelement: canvas is rendered
+            isDragging = false;
+            controls.enabled =true;
+          };
+
+          var hotpink = 0xFF69B4;
+          var grassgreen = 0x7CFC00;
+
+          let currentColor = hotpink;
+
+          renderer.domElement.onmousemove = function (e) {
+            if (isDragging && LASTOBJECT) {
+
+            const DELTA = e.movementY * -0.01; // Scale change based on Y-axis drag
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + DELTA,
+              LASTOBJECT.scale.y + DELTA,
+              LASTOBJECT.scale.z + DELTA
+    );      
+             // Check the direction of dragging to switch colors
+            if (DELTA > 0) {
+              // Dragging upward - switch to grassgreen
+              if (currentColor !== grassgreen) {
+                LASTOBJECT.material.color.set(grassgreen);
+                currentColor = grassgreen; // Update current color
+              }
+            } else if (DELTA < 0) {
+              // Dragging downward - switch back to hotpink
+              if (currentColor !== hotpink) {
+                LASTOBJECT.material.color.set(hotpink);
+                currentColor = hotpink; // Update current color
+              }
+
+            }
+
+            }
+          };
+
+
+        // setup lights
+        //var ambientLight = new THREE.AmbientLight();
+        // scene.add( ambientLight );
+
+        //var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        //light.position.set( 10, 100, 10 );
+        //scene.add( light );
+
+        // configure torus
+        var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 ); 
+        var material = new THREE.MeshBasicMaterial( { color: 'hotpink' } ); 
+        torus = new THREE.Mesh( geometry, material ); // Assign to global torus variable
+        scene.add( torus );
+
+        controls.enabled = true;
+
+        //
+        // The invisible plane
+        //
+        var planeGeometry = new THREE.PlaneGeometry( 10000, 10000 ); // Use a different variable
+        var planeMaterial = new THREE.MeshBasicMaterial( {
+          visible: false
+        });
+
+        var invisible_plane = new THREE.Mesh( planeGeometry, planeMaterial );
+
+        scene.add( invisible_plane );
+
+
         // call animation/rendering loop
         animate();
         
@@ -42,10 +169,11 @@
         requestAnimationFrame( animate );
 
         // and here..
+        controls.update();
+        renderer.render( scene, camera );
         
       };
     </script>
   </head>
   <body></body>
 </html>
-

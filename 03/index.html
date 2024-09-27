@@ -48,10 +48,23 @@
 
 
 
-        renderer.domElement.onclick = function( e ){
+        renderer.domElement.onmousedown = function( e ){
+
+            if (e.shiftKey) {
+              
+              controls.enabled = false;
+              
+              // Create a new torus knot
+              var geometry2 = new THREE.TorusKnotGeometry( 10, 1, 150, 8 );
+              var material2 = new THREE.MeshBasicMaterial( {color: "#FF69B4"} );
+              var torusKnot2 = new THREE.Mesh( geometry2, material2 );
+
+              scene.add( torusKnot2 );
+            }
           
             console.log('Yay! We clicked!');
 
+            // Calculate the position to place the new torus knot
             var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
 
             console.log('Pixel coords', pixel_coords);
@@ -71,8 +84,8 @@
 
             console.log('Ray to Invisible Plane', intersects[0].point);
 
-            // update cube position
-            cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            // update torus knot 2 position
+            torusKnot2.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
 
           };
 
@@ -87,7 +100,7 @@
 
         // configure torus knot
         var geometry = new THREE.TorusKnotGeometry( 10, 1, 150, 8 );
-        var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+        var material = new THREE.MeshBasicMaterial( {color: "white"} );
 
         var torusKnot = new THREE.Mesh( geometry, material );
 

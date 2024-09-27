@@ -36,6 +36,9 @@
       // colors of torus
       const HOT_PINK = "#FF69B4";
       const GRASSGREEN = "#7CFC00";
+      //Bonus question, define any array to store all toruses & wireframeEnable to auto turn off first.
+      let allToruses = [];
+      let wireframeEnabled = false;
 
       window.onload = function() {
 
@@ -63,12 +66,15 @@
               controls.enabled = false;
               
               // Create a new torus knot  (which is also the last object torus knot)
-              var geometry2 = new THREE.TorusKnotGeometry( 20, 4, 150, 100 );
+              var geometry2 = new THREE.TorusKnotGeometry( 20, 4, 40, 16 );
               var material2 = new THREE.MeshBasicMaterial( {color: HOT_PINK} );
               LASTOBJECT = new THREE.Mesh( geometry2, material2 );
 
               scene.add( LASTOBJECT );
               isPlacingFlag = true;
+
+              // Everytime we create a new torus, add it to the array of toruses. (BONUS*)
+              allToruses.push(LASTOBJECT);
             }
           
             console.log('Yay! We clicked!');
@@ -123,6 +129,23 @@
 
         }
 
+  
+        // Bonus question: Visualize all placed toruses as a wireframe when w is pressed.
+        // Remember for this question: the tubular & radial segments of the toruses must not be densed. So lower the numbers down.
+        window.onkeypress = function(e) {
+
+          // If 'w' key is pressed
+          if (e.code == "KeyW") { 
+
+            // Turn on the wireframe from false to true first.
+            wireframeEnabled = !wireframeEnabled;
+
+            allToruses.forEach(torus => {
+              torus.material.wireframe = wireframeEnabled; 
+            })
+          }
+        }
+
 
         // setup lights
         var ambientLight = new THREE.AmbientLight();
@@ -133,7 +156,7 @@
         scene.add( light );
 
         // configure torus knot
-        var geometry = new THREE.TorusKnotGeometry( 20, 4, 150, 100 );
+        var geometry = new THREE.TorusKnotGeometry( 20, 4, 40, 16 );
         var material = new THREE.MeshBasicMaterial( {color: "yellow"} );
 
         var torusKnot = new THREE.Mesh( geometry, material );
@@ -169,8 +192,6 @@
       function animate() {
 
         requestAnimationFrame( animate );
-
-        // and here..
         controls.update();
         renderer.render( scene, camera );
         

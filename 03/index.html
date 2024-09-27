@@ -85,14 +85,13 @@
         light.position.set( 10, 100, 10 );
         scene.add( light );
 
-        // configure cube
-        var geometry = new THREE.BoxGeometry( 20, 20, 20 );
-        var material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
+        // configure torus knot
+        var geometry = new THREE.TorusKnotGeometry( 10, 1, 150, 8 );
+        var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 
-        var cube = new THREE.Mesh( geometry, material );
+        var torusKnot = new THREE.Mesh( geometry, material );
 
-        scene.add( cube );
-
+        scene.add( torusKnot );
 
 
         //

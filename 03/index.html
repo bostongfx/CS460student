@@ -28,6 +28,12 @@
 
       var renderer, controls, scene, camera;
 
+      // variables to hold the last torus & the flag to show whether a torus is placed or not.
+      let LASTOBJECT = null;
+      let isPlacingFlag = false;
+      // delta to slow down the speed sentivity of the mouse when increase/decrease the last torus. 
+      const DELTA = 0.01;
+
       window.onload = function() {
 
         // Three.js code goes here
@@ -47,19 +53,19 @@
         document.body.appendChild( renderer.domElement );
 
 
-
         renderer.domElement.onmousedown = function( e ){
 
             if (e.shiftKey) {
               
               controls.enabled = false;
               
-              // Create a new torus knot
+              // Create a new torus knot  (which is also the last object torus knot)
               var geometry2 = new THREE.TorusKnotGeometry( 10, 1, 150, 8 );
               var material2 = new THREE.MeshBasicMaterial( {color: "#FF69B4"} );
-              var torusKnot2 = new THREE.Mesh( geometry2, material2 );
+              LASTOBJECT = new THREE.Mesh( geometry2, material2 );
 
-              scene.add( torusKnot2 );
+              scene.add( LASTOBJECT );
+              isPlacingFlag = true;
             }
           
             console.log('Yay! We clicked!');
@@ -84,10 +90,28 @@
 
             console.log('Ray to Invisible Plane', intersects[0].point);
 
-            // update torus knot 2 position
-            torusKnot2.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            // update LASTOBJECT TORUS position
+            LASTOBJECT.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+                
+        };
 
-          };
+        
+        // This event re-enables the orbit controls when the mouse button is released, 
+        // allowing the user to freely rotate the camera again.
+        renderer.domElement.onmouseup = function( e ) {
+            controls.enabled = true;
+            isPlacingFlag = false;
+        }
+
+        // This event allows user to freely change the size of the last torus if both conditions below are met.
+        // e.movementY means we can increase/decrease the size of the last torus based on the vertical line (y-axis).
+        renderer.domElement.onmousemove = function( e ) {
+          if (isPlacingFlag && LASTOBJECT) {
+            LASTOBJECT.scale.set(LASTOBJECT.scale.x + e.movementY * DELTA,
+                            LASTOBJECT.scale.y + e.movementY * DELTA,
+                            LASTOBJECT.scale.z + e.movementY * DELTA);
+          }
+        }
 
 
         // setup lights
@@ -105,12 +129,6 @@
         var torusKnot = new THREE.Mesh( geometry, material );
 
         scene.add( torusKnot );
-
-        // This event re-enables the orbit controls when the mouse button is released, 
-        // allowing the user to freely rotate the camera again.
-        renderer.domElement.onmouseup = function( e ) {
-            controls.enabled = true;
-        }
 
 
         //

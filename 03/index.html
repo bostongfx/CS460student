@@ -6,7 +6,8 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important;  
+        overflow: hidden !important;
+        color: white;  
       }
     </style>
     
@@ -27,25 +28,174 @@
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
       var renderer, controls, scene, camera;
-
+      var LASTOBJECT;
+      var torusArray = [null];
+      var wireframeFLIP = true;
+      var RADIALSEGMENTS = 16; // Default 16
+      var TUBULARSEGMENTS = 100; // Default 100
+      var estimates = document.getElementById("estimates");
       window.onload = function() {
 
         // Three.js code goes here
- 
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+
+        
+        var MOUSEDOWN;
+        var DELTA = .5;
+        renderer.domElement.onmousedown = function( e ){
+            MOUSEDOWN = true;
+            if (e.shiftKey) {
+              var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
+
+              console.log('Pixel coords', pixel_coords);
+
+              var vp_coords = new THREE.Vector2( 
+                          ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                          -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+
+              console.log('Viewport coords', vp_coords);
+
+              var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+
+
+              var raycaster = new THREE.Raycaster();
+              raycaster.setFromCamera(vp_coords_near, camera);
+              var intersects = raycaster.intersectObject(invisible_plane);
+
+              if (intersects.length == 0) {
+                console.log("Wrong side of invisible plane | AKA Does not intersect");
+                return;
+              }
+
+              console.log('Ray to Invisible Plane', intersects[0].point);
+
+              // update TKnot position
+              var new_TKnot;
+              var HOTPINK_COLOR = 0xff69b4;
+              var HOTPINK_MAT = new THREE.MeshStandardMaterial({color: HOTPINK_COLOR});
+              var GRASSGREEN_COLOR = 0x7cfc00;
+              var GRASSGREEN_MAT = new THREE.MeshStandardMaterial({color: GRASSGREEN_COLOR});
+              geometry = new THREE.TorusKnotGeometry(10, 3, TUBULARSEGMENTS, RADIALSEGMENTS); 
+              controls.enabled = false;
+              new_TKnot = new THREE.Mesh(geometry, HOTPINK_MAT);
+              new_TKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              scene.add(new_TKnot);
+              LASTOBJECT = new_TKnot;
+              console.log(LASTOBJECT.scale.x, LASTOBJECT.scale.y, LASTOBJECT.scale.z );
+              torusArray.push(LASTOBJECT);
+              verts = geometry.attributes.position.count * torusArray.length;
+              estimates.innerHTML = `Vertices ${verts}, Edges ${((verts * (verts - 1)) / 2)}, Faces ${Math.floor((verts)/3)}`;
+            } 
+            
+            renderer.domElement.onmousemove = function ( e ) {
+              if (MOUSEDOWN && LASTOBJECT != null ) {
+                if (LASTOBJECT.scale.y < 0) {
+                  LASTOBJECT.material.color.set(GRASSGREEN_COLOR);
+                } else if (LASTOBJECT.scale.y > 0) {
+                  LASTOBJECT.material.color.set(HOTPINK_COLOR);
+                }
+                if (e.movementY < 0) { // Going up (Mouse)
+                  LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA, LASTOBJECT.scale.y + DELTA, LASTOBJECT.scale.z + DELTA )
+                } else if (e.movementY > 0) { // Going down (mouse)
+                  LASTOBJECT.scale.set(LASTOBJECT.scale.x - DELTA, LASTOBJECT.scale.y - DELTA, LASTOBJECT.scale.z - DELTA )
+                }
+              } else {
+                console.log("");
+                
+              }
+            }
+        };
+        const setWireframe = (item, index) => {
+          item.material.wireframe = wireframeFLIP;
+        }
+        window.onkeypress = function ( e ) {
+          console.log(torusArray);
+          if (e.key == "w") {
+            torusArray.forEach(setWireframe);
+          }
+          wireframeFLIP = !wireframeFLIP;
+        }
+        renderer.domElement.onmouseup = function ( e ) {
+          LASTOBJECT = null;
+          MOUSEDOWN = false;
+          controls.enabled = true;
+        }
+
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        // configure TKnot
+        var geometry = new THREE.TorusKnotGeometry(10, 3, TUBULARSEGMENTS, RADIALSEGMENTS);
+        console.log(geometry);
+        var material = new THREE.MeshStandardMaterial({ color: 0xFE9900});
+
+        var TKnot = new THREE.Mesh( geometry, material );
+
+        scene.add( TKnot );
+
+        
+
+        //
+        // The invisible plane
+        //
+        geometry = new THREE.PlaneGeometry( 100000, 100000 );
+        material = new THREE.MeshBasicMaterial( {
+          visible: false
+        });
+
+        var invisible_plane = new THREE.Mesh( geometry, material );
+
+        scene.add( invisible_plane );
+        //
+        //
+        //
+
+
+
+        // interaction
+        controls = new OrbitControls( camera, renderer.domElement );
+
         // call animation/rendering loop
         animate();
         
+        var geometry = new THREE.TorusKnotGeometry(10, 3, TUBULARSEGMENTS, RADIALSEGMENTS);
+        console.log(geometry);
+        window.LASTOBJECT = LASTOBJECT;
+        var verts = geometry.attributes.position.count * torusArray.length;
+        estimates.innerHTML = `Vertices ${verts}, Edges ${(verts * (verts - 1)) / 2}, Faces ${Math.floor((verts)/3)}`;
       };
-
       function animate() {
 
         requestAnimationFrame( animate );
 
         // and here..
+        controls.update();
+        renderer.render( scene, camera );
         
       };
     </script>
   </head>
-  <body></body>
+  <body>
+    <p>ESTIMATES: </p>
+    <p id="estimates"></p>
+  </body>
 </html>
-

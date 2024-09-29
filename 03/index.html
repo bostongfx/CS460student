@@ -1,0 +1,159 @@
+<html>
+  <head>
+    <style>
+      html, body { 
+        background-color:#000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;  
+      }
+    </style>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      }
+    }
+    </script>
+
+    <script type="module">
+
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+
+      var renderer, controls, scene, camera;
+      var LASTOBJECT = null;  // Global variable to store the last placed torus
+      var drag = false; // Flag to track if we are dragging after placing a torus
+      var lastScalePositive = true;  // Tracks the previous scale sign (positive or negative)
+
+      window.onload = function() {
+
+        // Set up scene, camera, and renderer
+        scene = new THREE.Scene();
+
+        // Camera configuration
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+
+        // Create the renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // OrbitControls for camera interaction
+        controls = new OrbitControls(camera, renderer.domElement);
+
+        // Lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 5.0);
+        directionalLight.position.set(10, 100, 10);
+        scene.add(directionalLight);
+
+        var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 ); 
+        var material = new THREE.MeshBasicMaterial( { color: 0x3244a8 } ); 
+        var torusKnot = new THREE.Mesh( geometry, material ); 
+        scene.add( torusKnot );
+
+        // Invisible plane for raycasting
+        var geometry = new THREE.PlaneGeometry(10000, 10000);
+        var material = new THREE.MeshBasicMaterial({ visible: false });
+        var invisiblePlane = new THREE.Mesh(geometry, material);
+        scene.add(invisiblePlane);
+
+        // Event listener for mousedown to detect Shift + click
+        renderer.domElement.onmousedown = function (e) {
+          if (!e.shiftKey) return; // Only proceed if Shift key is pressed
+
+          controls.enabled = false; // Disable OrbitControls
+          drag = true;  // Set flag to true when mouse is down and Shift is held
+
+          var pixelCoords = new THREE.Vector2(e.clientX, e.clientY);
+          var vpCoords = new THREE.Vector2(
+            (pixelCoords.x / window.innerWidth) * 2 - 1, // X
+            -(pixelCoords.y / window.innerHeight) * 2 + 1 // Y
+          );
+
+          var raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(vpCoords, camera);
+          var intersects = raycaster.intersectObject(invisiblePlane);
+
+          if (intersects.length > 0) {
+            var intersectPoint = intersects[0].point;
+
+            // Create a new torus knot at the intersection point
+            var newTorusGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            var newTorusMaterial = new THREE.MeshBasicMaterial({ color: 0xFF69B4 }); // Hotpink
+            var newTorusKnot = new THREE.Mesh(newTorusGeometry, newTorusMaterial);
+
+            newTorusKnot.position.set(intersectPoint.x, intersectPoint.y, intersectPoint.z);
+            scene.add(newTorusKnot);
+
+            LASTOBJECT = newTorusKnot; // Store the reference to the last placed torus
+            lastScalePositive = true;  // Reset the scale sign tracker
+          }
+        };
+
+        // Event listener for mousemove to scale the last placed torus
+        renderer.domElement.onmousemove = function (e) {
+          if (drag && LASTOBJECT) { // Only scale if dragging and a torus is placed
+            var scaleDelta = e.movementY * 0.01; // Use movementY to scale
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + scaleDelta,
+              LASTOBJECT.scale.y + scaleDelta,
+              LASTOBJECT.scale.z + scaleDelta
+            );
+
+            // Check if the scale crossed zero and switch colors
+            var currentScalePositive = LASTOBJECT.scale.x > 0;
+            if (currentScalePositive !== lastScalePositive) {
+              if (currentScalePositive) {
+                LASTOBJECT.material.color.set(0xFF69B4); // Hotpink
+              } else {
+                LASTOBJECT.material.color.set(0x7CFC00); // Grassgreen
+              }
+              lastScalePositive = currentScalePositive; // Update the scale sign tracker
+            }
+          }
+        };
+
+        // Event listener for 'keydown' to toggle wireframe for all objects in the scene
+        window.addEventListener('keydown', function (e) {
+          if (e.code === 'KeyW') { // Check if W is pressed
+            scene.traverse(function (child) {
+              if (child.isMesh) {
+                child.material.wireframe = !child.material.wireframe; // Toggle wireframe for each mesh
+              }
+            });
+          } 
+        });
+
+        // Re-enable OrbitControls on mouseup and stop dragging
+        renderer.domElement.onmouseup = function () {
+          controls.enabled = true; // Re-enable OrbitControls
+          drag = false;  // Reset the dragging flag when the mouse is released
+        };
+
+        // Start animation loop
+        animate();
+      };
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      };
+    </script>
+  </head>
+  <body></body>
+</html>

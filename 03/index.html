@@ -1,0 +1,183 @@
+<html>
+  <head>
+    <style>
+      html, body { 
+        background-color:#000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;  
+      }
+    </style>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      }
+    }
+    </script>
+
+    <script type="module">
+
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+
+      var renderer, controls, scene, camera;
+
+      window.onload = function() {
+ 
+        // Three.js code goes here
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        var LASTOBJECT = null;
+        const DELTA = 0.1;
+        const PINK_COLOR = 0xff69b4;
+        const GREEN_COLOR = 0x7CFC00;
+        var isPink = true;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        // when w key is pressed every object's wireframe is toggled
+        document.onkeydown = function(e) {
+            if (e.key === 'w') {
+                scene.traverse(function(child) {
+                    if (child instanceof THREE.Mesh) {
+                        child.material.wireframe = !child.material.wireframe;
+                    }
+                });
+            }
+        };
+
+        renderer.domElement.onmousedown = function(e) {
+            if (e.shiftKey) {
+                controls.enabled = false;
+                var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+                var vp_coords = new THREE.Vector2(
+                    (pixel_coords.x / window.innerWidth) * 2 - 1,  // X
+                    -(pixel_coords.y / window.innerHeight) * 2 + 1 // Y
+                );
+
+                // Z-coordinate set to 0 to raycast through the scene
+                var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
+
+                // Raycasting through camera
+                var raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(vp_coords_near, camera);
+
+                var intersects = raycaster.intersectObject(invisible_plane);
+
+                if (intersects.length === 0) {
+                    console.log("No intersection detected");
+                    console.log("pixel coords:", pixel_coords);
+                    console.log("vp coords:", vp_coords);
+                    return;
+                }
+
+                var newtorusKnot = new THREE.Mesh(
+                    new THREE.TorusKnotGeometry(10, 3, 100, 16),
+                    new THREE.MeshStandardMaterial({ color: PINK_COLOR, wireframe: LASTOBJECT.material.wireframe })
+                );
+
+                // Set the torus knot's position to the intersection point
+                newtorusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+                scene.add(newtorusKnot);
+                LASTOBJECT = newtorusKnot;
+
+                console.log('Shift key down');
+            }
+            
+        };
+
+        renderer.domElement.onmouseup = function(e) {
+            controls.enabled = true;
+        };
+
+        renderer.domElement.onmousemove = function(e) {
+            if (LASTOBJECT && !controls.enabled) {
+
+                if (isPink && LASTOBJECT.scale.x + e.movementY * DELTA < 0 && LASTOBJECT.scale.y + e.movementY * DELTA < 0 && LASTOBJECT.scale.z + e.movementY * DELTA < 0) {
+                    isPink = !isPink;
+                }
+
+                if (!isPink && LASTOBJECT.scale.x + e.movementY * DELTA > 0 && LASTOBJECT.scale.y + e.movementY * DELTA > 0 && LASTOBJECT.scale.z + e.movementY * DELTA > 0) {
+                    isPink = !isPink;
+                }
+                
+                LASTOBJECT.scale.set(
+                    LASTOBJECT.scale.x + e.movementY * DELTA,
+                    LASTOBJECT.scale.y + e.movementY * DELTA,
+                    LASTOBJECT.scale.z + e.movementY * DELTA
+                );
+
+                LASTOBJECT.material.color.set(isPink ? PINK_COLOR : GREEN_COLOR);
+                
+            }
+        }
+
+        
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        // configure cube
+        var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        var material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+
+        var torusKnot = new THREE.Mesh(geometry, material);
+        LASTOBJECT = torusKnot;
+
+        scene.add( torusKnot );
+
+
+        //
+        // The invisible plane
+        //
+        geometry = new THREE.PlaneGeometry( 10000, 10000 );
+        material = new THREE.MeshBasicMaterial( {
+        visible: false
+        });
+
+        var invisible_plane = new THREE.Mesh( geometry, material );
+
+        scene.add( invisible_plane );
+        //
+
+        // interaction
+        controls = new OrbitControls( camera, renderer.domElement );
+
+        // call animation/rendering loop
+        animate();
+    
+    };
+
+    function animate() {
+
+        requestAnimationFrame( animate );
+
+        // and here..
+        controls.update();
+        renderer.render( scene, camera );
+    
+    };
+    </script>
+  </head>
+  <body></body>
+</html>

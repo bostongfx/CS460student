@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 var renderer, controls, scene, camera; 
+const knot = new THREE.TorusKnotGeometry(10, 3, 100, 16)
 window.onload = function () {
 
   // Three.js code goes here
@@ -46,10 +47,9 @@ window.onload = function () {
         if (intersects.length > 0) {
           var point = intersects[0].point;
           console.log('Intersection point', point);
-  
-          var cube_geometry = new THREE.BoxGeometry(20, 20, 20);
-          var cube_material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
-          var new_cube = new THREE.Mesh(cube_geometry, cube_material);
+   
+          var cube_material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+          var new_cube = new THREE.Mesh(knot, cube_material);
    
           new_cube.position.set(point.x, point.y, point.z);
           scene.add(new_cube);
@@ -57,7 +57,6 @@ window.onload = function () {
     }
   };
 
- 
   var ambientLight = new THREE.AmbientLight();
   scene.add(ambientLight);
 
@@ -65,19 +64,19 @@ window.onload = function () {
   light.position.set(10, 100, 10);
   scene.add(light);
  
-  var geometry = new THREE.BoxGeometry(20, 20, 20);
-  var material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
+  var planeGeometry = new THREE.BoxGeometry(20, 20, 20);
+  var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
 
-  var cube = new THREE.Mesh(geometry, material);
+  var torusKnot = new THREE.Mesh(knot, material);
 
-  scene.add(cube);
+  scene.add(torusKnot);
 
-  geometry = new THREE.PlaneGeometry(10000, 10000);
+  planeGeometry = new THREE.PlaneGeometry(10000, 10000);
   material = new THREE.MeshBasicMaterial({
     visible: false
   });
 
-  var invisible_plane = new THREE.Mesh(geometry, material);
+  var invisible_plane = new THREE.Mesh(planeGeometry, material);
 
   scene.add(invisible_plane);
 

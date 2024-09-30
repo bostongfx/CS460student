@@ -29,7 +29,7 @@
 
       var renderer, controls, scene, camera;
       var LASTOBJECT;
-      var torusArray = [null];
+      var torusArray = [];
       var wireframeFLIP = true;
       var RADIALSEGMENTS = 16; // Default 16
       var TUBULARSEGMENTS = 100; // Default 100
@@ -120,16 +120,19 @@
             }
         };
         const setWireframe = (item, index) => {
+          if (index == 0) {
+            return;
+          }
           item.material.wireframe = wireframeFLIP;
         }
-        window.onkeypress = function ( e ) {
+        window.onkeypress = function ( p ) {
           console.log(torusArray);
-          if (e.key == "w") {
+          if (p.key == "w") {
             torusArray.forEach(setWireframe);
           }
           wireframeFLIP = !wireframeFLIP;
         }
-        renderer.domElement.onmouseup = function ( e ) {
+        renderer.domElement.onmouseup = function ( x ) {
           LASTOBJECT = null;
           MOUSEDOWN = false;
           controls.enabled = true;
@@ -149,7 +152,7 @@
         var material = new THREE.MeshStandardMaterial({ color: 0xFE9900});
 
         var TKnot = new THREE.Mesh( geometry, material );
-
+        torusArray.push(TKnot);
         scene.add( TKnot );
 
         

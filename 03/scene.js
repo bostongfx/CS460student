@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-var renderer, controls, scene, camera;
-
+var renderer, controls, scene, camera; 
 window.onload = function () {
 
   // Three.js code goes here
@@ -31,45 +30,41 @@ window.onload = function () {
 
   renderer.domElement.onclick = function (e) {
     if (!e.shiftKey) {
-      //
+        var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+        console.log('Pixel coords', pixel_coords);
+  
+        var vp_coords = new THREE.Vector2(
+          (pixel_coords.x / window.innerWidth) * 2 - 1,  // X
+          -(pixel_coords.y / window.innerHeight) * 2 + 1 // Y
+        );
+        console.log('Viewport coords', vp_coords);
+   
+        var raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(vp_coords, camera);
+        var intersects = raycaster.intersectObject(invisible_plane);
+   
+        if (intersects.length > 0) {
+          var point = intersects[0].point;
+          console.log('Intersection point', point);
+  
+          var cube_geometry = new THREE.BoxGeometry(20, 20, 20);
+          var cube_material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
+          var new_cube = new THREE.Mesh(cube_geometry, cube_material);
+   
+          new_cube.position.set(point.x, point.y, point.z);
+          scene.add(new_cube);
+        }
     }
-
-    console.log('Yay! We clicked!');
-
-    var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
-
-    console.log('Pixel coords', pixel_coords);
-
-    var vp_coords = new THREE.Vector2(
-      (pixel_coords.x / window.innerWidth) * 2 - 1,  //X
-      -(pixel_coords.y / window.innerHeight) * 2 + 1) // Y
-
-    console.log('Viewport coords', vp_coords);
-
-    var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
-
-
-    var raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(vp_coords_near, camera);
-    var intersects = raycaster.intersectObject(invisible_plane);
-
-    console.log('Ray to Invisible Plane', intersects[0].point);
-
-    // update cube position
-    cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-
   };
 
-
-  // setup lights
+ 
   var ambientLight = new THREE.AmbientLight();
   scene.add(ambientLight);
 
   var light = new THREE.DirectionalLight(0xffffff, 5.0);
   light.position.set(10, 100, 10);
   scene.add(light);
-
-  // configure cube
+ 
   var geometry = new THREE.BoxGeometry(20, 20, 20);
   var material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
 
@@ -77,11 +72,6 @@ window.onload = function () {
 
   scene.add(cube);
 
-
-
-  //
-  // The invisible plane
-  //
   geometry = new THREE.PlaneGeometry(10000, 10000);
   material = new THREE.MeshBasicMaterial({
     visible: false
@@ -90,16 +80,8 @@ window.onload = function () {
   var invisible_plane = new THREE.Mesh(geometry, material);
 
   scene.add(invisible_plane);
-  //
-  //
-  //
 
-
-
-  // interaction
   controls = new OrbitControls(camera, renderer.domElement);
-
-  // call animation/rendering loop
   animate();
 
 };

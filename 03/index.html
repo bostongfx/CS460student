@@ -39,7 +39,7 @@
         var zNear = 1;
         var zFar = 10000;
 
-        camera = new THREE.PerspectiveCamera ( fov, ratio, zNear, Zfar );
+        camera = new THREE.PerspectiveCamera ( fov, ratio, zNear, zFar );
         camera.position.set(0, 0, 100);
 
         renderer = new THREE.WebGLRenderer();

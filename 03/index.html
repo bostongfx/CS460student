@@ -28,6 +28,10 @@
     import * as THREE from 'three';
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 
+    const HOT_PINK = 0xff69b4;
+    const GRASS_GREEN = 0x7cfc00;
+    const YELLOW = 0xffff00;
+
     var renderer, controls, scene, camera;
 
     window.onload = function () {
@@ -48,46 +52,28 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
 
-      window.onkeydown = function (e) {
-        if (e.key === "Shift") {
-          shiftKeyDown = true;
-          OrbitControls.enabled = false;
-        }
-      }
-
-      window.onkeyup = function (e) {
-        if (e.key === "Shift") {
-          shiftKeyDown = false;
-          OrbitControls.enabled = true;
-        }
-      }
-
-      function handleNonShiftClick(intersect) {
+      function handleNonShiftClick(coords) {
         // update cube position
-        torusKnot.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
+        controls.enabled = true;
+        torusKnot.position.set(coords.x, coords.y, coords.z);
       }
 
-      function handleShiftClick(intersect) {
+      function handleShiftClick(coords) {
+        controls.enabled = false;
         var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-        var material = new THREE.MeshStandardMaterial({color: 0xff00aa});
+        var material = new THREE.MeshStandardMaterial({color: HOT_PINK});
         var torusKnot = new THREE.Mesh(geometry, material);
-        torusKnot.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
+        torusKnot.position.set(coords.x, coords.y, coords.z);
         scene.add(torusKnot);
+        lastTorus = torusKnot;
       }
 
-      renderer.domElement.onclick = function (e) {
-
-        console.log('Yay! We clicked!');
-
+      function castMouseClick(e) {
         var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
-
-        console.log('Pixel coords', pixel_coords);
 
         var vp_coords = new THREE.Vector2(
           (pixel_coords.x / window.innerWidth) * 2 - 1,  //X
           -(pixel_coords.y / window.innerHeight) * 2 + 1) // Y
-
-        console.log('Viewport coords', vp_coords);
 
         var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
 
@@ -96,15 +82,38 @@
         raycaster.setFromCamera(vp_coords_near, camera);
         var intersects = raycaster.intersectObject(invisible_plane);
 
-        console.log('Ray to Invisible Plane', intersects[0].point);
-        if (shiftKeyDown) {
-          handleShiftClick(intersects[0]);
+        return intersects[0]?.point;
+      }
+
+      renderer.domElement.onmousedown = function (e) {
+        mouseIsDown = true;
+        const clickCoords = castMouseClick(e);
+
+        if (e.shiftKey) {
+          handleShiftClick(clickCoords);
         } else {
-          handleNonShiftClick(intersects[0]);
+          handleNonShiftClick(clickCoords);
         }
 
       };
 
+      renderer.domElement.onmousemove = function (e) {
+        if (mouseIsDown && e.shiftKey) {
+          const delta = e.movementY / 20;
+          lastTorus.scale.set(lastTorus.scale.x + delta, lastTorus.scale.y + delta, lastTorus.scale.z + delta);
+          if (lastTorus.scale.x < 0) {
+            lastTorus.material.color.set(GRASS_GREEN);
+          } else {
+            lastTorus.material.color.set(HOT_PINK);
+          }
+        }
+      }
+
+      renderer.domElement.onmouseup = function (e) {
+        mouseIsDown = false;
+        controls.enabled = true;
+        lastTorusScale = 1; // set this back to 1
+      }
 
       // setup lights
       var ambientLight = new THREE.AmbientLight();
@@ -124,9 +133,14 @@
       var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
       // var material = new THREE.MeshBasicMaterial({color: 0xffff00});
       // var material = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: true}); // wireframe
-      var material = new THREE.MeshStandardMaterial({color: 0x00ffaa});
+      var material = new THREE.MeshStandardMaterial({color: YELLOW});
       var torusKnot = new THREE.Mesh(geometry, material);
       scene.add(torusKnot);
+
+      // global state
+      var lastTorus = null;
+      var lastTorusScale = 1;
+      var mouseIsDown = false;
 
       //
       // The invisible plane
@@ -139,10 +153,6 @@
       var invisible_plane = new THREE.Mesh(geometry, material);
 
       scene.add(invisible_plane);
-
-      // UI state
-      var shiftKeyDown = false;
-
 
       // interaction
       controls = new OrbitControls(camera, renderer.domElement);

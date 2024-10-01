@@ -48,7 +48,16 @@
 
 
 
-        renderer.domElement.onclick = function( e ){
+        renderer.domElement.onmousedown = function( e ){
+          if (e.code == 'shiftKey') {
+            controls.enabled = false;
+            var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+            var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
+            var newTorus = new THREE.Mesh( geometry, newmaterial );
+
+            scene.add(newTorus);
+            newTorus.position.set(intersects[0].point.x, intersects[0].point.z);
+          }
           
             console.log('Yay! We clicked!');
 

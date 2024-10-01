@@ -56,12 +56,12 @@
         scene.add( light );
 
         // configure cube
-        var geometry = new THREE.BoxGeometry( 20, 20, 20 );
+        var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
         var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        var cube = new THREE.Mesh( geometry, material );
+        var torusKnot = new THREE.Mesh( geometry, material );
         
         // add it to the scene
-        scene.add(cube);
+        scene.add( torusKnot );
 
         // setup interaction
         controls = new OrbitControls( camera, renderer.domElement );

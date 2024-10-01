@@ -2,7 +2,11 @@
   <head>
     <style>
       html, body { 
+<<<<<<< HEAD
         background-color: #000;
+=======
+        background-color:#000;
+>>>>>>> 35d5d7f242a82be949b384d5d448de5fd79d11dc
         margin: 0;
         padding: 0;
         height: 100%;
@@ -22,6 +26,7 @@
     </script>
 
     <script type="module">
+<<<<<<< HEAD
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
@@ -166,8 +171,35 @@
         requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);
+=======
+
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+
+      var renderer, controls, scene, camera;
+
+      window.onload = function() {
+
+        // Three.js code goes here
+ 
+        // call animation/rendering loop
+        animate();
+        
+      };
+
+      function animate() {
+
+        requestAnimationFrame( animate );
+
+        // and here..
+        
+>>>>>>> 35d5d7f242a82be949b384d5d448de5fd79d11dc
       };
     </script>
   </head>
   <body></body>
 </html>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 35d5d7f242a82be949b384d5d448de5fd79d11dc

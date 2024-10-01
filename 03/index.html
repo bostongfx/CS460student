@@ -28,6 +28,10 @@
 
       var renderer, controls, scene, camera;
 
+      var LASTOBJECT = null; 
+      var drag = false;
+      var prevScaleSign = true;  // Tracks the previous scale sign
+
       window.onload = function() {
 
         // Three.js code goes here
@@ -38,97 +42,123 @@
         var ratio = window.innerWidth / window.innerHeight;
         var zNear = 1;
         var zFar = 10000;
-        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
         camera.position.set(0, 0, 100);
 
         // create renderer and setup the canvas
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( renderer.domElement );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
+        renderer.domElement.onmousedown = function (e) {
+          if (!e.shiftKey) return;
 
+          controls.enabled = false; // Disable OrbitControls
+          drag = true;  // Set flag to true 
 
-        renderer.domElement.onclick = function( e ){
-          
-            console.log('Yay! We clicked!');
+          var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+          var vp_coords = new THREE.Vector2(
+            (pixel_coords.x / window.innerWidth) * 2 - 1, // X
+            -(pixel_coords.y / window.innerHeight) * 2 + 1 // Y
+          );
 
-            var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
+          var raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(vp_coords, camera);
+          var intersects = raycaster.intersectObject(invisiblePlane);
 
-            console.log('Pixel coords', pixel_coords);
+          if (intersects.length > 0) {
+            var newTorusGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            var newTorusMaterial = new THREE.MeshBasicMaterial({ color: 0xffb3c6 }); // CHANGED TO PASTEL PINK
+            var newTorusKnot = new THREE.Mesh(newTorusGeometry, newTorusMaterial);
+            newTorusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            scene.add(newTorusKnot);
+            LASTOBJECT = newTorusKnot;
+            prevScaleSign = true;
+          }
+        };
 
-            var vp_coords = new THREE.Vector2( 
-                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
-                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
-
-            console.log('Viewport coords', vp_coords);
-
-            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
-
-
-            var raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(vp_coords_near, camera);
-            var intersects = raycaster.intersectObject(invisible_plane);
-
-            console.log('Ray to Invisible Plane', intersects[0].point);
-
-            // update cube position
-            cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-
-          };
-
-
-        // setup lights
+        // setup lights *note the lighting doesn't work for my objects
         var ambientLight = new THREE.AmbientLight();
-        scene.add( ambientLight );
+        scene.add(ambientLight);
 
-        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
-        light.position.set( 10, 100, 10 );
-        scene.add( light );
+        var light = new THREE.DirectionalLight(0xffffff, 1.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
 
-        // configure cube
-        var geometry = new THREE.BoxGeometry( 20, 20, 20 );
-        var material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
+        // configure cube -> TURNED INTO TORUSKNOT
+        var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 ); 
+        var material = new THREE.MeshBasicMaterial( { color: 0xCCB7E5 } ); 
+        var torusKnot = new THREE.Mesh( geometry, material ); // replace cube + color of choice above
+        scene.add( torusKnot );
 
-        var cube = new THREE.Mesh( geometry, material );
+        // Invisible plane
+        geometry = new THREE.PlaneGeometry(10000, 10000);
+        material = new THREE.MeshBasicMaterial({
+             visible: false 
+            });
 
-        scene.add( cube );
-
-
-
-        //
-        // The invisible plane
-        //
-        geometry = new THREE.PlaneGeometry( 10000, 10000 );
-        material = new THREE.MeshBasicMaterial( {
-          visible: false
-        });
-
-        var invisible_plane = new THREE.Mesh( geometry, material );
-
-        scene.add( invisible_plane );
-        //
-        //
-        //
-
-
+        var invisiblePlane = new THREE.Mesh(geometry, material);
+        scene.add(invisiblePlane);
 
         // interaction
-        controls = new OrbitControls( camera, renderer.domElement );
+        controls = new OrbitControls(camera, renderer.domElement);
+        
+        // Re-enable Controls
+        renderer.domElement.onmouseup = function () {
+          controls.enabled = true;
+          drag = false;
+        };
+
+        // Part 5
+        renderer.domElement.onmousemove = function (e) {
+            // Note LASTOBJECT variable and code below inspired by hint given in part 5
+          if (drag && LASTOBJECT) { 
+            // console.log("Mouse Y movement:", e.movementY);  Testing purposes
+            var scaleDELTA = e.movementY * 0.005; 
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + scaleDELTA,
+              LASTOBJECT.scale.y + scaleDELTA,
+              LASTOBJECT.scale.z + scaleDELTA
+            );
+
+            // Check if the scale crossed zero and switch colors
+            var currentScaleSign = LASTOBJECT.scale.x > 0;
+            if (currentScaleSign !== prevScaleSign) {
+              if (currentScaleSign) {
+                LASTOBJECT.material.color.set(0xffb3c6); // CHANGED TO PASTEL PINK
+              } else {
+                LASTOBJECT.material.color.set(0xBEE3BA); // CHANGED TO PASTEL GREEN
+              }
+              prevScaleSign = currentScaleSign; // Update the scale sign tracker
+            }
+          }
+        };
+
+        // toggle wireframe for all objects in the scene
+        window.addEventListener('keydown', function (e) {
+          if (e.code === 'KeyW') { // Check if W is pressed, code credited and related to previous Assignment 2
+            // Inspiration code credited in submission assignment, website incase not seen: https://discourse.threejs.org/t/proper-way-of-adding-and-removing-a-wireframe/4600 
+            scene.traverse(function (child) {
+              if (child.isMesh) {
+                child.material.wireframe = !child.material.wireframe;
+              }
+            });
+          } 
+        });
 
         // call animation/rendering loop
         animate();
-        
       };
 
       function animate() {
-
-        requestAnimationFrame( animate );
-
-        // and here..
+        requestAnimationFrame(animate);
         controls.update();
-        renderer.render( scene, camera );
-        
+        renderer.render(scene, camera);
       };
+    </script>
+  </head>
+  <body></body>
+</html>
     </script>
   </head>
   <body></body>

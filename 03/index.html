@@ -2,7 +2,7 @@
   <head>
     <style>
       html, body { 
-        background-color:#000;
+        background-color: #000;
         margin: 0;
         padding: 0;
         height: 100%;
@@ -26,26 +26,77 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
-      var renderer, controls, scene, camera;
+      let renderer, controls, scene, camera;
+      const torusKnots = [];
 
       window.onload = function() {
-
-        // Three.js code goes here
- 
-        // call animation/rendering loop
-        animate();
+        // Set up scene, camera, and renderer
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
         
+        controls = new OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 5, 10);
+        controls.update();
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 1); // Soft white light
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // White directional light
+        directionalLight.position.set(5, 10, 7.5); // Position the light
+        scene.add(directionalLight);
+
+        // Handle mouse down and up events
+        renderer.domElement.onmousedown = (event) => {
+          if (event.shiftKey) {
+            controls.enabled = false; // Disable OrbitControls
+            placeTorusKnot(event);
+          }
+        };
+
+        renderer.domElement.onmouseup = () => {
+          controls.enabled = true; // Re-enable OrbitControls
+        };
+
+        // Call animation/rendering loop
+        animate();
       };
 
+      function placeTorusKnot(event) {
+        // Unproject the mouse position to 3D coordinates
+        const rect = renderer.domElement.getBoundingClientRect();
+        const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        const vector = new THREE.Vector3(mouseX, mouseY, 0.5);
+        vector.unproject(camera);
+
+        const dir = vector.sub(camera.position).normalize();
+        const distance = -camera.position.z / dir.z; // Calculate distance to place the torus knot
+        const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+        // Create and place a new hotpink torus knot
+        const geometry = new THREE.TorusKnotGeometry(1, 0.4, 100, 16);
+        const material = new THREE.MeshStandardMaterial({ color: 0xff69b4 }); // Hotpink color in hex
+        const torusKnot = new THREE.Mesh(geometry, material);
+        torusKnot.position.copy(pos);
+        scene.add(torusKnot);
+        torusKnots.push(torusKnot); // Store reference to the torus knot
+      }
+
       function animate() {
+        requestAnimationFrame(animate);
 
-        requestAnimationFrame( animate );
+        // Update controls
+        controls.update();
 
-        // and here..
-        
+        // Render the scene
+        renderer.render(scene, camera);
       };
     </script>
   </head>
   <body></body>
 </html>
-

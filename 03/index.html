@@ -28,6 +28,9 @@
 
       let renderer, controls, scene, camera;
       const torusKnots = [];
+      let LASTOBJECT = null; // Global variable to track the last placed torus
+      let isScaling = false; // Flag to check if we are scaling the last torus
+      let lastScaleDirection = 1; // Track the direction of scaling (positive or negative)
 
       window.onload = function() {
         // Set up scene, camera, and renderer
@@ -54,11 +57,42 @@
           if (event.shiftKey) {
             controls.enabled = false; // Disable OrbitControls
             placeTorusKnot(event);
+            isScaling = true; // Set the scaling flag
+            lastScaleDirection = 1; // Initialize scale direction
           }
         };
 
         renderer.domElement.onmouseup = () => {
           controls.enabled = true; // Re-enable OrbitControls
+          isScaling = false; // Reset the scaling flag
+          LASTOBJECT = null; // Reset the last object
+        };
+
+        // Handle mouse move event for scaling and color change
+        renderer.domElement.onmousemove = (event) => {
+          if (isScaling && LASTOBJECT) {
+            const delta = event.movementY * 0.01; // Scale factor
+
+            // Apply the scale
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + delta,
+              LASTOBJECT.scale.y + delta,
+              LASTOBJECT.scale.z + delta
+            );
+
+            // Check for flip (crossing zero) and change color accordingly
+            const newScaleDirection = Math.sign(LASTOBJECT.scale.x);
+            if (newScaleDirection !== lastScaleDirection && LASTOBJECT.scale.x !== 0) {
+              if (newScaleDirection < 0) {
+                // Change to grassgreen when scale goes negative
+                LASTOBJECT.material.color.set(0x7CFC00); // Grassgreen
+              } else {
+                // Change to hotpink when scale becomes positive
+                LASTOBJECT.material.color.set(0xff69b4); // Hotpink
+              }
+              lastScaleDirection = newScaleDirection; // Update the last scale direction
+            }
+          }
         };
 
         // Call animation/rendering loop
@@ -85,6 +119,8 @@
         torusKnot.position.copy(pos);
         scene.add(torusKnot);
         torusKnots.push(torusKnot); // Store reference to the torus knot
+        
+        LASTOBJECT = torusKnot; // Set the last object to the newly created torus knot
       }
 
       function animate() {

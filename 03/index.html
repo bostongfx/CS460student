@@ -26,26 +26,122 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
-      var renderer, controls, scene, camera;
+      let renderer, controls, scene, camera, isShiftPressed = false, LASTOBJECT = null, isDragging = false;
 
       window.onload = function() {
 
-        // Three.js code goes here
- 
-        // call animation/rendering loop
+        // Initialize scene
+        scene = new THREE.Scene();
+
+        // Setup the camera
+        const fov = 75;
+        const ratio = window.innerWidth / window.innerHeight;
+        const zNear = 1;
+        const zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+
+        // Create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Setup lights
+        const ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+
+        const light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
+
+        // Create an invisible plane for raycasting
+        const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
+        const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        const invisiblePlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        scene.add(invisiblePlane);
+
+        // Initialize OrbitControls for camera movement
+        controls = new OrbitControls(camera, renderer.domElement);
+
+        // Shift key handling
+        window.addEventListener('keydown', function(event) {
+          if (event.key === 'Shift') {
+            isShiftPressed = true;
+            controls.enabled = false;  // Disable camera movement
+          }
+        });
+
+        window.addEventListener('keyup', function(event) {
+          if (event.key === 'Shift') {
+            isShiftPressed = false;
+            controls.enabled = true;  // Enable camera movement
+          }
+        });
+
+        // Mouse down event to add a torus at mouse click location when SHIFT is pressed
+        renderer.domElement.onmousedown = function(e) {
+          if (isShiftPressed) {
+            // Get mouse position
+            const pixelCoords = new THREE.Vector2(e.clientX, e.clientY);
+            const vpCoords = new THREE.Vector2(
+              (pixelCoords.x / window.innerWidth) * 2 - 1,
+              -(pixelCoords.y / window.innerHeight) * 2 + 1
+            );
+            const vpCoordsNear = new THREE.Vector3(vpCoords.x, vpCoords.y, 0);
+
+            // Raycast to find the 3D position on the invisible plane
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vpCoordsNear, camera);
+            const intersects = raycaster.intersectObject(invisiblePlane);
+
+            if (intersects.length > 0) {
+              // Create a torus geometry
+              const torusGeometry = new THREE.TorusGeometry(10, 3, 16, 100);
+              const torusMaterial = new THREE.MeshStandardMaterial({ color: 0xff69b4 });  // Hot pink color
+              const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+
+              // Place the torus at the clicked position
+              torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              scene.add(torus);
+
+              // Store the reference to the last placed object
+              LASTOBJECT = torus;
+
+              // Set dragging flag to true to allow scaling
+              isDragging = true;
+            }
+          }
+        };
+
+        // Mouse move event to scale the last placed torus while dragging
+        renderer.domElement.onmousemove = function(e) {
+          if (isDragging && LASTOBJECT) {
+            const deltaY = e.movementY; // Get vertical movement of the mouse
+            const scaleDelta = deltaY * -0.01; // Scale factor, negative for intuitive scaling
+
+            // Scale the last placed torus
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + scaleDelta,
+              LASTOBJECT.scale.y + scaleDelta,
+              LASTOBJECT.scale.z + scaleDelta
+            );
+          }
+        };
+
+        // Mouse up event to stop dragging and scaling
+        renderer.domElement.onmouseup = function() {
+          isDragging = false;  // Stop scaling when mouse button is released
+        };
+
+        // Animation/rendering loop
+        function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          renderer.render(scene, camera);
+        }
         animate();
-        
-      };
-
-      function animate() {
-
-        requestAnimationFrame( animate );
-
-        // and here..
-        
       };
     </script>
   </head>
   <body></body>
 </html>
-

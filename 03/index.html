@@ -27,11 +27,43 @@
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
       var renderer, controls, scene, camera;
+    
 
       window.onload = function() {
 
         // Three.js code goes here
- 
+        scene = new Three.Scene();
+
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+
+        camera = new Three.PerspectiveCamera ( fov, ratio, zNear, Zfar );
+        camera.position.set(0, 0, 100);
+
+        renderer = new Three.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window,innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        //... setuplights
+        var ambientLight = new THREE.AmbientLight( 0xffffff );
+        scene.add ( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add ( light );
+
+        //configer cube
+        var geometry = new THREE.BoxGeometry( 20, 20, 20 );
+        var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        var cube = new THREE.Mesh( geometry, material );
+
+        scene.add( cube );
+
+        controls = new OrbitControls( camera, renderer.domElement );
+
+
         // call animation/rendering loop
         animate();
         
@@ -42,7 +74,8 @@
         requestAnimationFrame( animate );
 
         // and here..
-        
+        controls.update();
+        renderer.render( scene, camera );
       };
     </script>
   </head>

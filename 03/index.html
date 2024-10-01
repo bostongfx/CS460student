@@ -27,6 +27,8 @@
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
       var renderer, controls, scene, camera;
+      var LASTOBJECT;
+      var held = 0;
 
       window.onload = function() {
 
@@ -46,10 +48,22 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
 
+          window.onkeypress = function(e) {
+            console.log(e);
+            if (e.code == 'Space') {
+              if (controls.enabled == true) {
+                controls.enabled = false;
+              } else {
+                controls.enabled = true;
+              }
+              
+            }
 
+          }
 
-        renderer.domElement.onclick = function( e ){
+        renderer.domElement.onmousedown = function( e ){
           
+            held = 1;
             console.log('Yay! We clicked!');
 
             var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
@@ -69,11 +83,50 @@
             raycaster.setFromCamera(vp_coords_near, camera);
             var intersects = raycaster.intersectObject(invisible_plane);
 
-            console.log('Ray to Invisible Plane', intersects[0].point);
+            // console.log('Ray to Invisible Plane', intersects[0].point);
 
             // update cube position
-            cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            //torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+          
+            var position = intersects[0].point;
 
+           if (controls.enabled == false) {
+              var geometry = new THREE.TorusKnotGeometry(10, 3, 64, 8, 2, 3);
+              var material = new THREE.MeshStandardMaterial({ color: 0xFFC0CB});
+
+              var torus = new THREE.Mesh( geometry, material );
+              torus.position.copy(position);
+              while (held = 1) {
+                console.log(LASTOBJECT);
+              }
+              
+              
+              scene.add(torus);
+
+              
+
+              // while (render.domElement.onmousemove ) {
+              // torus.scale.set(torus.scale.x + DELTA, torus.scale.y + DELTA, torus.scale.z + DELTA);
+              // }
+
+           }
+          
+          }; 
+
+          renderer.domElement.onmousemove = function ( e ) {
+              
+            LASTOBJECT = e.clientY;
+            
+          };
+
+          renderer.domElement.onmouseup = function (e) {
+            held = 0;
+          };
+
+          renderer.domElement.onmouseup = function ( e ) {
+            if (controls.enabled == false) {
+              controls.enabled = true;
+            }
           };
 
 
@@ -86,13 +139,12 @@
         scene.add( light );
 
         // configure cube
-        const geometry = new THREE.TorusKnotGeometry(10, 3, 64, 8, 2, 3);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+        var geometry = new THREE.TorusKnotGeometry(10, 3, 64, 8, 2, 3);
+        var material = new THREE.MeshStandardMaterial({ color: 0xFFFF00});
 
         var torusKnot = new THREE.Mesh( geometry, material );
 
         scene.add( torusKnot );
-
 
 
         //

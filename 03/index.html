@@ -1,3 +1,14 @@
+<!-- 
+Project: Pink (and Green) Torus World using Three.js
+Description: This project creates an interactive 3D scene using Three.js where users can place, scale, and color-switch toruses.
+- Toruses are placed at the mouse click position when the SHIFT key is pressed.
+- After placement, users can drag the mouse up or down to scale the torus dynamically.
+- The torus color flips between hot pink (#ff69b4) and grass green (#7CFC00) when the scale crosses zero.
+- The project includes camera controls using OrbitControls, but these are disabled while interacting with the scene.
+
+- Jongsoo Ha
+- CS460 Fall 2024
+-->
 <html>
   <head>
     <style>
@@ -27,10 +38,14 @@
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
       let renderer, controls, scene, camera, isShiftPressed = false, LASTOBJECT = null, isDragging = false;
+      let currentColor = 0xff69b4;  // Start with hotpink
+      let lastScaleSign = 1;  // Keep track of scale direction
+      let torusObjects = [];  // Store all placed toruses
+      let wireframeMode = false;  // Initialize wireframe mode flag
 
       window.onload = function() {
 
-        // Initialize scene
+        // Part 1: Initialize scene
         scene = new THREE.Scene();
 
         // Setup the camera
@@ -41,20 +56,19 @@
         camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
         camera.position.set(0, 0, 100);
 
-        // Create renderer and setup the canvas
+        // Create renderer and setup the canvas 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Setup lights
+        // Setup lights for the scene
         const ambientLight = new THREE.AmbientLight();
         scene.add(ambientLight);
-
         const light = new THREE.DirectionalLight(0xffffff, 5.0);
         light.position.set(10, 100, 10);
         scene.add(light);
 
-        // Create an invisible plane for raycasting
+        // Part 2: Invisible plane for raycasting
         const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
         const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
         const invisiblePlane = new THREE.Mesh(planeGeometry, planeMaterial);
@@ -63,11 +77,13 @@
         // Initialize OrbitControls for camera movement
         controls = new OrbitControls(camera, renderer.domElement);
 
-        // Shift key handling
+        // Part 3: Shift key and wireframe toggle handling
         window.addEventListener('keydown', function(event) {
           if (event.key === 'Shift') {
             isShiftPressed = true;
             controls.enabled = false;  // Disable camera movement
+          } else if (event.key === 'w') {
+            toggleWireframe();
           }
         });
 
@@ -78,10 +94,9 @@
           }
         });
 
-        // Mouse down event to add a torus at mouse click location when SHIFT is pressed
+        // Part 4: Mouse down event to add a torus
         renderer.domElement.onmousedown = function(e) {
           if (isShiftPressed) {
-            // Get mouse position
             const pixelCoords = new THREE.Vector2(e.clientX, e.clientY);
             const vpCoords = new THREE.Vector2(
               (pixelCoords.x / window.innerWidth) * 2 - 1,
@@ -89,26 +104,22 @@
             );
             const vpCoordsNear = new THREE.Vector3(vpCoords.x, vpCoords.y, 0);
 
-            // Raycast to find the 3D position on the invisible plane
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(vpCoordsNear, camera);
             const intersects = raycaster.intersectObject(invisiblePlane);
 
             if (intersects.length > 0) {
-              // Create a torus geometry
-              const torusGeometry = new THREE.TorusGeometry(10, 3, 16, 100);
-              const torusMaterial = new THREE.MeshStandardMaterial({ color: 0xff69b4 });  // Hot pink color
-              const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+              const torusKnotGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+              const torusMaterial = new THREE.MeshStandardMaterial({ color: currentColor });
+              const torusKnot = new THREE.Mesh(torusKnotGeometry, torusMaterial);
 
-              // Place the torus at the clicked position
-              torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-              scene.add(torus);
+              torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              scene.add(torusKnot);
 
-              // Store the reference to the last placed object
-              LASTOBJECT = torus;
-
-              // Set dragging flag to true to allow scaling
+              LASTOBJECT = torusKnot;  // Store the reference to the last placed object
               isDragging = true;
+              lastScaleSign = 1;  // Reset scale sign
+              torusObjects.push(torusKnot);  // Add to the list of toruses
             }
           }
         };
@@ -116,21 +127,50 @@
         // Mouse move event to scale the last placed torus while dragging
         renderer.domElement.onmousemove = function(e) {
           if (isDragging && LASTOBJECT) {
-            const deltaY = e.movementY; // Get vertical movement of the mouse
-            const scaleDelta = deltaY * -0.01; // Scale factor, negative for intuitive scaling
+            const deltaY = e.movementY;
+            const scaleDelta = deltaY * -0.01; // Negative for intuitive scaling
 
-            // Scale the last placed torus
             LASTOBJECT.scale.set(
               LASTOBJECT.scale.x + scaleDelta,
               LASTOBJECT.scale.y + scaleDelta,
               LASTOBJECT.scale.z + scaleDelta
             );
+
+            // Part 6: Add some green
+            const currentScaleSign = Math.sign(LASTOBJECT.scale.x);
+            if (currentScaleSign !== lastScaleSign) {
+              currentColor = (currentColor === 0xff69b4) ? 0x7CFC00 : 0xff69b4;  // Switch color
+              LASTOBJECT.material.color.set(currentColor);
+              lastScaleSign = currentScaleSign;
+            }
           }
         };
 
-        // Mouse up event to stop dragging and scaling
+        function toggleWireframe() {
+          wireframeMode = !wireframeMode;  // Toggle wireframe mode
+          torusObjects.forEach((torus) => {
+            if (wireframeMode && !torus.userData.wireframe) {
+              // Create wireframe only if it doesn't already exist
+              const wireframe = new THREE.WireframeGeometry(torus.geometry);
+              const line = new THREE.LineSegments(wireframe);
+              line.material.depthTest = false;
+              line.material.opacity = 0.25;
+              line.material.transparent = true;
+              scene.add(line);
+              torus.userData.wireframe = line;  // Store the wireframe in userData
+              torus.visible = false;  // Hide original torus
+            } else if (!wireframeMode && torus.userData.wireframe) {
+              // Remove wireframe and show original torus
+              scene.remove(torus.userData.wireframe);  // Remove wireframe
+              torus.visible = true;  // Show original torus
+              delete torus.userData.wireframe;  // Clean up
+            }
+          });
+        }
+
+        // Mouse up event to stop dragging
         renderer.domElement.onmouseup = function() {
-          isDragging = false;  // Stop scaling when mouse button is released
+          isDragging = false;
         };
 
         // Animation/rendering loop

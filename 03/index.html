@@ -38,6 +38,7 @@
 
       // Three.js code goes here
       scene = new THREE.Scene();
+      var allMeshes = [];
 
       // setup the camera
       var fov = 75;
@@ -52,6 +53,11 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
 
+      function addMesh(mesh) {
+        scene.add(mesh);
+        allMeshes.push(mesh);
+      }
+
       function handleNonShiftClick(coords) {
         // update cube position
         controls.enabled = true;
@@ -61,10 +67,10 @@
       function handleShiftClick(coords) {
         controls.enabled = false;
         var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-        var material = new THREE.MeshStandardMaterial({color: HOT_PINK});
+        var material = new THREE.MeshStandardMaterial({color: HOT_PINK, wireframe: isWireframeMode});
         var torusKnot = new THREE.Mesh(geometry, material);
         torusKnot.position.set(coords.x, coords.y, coords.z);
-        scene.add(torusKnot);
+        addMesh(torusKnot);
         lastTorus = torusKnot;
       }
 
@@ -83,6 +89,15 @@
         var intersects = raycaster.intersectObject(invisible_plane);
 
         return intersects[0]?.point;
+      }
+
+      window.onkeydown = function (e) {
+        if (e.key.toLowerCase() === "w") {isWireframeMode = !isWireframeMode};
+        allMeshes.forEach(mesh => {
+          if (mesh.material) {
+            mesh.material.wireframe = isWireframeMode;
+          }
+        });
       }
 
       renderer.domElement.onmousedown = function (e) {
@@ -135,12 +150,14 @@
       // var material = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: true}); // wireframe
       var material = new THREE.MeshStandardMaterial({color: YELLOW});
       var torusKnot = new THREE.Mesh(geometry, material);
-      scene.add(torusKnot);
+
+      addMesh(torusKnot);
 
       // global state
       var lastTorus = null;
       var lastTorusScale = 1;
       var mouseIsDown = false;
+      var isWireframeMode = false;
 
       //
       // The invisible plane

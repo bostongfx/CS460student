@@ -17,7 +17,6 @@
       right: 10px;
       z-index: 3;
       color: #ffff88;
-      visibility: hidden;
       font-size: 1.6em user-select: none;
       /* Based on this stackoverflow post https://stackoverflow.com/questions/6900124/how-to-make-certain-text-not-selectable-with-css */
       -webkit-user-select: none;
@@ -52,6 +51,9 @@
     const HOT_PINK = 0xff69b4;
     const GRASS_GREEN = 0x7cfc00;
     const YELLOW = 0xffff00;
+    const TUBULAR_SEGMENTS = 96;
+    const RADIAL_SEGMENTS = 8;
+
     const vertexEdgeCountElement = document.getElementById("vertex-edge-count");
 
     var renderer, controls, scene, camera;
@@ -76,14 +78,7 @@
       document.body.appendChild(renderer.domElement);
 
       const updateVertextCountUI = () => {
-        if (isWireframeMode) {
-          setTimeout(() => {
-          vertexEdgeCountElement.innerText = `approx. ${renderer.info.render.lines} vertices & edges`;
-          }, 100); // the counter takes a few ms to update
-          vertexEdgeCountElement.style.visibility = "visible";
-        } else {
-          vertexEdgeCountElement.style.visibility = "hidden";
-        }
+        vertexEdgeCountElement.innerText = `approx. ${allMeshes.length * TUBULAR_SEGMENTS * RADIAL_SEGMENTS * 2} vertices & edges`;
       }
 
       function addMesh(mesh) {
@@ -99,7 +94,7 @@
 
       function handleShiftClick(coords) {
         controls.enabled = false;
-        var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        var geometry = new THREE.TorusKnotGeometry(10, 3, TUBULAR_SEGMENTS, RADIAL_SEGMENTS);
         var material = new THREE.MeshStandardMaterial({color: HOT_PINK, wireframe: isWireframeMode});
         var torusKnot = new THREE.Mesh(geometry, material);
         torusKnot.position.set(coords.x, coords.y, coords.z);
@@ -180,7 +175,7 @@
       var cube = new THREE.Mesh(geometry, material);
       */
 
-      var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+      var geometry = new THREE.TorusKnotGeometry(10, 3, TUBULAR_SEGMENTS, RADIAL_SEGMENTS);
       // var material = new THREE.MeshBasicMaterial({color: 0xffff00});
       // var material = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: true}); // wireframe
       var material = new THREE.MeshStandardMaterial({color: YELLOW});

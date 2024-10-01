@@ -32,17 +32,17 @@
       window.onload = function() {
 
         // Three.js code goes here
-        scene = new Three.Scene();
+        scene = new THREE.Scene();
 
         var fov = 75;
         var ratio = window.innerWidth / window.innerHeight;
         var zNear = 1;
         var zFar = 10000;
 
-        camera = new Three.PerspectiveCamera ( fov, ratio, zNear, Zfar );
+        camera = new THREE.PerspectiveCamera ( fov, ratio, zNear, Zfar );
         camera.position.set(0, 0, 100);
 
-        renderer = new Three.WebGLRenderer();
+        renderer = new THREE.WebGLRenderer();
         renderer.setSize( window.innerWidth, window,innerHeight );
         document.body.appendChild( renderer.domElement );
 

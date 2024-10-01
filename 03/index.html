@@ -82,7 +82,7 @@
               var new_torus = new THREE.Mesh(geometry, material)
               new_torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z)
 
-              scene.add(new_torus)
+              scene.add(new_torus);
               last_torus = new_torus;
 
               torus_scene.push(new_torus);
@@ -102,7 +102,7 @@
               last_torus.material.color.set(0xff69b4);
             }
 
-            // negative scale = pink
+            // negative scale = green
             if (last_torus.scale.x > 0 && last_torus.scale.x + e.movementY <= 0) { 
               last_torus.material.color.set(0x7cfc00);
             }

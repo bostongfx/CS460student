@@ -18,6 +18,7 @@
 
       r = new X.renderer3D();
       r.init(); 
+      CAMERAS = [];
 
       c = new X.cube();
       c.center = [0, 0, 0]; // x y z
@@ -125,6 +126,15 @@
           }
         }
 
+        //camera view
+
+        if (e.code == 'KeyC') {
+          new_cam_value = new Float32Array(Object.values(r.camera.view));
+          CAMERAS.push(new_cam_value);
+          console.log(new_cam_value);
+        }
+
+        
     }
    
 

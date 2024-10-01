@@ -13,7 +13,10 @@ function download() {
   }
 
   ALL_CAMERAS = [];
-  ALL_CAMERAS.push(r.camera.view);
+
+  for (var i = 0; i<cameras.length;i++) {
+    ALL_CAMERAS.push(cameras[i]);
+  }
 
   // create JSON object
   var out = {};

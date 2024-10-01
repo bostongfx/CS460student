@@ -26,12 +26,112 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
-      var renderer, controls, scene, camera;
+      var renderer, controls, scene, camera, lastTorus;
+      const hotpink = 0xff69b4, grassgreen = 0x7cfc00;
+      
+      function makeTorus(x, y, z){
+          var geometry = new THREE.TorusKnotGeometry( 5, 1.5, 100, 16 );
+          var material = new THREE.MeshStandardMaterial({ color: hotpink});
+          var torus = new THREE.Mesh( geometry, material );
+          torus.position.set(x, y, z);
+          return torus;
+      }
 
       window.onload = function() {
 
         // Three.js code goes here
- 
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        // interaction
+        controls = new OrbitControls( camera, renderer.domElement );
+
+        renderer.domElement.onmousedown = function( e ){
+          
+            //console.log('Yay! We clicked!');
+            if(e.shiftKey){
+                controls.enabled = false;
+                
+                var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
+
+                //console.log('Pixel coords', pixel_coords);
+
+                var vp_coords = new THREE.Vector2( 
+                            ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                            -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+
+                //console.log('Viewport coords', vp_coords);
+
+                var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+
+
+                var raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(vp_coords_near, camera);
+                var intersects = raycaster.intersectObject(invisible_plane);
+
+                //console.log('Ray to Invisible Plane', intersects[0].point);
+
+                // update cube position
+                //cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+                lastTorus = makeTorus(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+                scene.add(lastTorus);
+            }
+          };
+
+        renderer.domElement.onmousemove = function(e){
+            if(controls.enabled==false){
+                var delta = e.movementY*0.05;
+                lastTorus.scale.set(lastTorus.scale.x + delta,
+                                    lastTorus.scale.y + delta,
+                                    lastTorus.scale.z + delta);
+                lastTorus.material.color.set(lastTorus.scale.x < 0 ? grassgreen : hotpink);
+            }
+        }
+
+        renderer.domElement.onmouseup = function( e ){
+        
+            controls.enabled = true;
+        }
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        // configure cube
+
+        //
+        // The invisible plane
+        //
+        var pGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+        var pMaterial = new THREE.MeshBasicMaterial( {
+          visible: false
+        });
+
+        var invisible_plane = new THREE.Mesh( pGeometry, pMaterial );
+
+        scene.add( invisible_plane );
+        //
+        //
+        //
+
+
+
+
         // call animation/rendering loop
         animate();
         
@@ -42,10 +142,11 @@
         requestAnimationFrame( animate );
 
         // and here..
+        controls.update();
+        renderer.render( scene, camera );
         
       };
     </script>
   </head>
   <body></body>
 </html>
-

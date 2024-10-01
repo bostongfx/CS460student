@@ -10,6 +10,25 @@
       height: 100%;
       overflow: hidden !important;
     }
+
+    #vertex-edge-count {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 3;
+      color: #ffff88;
+      visibility: hidden;
+      font-size: 1.6em user-select: none;
+      /* Based on this stackoverflow post https://stackoverflow.com/questions/6900124/how-to-make-certain-text-not-selectable-with-css */
+      -webkit-user-select: none;
+      /* Safari */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* IE10+/Edge */
+      user-select: none;
+      /* Standard */
+    }
   </style>
 
   <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -23,6 +42,8 @@
     }
     </script>
 
+  <span id="vertex-edge-count">0 vertices & edges</span>
+
   <script type="module">
 
     import * as THREE from 'three';
@@ -31,6 +52,7 @@
     const HOT_PINK = 0xff69b4;
     const GRASS_GREEN = 0x7cfc00;
     const YELLOW = 0xffff00;
+    const vertexEdgeCountElement = document.getElementById("vertex-edge-count");
 
     var renderer, controls, scene, camera;
 
@@ -52,6 +74,17 @@
       renderer = new THREE.WebGLRenderer({antialias: true});
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
+
+      const updateVertextCountUI = () => {
+        if (isWireframeMode) {
+          setTimeout(() => {
+          vertexEdgeCountElement.innerText = `approx. ${renderer.info.render.lines} vertices & edges`;
+          }, 100); // the counter takes a few ms to update
+          vertexEdgeCountElement.style.visibility = "visible";
+        } else {
+          vertexEdgeCountElement.style.visibility = "hidden";
+        }
+      }
 
       function addMesh(mesh) {
         scene.add(mesh);
@@ -91,19 +124,21 @@
         return intersects[0]?.point;
       }
 
-      window.onkeydown = function (e) {
+      window.onkeydown = (e) => {
         if (e.key.toLowerCase() === "w") {isWireframeMode = !isWireframeMode};
         allMeshes.forEach(mesh => {
           if (mesh.material) {
             mesh.material.wireframe = isWireframeMode;
           }
         });
+        updateVertextCountUI();
       }
 
       renderer.domElement.onmousedown = function (e) {
         mouseIsDown = true;
         const clickCoords = castMouseClick(e);
 
+        updateVertextCountUI();
         if (e.shiftKey) {
           handleShiftClick(clickCoords);
         } else {
@@ -188,6 +223,7 @@
       renderer.render(scene, camera);
 
     };
+
   </script>
 </head>
 

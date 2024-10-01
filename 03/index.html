@@ -71,8 +71,9 @@
             // update cube position
             torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
 
-            // disabled controls 
+            // on shift key
             if (e.shiftKey) {
+              // disabled controls
               controls.enabled = false;
               
               var geometry = new THREE.TorusKnotGeometry(10,3,64,16);
@@ -92,7 +93,7 @@
         renderer.domElement.onmouseup = function(e) {
           controls.enabled = true;
         }
-
+        // mousemove callback
         renderer.domElement.onmousemove = function (e) {
 
           if (!controls.enabled) {
@@ -130,15 +131,13 @@
         light.position.set( 10, 100, 10 );
         scene.add( light );
 
-        // configure cube
+        // configure torus
         var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
         var material = new THREE.MeshStandardMaterial({ color: 0x0000ff, wireframe: false });
 
         var torusKnot = new THREE.Mesh( geometry, material );
 
         scene.add( torusKnot );
-
-
 
         //
         // The invisible plane
@@ -164,13 +163,10 @@
       };
 
       function animate() {
-
         requestAnimationFrame( animate );
-
         // and here..
         controls.update();
         renderer.render( scene, camera );
-        
       };
     </script>
   </head>

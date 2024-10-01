@@ -81,13 +81,13 @@
         var ambientLight = new THREE.AmbientLight();
         scene.add( ambientLight );
 
-        var light = new THREE.DirectionalLight( 0xffff00, 5.0 );
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
         light.position.set( 10, 100, 10 );
         scene.add( light );
 
         // configure cube
         var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
-        var material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
+        var material = new THREE.MeshStandardMaterial({ color: 0xffff00, wireframe: true });
 
         var torusKnot = new THREE.Mesh( geometry, material );
 

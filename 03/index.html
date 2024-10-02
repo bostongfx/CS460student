@@ -28,7 +28,9 @@
 
       var renderer, controls, scene, camera;
       var LASTOBJECT;
-      var held = 0;
+      var HELD = false;
+      var DELTA = 0.25;
+      var PINK = true;
 
       window.onload = function() {
 
@@ -43,15 +45,15 @@
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
         camera.position.set(0, 0, 100);
 
+
         // create renderer and setup the canvas
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
 
           window.onkeypress = function(e) {
-            console.log(e);
             if (e.code == 'Space') {
-              if (controls.enabled == true) {
+               if (controls.enabled == true) {
                 controls.enabled = false;
               } else {
                 controls.enabled = true;
@@ -60,10 +62,11 @@
             }
 
           }
+ 
 
         renderer.domElement.onmousedown = function( e ){
           
-            held = 1;
+            HELD = true;
             console.log('Yay! We clicked!');
 
             var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
@@ -98,9 +101,8 @@
               torus.position.copy(position);
               
               scene.add(torus);
-
-              
-
+              LASTOBJECT = torus;
+   
               // while (render.domElement.onmousemove ) {
               // torus.scale.set(torus.scale.x + DELTA, torus.scale.y + DELTA, torus.scale.z + DELTA);
               // }
@@ -111,15 +113,33 @@
 
           renderer.domElement.onmousemove = function ( e ) {
               
-            LASTOBJECT = e.clientY;
+
+            if (HELD == true && controls.enabled == false) {
+              
+          
+              if (e.movementY > 0) {
+                LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA, LASTOBJECT.scale.y + DELTA, LASTOBJECT.scale.z + DELTA);
+              } else if (e.movementY < 0) {
+                  LASTOBJECT.scale.set(LASTOBJECT.scale.x - DELTA, LASTOBJECT.scale.y - DELTA, LASTOBJECT.scale.z - DELTA);
+              } else if (LASTOBJECT.scale.y == 0) {
+               if (LASTOBJECT.material.color.getHex() == 0xFFC0CB) {
+                LASTOBJECT.material.color.set(0x7CFC00);
+               } else {
+                 LASTOBJECT.material.color.set( 0xFFC0CB);
+               }
+               
+             }
+
+            }
+           
             
           };
 
-          renderer.domElement.onmouseup = function (e) {
-            held = 0;
-          };
 
           renderer.domElement.onmouseup = function ( e ) {
+            
+            HELD = false;
+
             if (controls.enabled == false) {
               controls.enabled = true;
             }
@@ -140,7 +160,7 @@
 
         var torusKnot = new THREE.Mesh( geometry, material );
 
-        scene.add( torusKnot );
+       
 
 
         //

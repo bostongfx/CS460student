@@ -27,6 +27,8 @@
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
       var renderer, controls, scene, camera;
+      var LASTOBJECT = null;
+      var isScaling = false;
 
       window.onload = function() {
 
@@ -38,8 +40,7 @@
         var ratio = window.innerWidth / window.innerHeight;
         var zNear = 1;
         var zFar = 10000;
-        var LASTOBJECT = null;
-        var isScaling = false;
+       
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
         camera.position.set(0, 0, 100);
 
@@ -91,7 +92,7 @@
           }
 
           renderer.domElement.onmousemove = function(e) {
-          if (isScaling && LASTOBJECT) {
+          if (isScaling) {
           
             LASTOBJECT.scale.set(LASTOBJECT.scale.x + e.movementY,
                             LASTOBJECT.scale.y + e.movementY,

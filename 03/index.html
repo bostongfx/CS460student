@@ -56,7 +56,7 @@
             var newTorus = new THREE.Mesh( geometry, newmaterial );
 
             scene.add(newTorus);
-            newTorus.position.set(intersects[0].point.x, intersects[0].point.z);
+            newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
           }
           
             console.log('Yay! We clicked!');

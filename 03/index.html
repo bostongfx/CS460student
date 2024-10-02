@@ -46,7 +46,6 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
 
-
         renderer.domElement.onmousedown = function( e ){
           
           console.log('Yay! We clicked!');
@@ -97,12 +96,40 @@
       var material = new THREE.MeshBasicMaterial({ color: 0xFF69B4, wireframe: false }); 
       // turn back to true on togggle maybe? 
       // #FF69B4 for pink... #7CFC00 for green...
+      // 0xFF69B4, 0x7CFC00
+      
+      // wireframe...
+      // D: no
+      
+      //   var toggle = true;
+
+      //   window.onkeypress = function(e) {
+      //     if (e.code == "KeyW") {
+      //       console.log("W was pressed!");
+      //       toggle = !toggle;
+      //       if (toggle == true) {
+      //         material = new THREE.MeshBasicMaterial({ color: 0xFF69B4, wireframe: false }); 
+      //       }
+      //       else {
+      //         material = new THREE.MeshBasicMaterial({ color: 0xFF69B4, wireframe: true }); 
+      //       }
+      //   }
+      // }
 
       var torusKnot = new THREE.Mesh( geometry, material );
       // change to torus? yes
       scene.add( torusKnot );
 
+      // ... 
+      renderer.domElement.onmouseup = function( e ){
+        console.log('Mouse went up!');
+        
+        var new_geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+        var new_material = new THREE.MeshBasicMaterial({ color: 0xFF69B4, wireframe: false }); 
+        var new_torusKnot = new THREE.Mesh( geometry, material );
 
+        scene.add( new_torusKnot );
+      }  
 
       //
       // The invisible plane
@@ -123,6 +150,7 @@
 
       // interaction
       // is this the part to turn off? no, onmousedown for sure, but not during onmouseup...
+      // enabled???
       controls = new OrbitControls( camera, renderer.domElement );
 
       // call animation/rendering loop
@@ -135,6 +163,7 @@
         requestAnimationFrame( animate );
 
         // and here..
+        // enabled??????? :(
         controls.update();
         renderer.render( scene, camera );
 

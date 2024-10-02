@@ -92,6 +92,7 @@
 
           renderer.domElement.onmousemove = function(e) {
           if (isScaling && LASTOBJECT) {
+            DELTA = e.movementY * -0.01;
             LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA,
                             LASTOBJECT.scale.y + DELTA,
                             LASTOBJECT.scale.z + DELTA);

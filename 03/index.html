@@ -92,9 +92,9 @@
 
           renderer.domElement.onmousemove = function(e) {
           if (isScaling && LASTOBJECT) {
-            torus.scale.set(torus.scale.x + DELTA,
-                            torus.scale.y + DELTA,
-                            torus.scale.z + DELTA);
+            LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA,
+                            LASTOBJECT.scale.y + DELTA,
+                            LASTOBJECT.scale.z + DELTA);
           }
         };
             renderer.domElement.onmouseup = function(e){

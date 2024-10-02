@@ -31,10 +31,94 @@
       window.onload = function() {
 
         // Three.js code goes here
- 
+        scene = new THREE.Scene();
+
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+      
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize( window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        renderer.domElement.onmousedown = function(e) {
+
+          if (e.shiftKey) {
+            controls.enabled = false;
+          
+            var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+
+            var vp_coords = new THREE.Vector2(
+              (pixel_coords.x / window.innerWidth) * 2 - 1, 
+              - (pixel_coords.y / window.innerHeight) * 2 + 1 
+            );
+
+            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vp_coords_near, camera);
+            
+            var intersects = raycaster.intersectObject( invisible_plane );
+
+            var p = intersects[0].point;
+            
+            var torusKnotHP = new THREE.Mesh( geometry, materialHotPink);
+            torusKnotHP.position.set(p.x, p.y, p.z);
+
+            var flag = true;
+            renderer.domElement.onmousemove = function (e) {
+              if (flag) {
+              var DELTA = e.movementY;
+              torusKnotHP.scale.set(torusKnotHP.scale.x + DELTA,
+                                    torusKnotHP.scale.y + DELTA,
+                                    torusKnotHP.scale.z + DELTA);
+              }
+            };
+
+            scene.add (torusKnotHP);
+
+            renderer.domElement.onmouseup = function(e) {
+              flag = false;
+              controls.enabled = true;
+            };
+          };
+        };
+
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10);
+        scene.add( light );
+
+        var geometry = new THREE.TorusKnotGeometry( 15, 6, 100, 16  );
+        var material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+        var materialHotPink = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
+        var torusKnot = new THREE.Mesh( geometry, material);
+        scene.add( torusKnot );
+
+        window.onkeypress = function(e) {
+          if (e.code == 'KeyW') {
+              materialHotPink.wireframe = !materialHotPink.wireframe; 
+          };
+        };
+
+        var geometry_ip = new THREE.PlaneGeometry( 10000, 10000 );
+        var material_ip = new THREE.MeshBasicMaterial( {
+          visible: false
+        });
+
+        var invisible_plane = new THREE.Mesh( geometry_ip, material_ip );
+
+        scene.add( invisible_plane );
+
+        controls = new OrbitControls( camera, renderer.domElement);
+
         // call animation/rendering loop
         animate();
-        
       };
 
       function animate() {
@@ -42,10 +126,10 @@
         requestAnimationFrame( animate );
 
         // and here..
-        
+        controls.update();
+        renderer.render( scene, camera );
       };
     </script>
   </head>
   <body></body>
 </html>
-

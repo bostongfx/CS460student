@@ -49,15 +49,7 @@
 
 
         renderer.domElement.onmousedown = function(e){
-          if (e.shiftKey) {
-            controls.enabled = false;
-            var newgeometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
-            var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4, wireframe:false });
-            var newTorus = new THREE.Mesh( newgeometry, newmaterial );
-            scene.add( newTorus );
-            newTorus.position.set(intersects[0].point);
-            
-          }
+         
           
             console.log('Yay! We clicked!');
 
@@ -83,6 +75,15 @@
             // update cube position
             torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
 
+            if (e.shiftKey) {
+            controls.enabled = false;
+            var newgeometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+            var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4, wireframe:false });
+            var newTorus = new THREE.Mesh( newgeometry, newmaterial );
+            scene.add( newTorus );
+            newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            
+          }
           };
 
 

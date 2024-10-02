@@ -26,8 +26,15 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
  
-      var renderer, controls, scene, camera, DELTA, LASTOBJECT, _resizing, wireframe;
+      // scene vars
+      var renderer, controls, scene, camera;
+      
+      // resizing vars
+      var DELTA, LASTOBJECT, _resizing;
  
+      // color changing vars
+      var wireframe, base_material, pink_material, green_material, red, grn, blu;;
+
       window.onload = function() {
  
         // Three.js code goes here
@@ -101,34 +108,39 @@
             if (event.shiftKey) {
               console.log("Shift Pressed - Disabling controls");
               controls.enabled = false;
-              var new_torus = new THREE.Mesh(torus_geometry, torus_material);
+              var new_torus = new THREE.Mesh(torus_geometry, base_material);
               scene.add(new_torus);
               new_torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              new_torus.scale.set(10,10,10);
               console.log("New Torus Placed");
               LASTOBJECT = new_torus;
-              _resizing = true
+              _resizing = true;
             }
         };
         
-        renderer.domElement.onkeypress = function( key_down ) {
+        document.addEventListener("keypress", key_down);
+
+        function key_down(e) {
           console.log("key pressed");
-          if (key_down.code == "KeyW") {
+          console.log(base_material.color);
+          if (e.code == "KeyW") {
             if (wireframe) {
               //stop wireframe
               green_material.wireframe = false;
               pink_material.wireframe = false;
+              base_material.wireframe = false;
               wireframe = false;
               console.log("disabling wireframe");
             } else {
               //start wireframe
               green_material.wireframe = true;
               pink_material.wireframe = true;
+              base_material.wireframe = true;
               wireframe = true;
               console.log("enabling wireframe");
             }
           }
-        };
- 
+        }
         // setup lights
         var ambientLight = new THREE.AmbientLight();
         scene.add( ambientLight );
@@ -139,9 +151,9 @@
 
         // configure torus
         var torus_geometry = new THREE.TorusKnotGeometry();
-        var torus_material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        var green_material = new THREE.MeshStandardMaterial({ color: 0x7CFC00 });
-        var pink_material = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
+        base_material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        green_material = new THREE.MeshStandardMaterial({ color: 0x7CFC00 });
+        pink_material = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
 
         //
         // The invisible plane
@@ -161,15 +173,12 @@
         animate();
         
       }
- 
+
       function animate() {
  
         requestAnimationFrame( animate );
- 
-        // and here..
         controls.update();
         renderer.render( scene, camera );
-        
       }
     </script>
   </head>

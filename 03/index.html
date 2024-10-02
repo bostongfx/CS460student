@@ -95,7 +95,7 @@
 
            if (controls.enabled == false) {
               var geometry = new THREE.TorusKnotGeometry(10, 3, 64, 8, 2, 3);
-              var material = new THREE.MeshStandardMaterial({ color: 0xFFC0CB});
+              var material = new THREE.MeshStandardMaterial({ color: 0xFF69B4});
 
               var torus = new THREE.Mesh( geometry, material );
               torus.position.copy(position);
@@ -122,10 +122,10 @@
               } else if (e.movementY < 0) {
                   LASTOBJECT.scale.set(LASTOBJECT.scale.x - DELTA, LASTOBJECT.scale.y - DELTA, LASTOBJECT.scale.z - DELTA);
               } else if (LASTOBJECT.scale.y == 0) {
-               if (LASTOBJECT.material.color.getHex() == 0xFFC0CB) {
+               if (LASTOBJECT.material.color.getHex() == 0xFF69B4) {
                 LASTOBJECT.material.color.set(0x7CFC00);
                } else {
-                 LASTOBJECT.material.color.set( 0xFFC0CB);
+                 LASTOBJECT.material.color.set(0xFF69B4);
                }
                
              }

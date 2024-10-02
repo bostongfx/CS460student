@@ -38,6 +38,8 @@
         var ratio = window.innerWidth / window.innerHeight;
         var zNear = 1;
         var zFar = 10000;
+        var LASTOBJECT = null;
+        var isScaling = false;
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
         camera.position.set(0, 0, 100);
 
@@ -77,14 +79,29 @@
             torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
 
             if (e.shiftKey) {
+             
             controls.enabled = false;
             var newgeometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
             var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4, wireframe:false });
             var newTorus = new THREE.Mesh( newgeometry, newmaterial );
             scene.add( newTorus );
             newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-            
+            LASTOBJECT = newTorus;
+            isScaling = true;
           }
+
+          renderer.domElement.onmousemove = function(e) {
+          if (isScaling && LASTOBJECT) {
+            torus.scale.set(torus.scale.x + DELTA,
+                            torus.scale.y + DELTA,
+                            torus.scale.z + DELTA);
+          }
+        };
+            renderer.domElement.onmouseup = function(e){
+              controls.enabled = true;
+              isScaling = false;
+            }
+
           };
 
 

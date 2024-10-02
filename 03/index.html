@@ -52,40 +52,22 @@
         renderer.domElement.onmousedown = function( e ){
           
   
-          //console.log('Yay! We clicked!');
-          //console.log(e);
  
             var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
  
-            //console.log('Pixel coords', pixel_coords);
  
             var vp_coords = new THREE.Vector2( 
                         ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
                         -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
  
-            //console.log('Viewport coords', vp_coords);
+
  
             var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
- 
  
             var raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(vp_coords_near, camera);
             var intersects = raycaster.intersectObject(invisible_plane);
- 
-            //console.log('Ray to Invisible Plane', intersects[0].point);
- 
-            // update cube position
 
-            //console.log('Torus is placed at', intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
- 
-            window.onkeypress = function(wire) {
-              if (wire.code == "KeyW") {
-                console.log("W was pressed.")
-                Torus.material.wireframe = true;
-                newTorus.material.wireframe = true;
-                LASTOBJECT.material.wireframe = true;
-              }
-            }
 
             if (e.shiftKey) {
               controls.enable = false;
@@ -120,15 +102,23 @@
                   }
                   
                 };
-
-              renderer.domElement.onmouseup = function( d ){
-                controls.enable = true;
-                isScaling = false;
-              };
             }
+              renderer.domElement.onmouseup = function( d ){
+                  controls.enable = true;
+                  isScaling = false;
+                };
 
           };
+        
           
+          window.onkeypress = function(wire) {
+              if (wire.code == "KeyW") {
+                console.log("W was pressed.")
+                Torus.material.wireframe = true;
+                newTorus.material.wireframe = true;
+                LASTOBJECT.material.wireframe = true;
+              }
+            }
         
  
         // setup lights
@@ -162,6 +152,7 @@
         //
         //
         //
+
  
         // interaction
         controls = new OrbitControls( camera, renderer.domElement );

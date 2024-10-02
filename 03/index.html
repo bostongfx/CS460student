@@ -78,7 +78,7 @@
           if (e.shiftKey){
             // configure hot pink torusKnot
             geometry_pink = new THREE.TorusKnotGeometry( 10, 3, 100, 16 ); 
-            material_pink = new THREE.MeshBasicMaterial( { color: 0xFF69B4 } ); 
+            material_pink = new THREE.MeshBasicMaterial( { color: 0xFF69B4, wireframe: true  } ); 
             torusKnot_pink = new THREE.Mesh( geometry_pink, material_pink ); 
             scene.add( torusKnot_pink );   
             // place hot pink torusKnots
@@ -123,7 +123,7 @@
 
         // configure purple torusKnot
         var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 ); 
-        var material = new THREE.MeshBasicMaterial( { color: 0xAB00FF } ); 
+        var material = new THREE.MeshBasicMaterial( { color: 0xAB00FF, wireframe: true } ); 
         var torusKnot = new THREE.Mesh( geometry, material ); 
         scene.add( torusKnot ); 
 

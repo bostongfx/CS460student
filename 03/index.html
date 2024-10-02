@@ -128,14 +128,12 @@
               //stop wireframe
               green_material.wireframe = false;
               pink_material.wireframe = false;
-              base_material.wireframe = false;
               wireframe = false;
               console.log("disabling wireframe");
             } else {
               //start wireframe
               green_material.wireframe = true;
               pink_material.wireframe = true;
-              base_material.wireframe = true;
               wireframe = true;
               console.log("enabling wireframe");
             }
@@ -154,6 +152,9 @@
         base_material = new THREE.MeshStandardMaterial({ color: 0xffffff });
         green_material = new THREE.MeshStandardMaterial({ color: 0x7CFC00 });
         pink_material = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
+        var torus = new THREE.Mesh(torus_geometry, base_material);
+        torus.scale.set(20,20,20);
+        scene.add(torus);
 
         //
         // The invisible plane

@@ -147,26 +147,12 @@ Description: This project creates an interactive 3D scene using Three.js where u
         };
 
         function toggleWireframe() {
-          wireframeMode = !wireframeMode;  // Toggle wireframe mode
           torusObjects.forEach((torus) => {
-            if (wireframeMode && !torus.userData.wireframe) {
-              // Create wireframe only if it doesn't already exist
-              const wireframe = new THREE.WireframeGeometry(torus.geometry);
-              const line = new THREE.LineSegments(wireframe);
-              line.material.depthTest = false;
-              line.material.opacity = 0.25;
-              line.material.transparent = true;
-              scene.add(line);
-              torus.userData.wireframe = line;  // Store the wireframe in userData
-              torus.visible = false;  // Hide original torus
-            } else if (!wireframeMode && torus.userData.wireframe) {
-              // Remove wireframe and show original torus
-              scene.remove(torus.userData.wireframe);  // Remove wireframe
-              torus.visible = true;  // Show original torus
-              delete torus.userData.wireframe;  // Clean up
-            }
+            // Toggle the wireframe mode directly on the torus material
+            torus.material.wireframe = !torus.material.wireframe;
           });
         }
+
 
         // Mouse up event to stop dragging
         renderer.domElement.onmouseup = function() {

@@ -26,7 +26,7 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
  
-      var renderer, controls, scene, camera, DELTA, LASTOBJECT, _resizing;
+      var renderer, controls, scene, camera, DELTA, LASTOBJECT, _resizing, wireframe;
  
       window.onload = function() {
  
@@ -49,11 +49,12 @@
         // init vars
         DELTA = 0;
         _resizing = false;
+        wireframe = false;
 
         renderer.domElement.onmouseup = function( e ){
           controls.enabled = true;
           _resizing = false;
-        }
+        };
  
         renderer.domElement.onmousemove = function( mouse_drag ) {
           if (!_resizing) { return; }
@@ -72,7 +73,7 @@
           } else {
             LASTOBJECT.material = pink_material;
           }
-        }
+        };
 
         renderer.domElement.onmousedown = function( down_event ){
           
@@ -107,8 +108,26 @@
               LASTOBJECT = new_torus;
               _resizing = true
             }
-          };
- 
+        };
+        
+        renderer.domElement.onkeypress = function( key_down ) {
+          console.log("key pressed");
+          if (key_down.code == "KeyW") {
+            if (wireframe) {
+              //stop wireframe
+              green_material.wireframe = false;
+              pink_material.wireframe = false;
+              wireframe = false;
+              console.log("disabling wireframe");
+            } else {
+              //start wireframe
+              green_material.wireframe = true;
+              pink_material.wireframe = true;
+              wireframe = true;
+              console.log("enabling wireframe");
+            }
+          }
+        };
  
         // setup lights
         var ambientLight = new THREE.AmbientLight();
@@ -117,39 +136,23 @@
         var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
         light.position.set( 10, 100, 10 );
         scene.add( light );
- 
-        // configure cube
-        var geometry = new THREE.BoxGeometry( 20, 20, 20 );
-        var material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true });
-        //var cube = new THREE.Mesh( geometry, material );
 
         // configure torus
         var torus_geometry = new THREE.TorusKnotGeometry();
         var torus_material = new THREE.MeshStandardMaterial({ color: 0xffffff });
         var green_material = new THREE.MeshStandardMaterial({ color: 0x7CFC00 });
         var pink_material = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
-        var torus = new THREE.Mesh(torus_geometry, torus_material);
 
-        //scene.add( torus );
- 
- 
- 
         //
         // The invisible plane
         //
-        geometry = new THREE.PlaneGeometry( 10000, 10000 );
-        material = new THREE.MeshBasicMaterial( {
-          visible: false
-        });
+        var geometry = new THREE.PlaneGeometry( 10000, 10000 );
+        var material = new THREE.MeshBasicMaterial( { visible: false });
  
         var invisible_plane = new THREE.Mesh( geometry, material );
  
+        // add invisible plane
         scene.add( invisible_plane );
-        //
-        //
-        //
- 
- 
  
         // interaction
         controls = new OrbitControls( camera, renderer.domElement );
@@ -157,7 +160,7 @@
         // call animation/rendering loop
         animate();
         
-      };
+      }
  
       function animate() {
  
@@ -167,7 +170,7 @@
         controls.update();
         renderer.render( scene, camera );
         
-      };
+      }
     </script>
   </head>
   <body></body>

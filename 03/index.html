@@ -50,11 +50,11 @@
 
         renderer.domElement.onmousedown = function( e ){
           if (e.shiftKey) {
-          
-            var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
-            var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
-            var newTorus = new THREE.Mesh( geometry, newmaterial );
-            scene.add(newTorus);
+            controls.enabled = false;
+            var newgeometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+            var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4, wireframe:false });
+            var newTorus = new THREE.Mesh( newgeometry, newmaterial );
+            scene.add( newTorus );
             newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
             
           }

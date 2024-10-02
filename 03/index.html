@@ -49,7 +49,7 @@
 
 
         renderer.domElement.onmousedown = function( e ){
-          if (e.code == 'shiftKey') {
+          if (e.shiftKey) {
             controls.enabled = false;
             var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
             var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });

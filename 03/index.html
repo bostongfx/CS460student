@@ -55,7 +55,7 @@
             var newmaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4, wireframe:false });
             var newTorus = new THREE.Mesh( newgeometry, newmaterial );
             scene.add( newTorus );
-            newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            newTorus.position.set(intersects[0].point);
             
           }
           

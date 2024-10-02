@@ -63,7 +63,7 @@
 
           }
  
-
+ 
         renderer.domElement.onmousedown = function( e ){
           
             HELD = true;
@@ -121,14 +121,12 @@
                 LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA, LASTOBJECT.scale.y + DELTA, LASTOBJECT.scale.z + DELTA);
               } else if (e.movementY < 0) {
                   LASTOBJECT.scale.set(LASTOBJECT.scale.x - DELTA, LASTOBJECT.scale.y - DELTA, LASTOBJECT.scale.z - DELTA);
-              } else if (LASTOBJECT.scale.y == 0) {
-               if (LASTOBJECT.material.color.getHex() == 0xFF69B4) {
+              } else if (LASTOBJECT.scale.y > 0) {
                 LASTOBJECT.material.color.set(0x7CFC00);
-               } else {
-                 LASTOBJECT.material.color.set(0xFF69B4);
-               }
-               
+             } else {
+              LASTOBJECT.material.color.set(0xFF69B4);
              }
+
 
             }
            

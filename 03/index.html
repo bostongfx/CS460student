@@ -1,49 +1,141 @@
 <html>
   <head>
     <style>
-      html, body { 
-        background-color:#000;
+      html,
+      body {
+        background-color: #000;
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important;  
+        overflow: hidden !important;
       }
     </style>
-    
+
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
     <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@latest/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
       }
-    }
     </script>
 
     <script type="module">
-
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
       var renderer, controls, scene, camera;
 
-      window.onload = function() {
+      window.onload = function () {
+        scene = new THREE.Scene();
 
-        // Three.js code goes here
- 
+        // setup the camera and constants
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        const DELTA = 0.1;
+        var LASTOBJECT = null;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+
+        // creates the renderer and sets up the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // main function to create new torusKnots
+        renderer.domElement.onmousedown = function (e) {
+          // if shift is pressed, disable controls
+          if (e.shiftKey) {
+            controls.enabled = false;
+
+            var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+            var vp_coords = new THREE.Vector2(
+              (pixel_coords.x / window.innerWidth) * 2 - 1, // X
+              -(pixel_coords.y / window.innerHeight) * 2 + 1 // Y
+            );
+            // Z-coordinate set to 0 to raycast through the scene
+            var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
+            // Raycasting through camera
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vp_coords_near, camera);
+
+            var intersects = raycaster.intersectObject(invisible_plane);
+
+            // Creates a pink torusKnot
+            var geometry_second = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            var material_second = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
+            var torusKnot_second = new THREE.Mesh(geometry_second, material_second);
+            
+
+            // adds the pink torusKnot to scene, and saves it as LASTOBJECT
+            torusKnot_second.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            scene.add(torusKnot_second);
+            LASTOBJECT = torusKnot_second;
+          }
+        };
+
+        // checks whether the object crosses the x axis, and then changes its color
+        renderer.domElement.onmousemove = function (e) {
+          if (!controls.enabled) {
+
+            if (LASTOBJECT.scale.x + e.movementY <= 0 && LASTOBJECT.scale.x > 0 ) {
+              LASTOBJECT.material.color.set(0x7cfc00); // GREEN
+            }
+        
+            if (LASTOBJECT.scale.x + e.movementY >= 0 && LASTOBJECT.scale.x < 0) {
+              LASTOBJECT.material.color.set(0xff69b4); // PINK
+            }
+
+            LASTOBJECT.scale.set(LASTOBJECT.scale.x + e.movementY * DELTA, 
+                                 LASTOBJECT.scale.y + e.movementY *DELTA, 
+                                 LASTOBJECT.scale.z + e.movementY *DELTA);
+          }
+        };
+
+        // turns back on controls
+        renderer.domElement.onmouseup = function (e) {
+          controls.enabled = true;
+        };
+
+        // sets up lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+
+        var light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
+
+        // configure torusKnot 
+        var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        var material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+        var torusKnot = new THREE.Mesh(geometry, material);
+
+        scene.add(torusKnot);
+
+        
+        var geometry = new THREE.PlaneGeometry(10000, 10000);
+        var material = new THREE.MeshBasicMaterial({
+          visible: false,
+        });
+
+        var invisible_plane = new THREE.Mesh(geometry, material);
+
+        scene.add(invisible_plane);
+
+        controls = new OrbitControls(camera, renderer.domElement);
         // call animation/rendering loop
         animate();
-        
       };
 
       function animate() {
-
-        requestAnimationFrame( animate );
-
-        // and here..
-        
-      };
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
     </script>
   </head>
   <body></body>

@@ -92,11 +92,12 @@
 
           renderer.domElement.onmousemove = function(e) {
           if (isScaling && LASTOBJECT) {
-            DELTA = e.movementY * 2;
-            LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA,
-                            LASTOBJECT.scale.y + DELTA,
-                            LASTOBJECT.scale.z + DELTA);
+          
+            LASTOBJECT.scale.set(LASTOBJECT.scale.x + e.movementY,
+                            LASTOBJECT.scale.y + e.movementY,
+                            LASTOBJECT.scale.z + e.movementY);
           }
+
         };
             renderer.domElement.onmouseup = function(e){
               controls.enabled = true;

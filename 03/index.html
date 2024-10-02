@@ -50,19 +50,6 @@
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
-
-          window.onkeypress = function(e) {
-            if (e.code == 'Space') {
-               if (controls.enabled == true) {
-                controls.enabled = false;
-              } else {
-                controls.enabled = true;
-              }
-              
-            }
-
-          }
- 
  
         renderer.domElement.onmousedown = function( e ){
           
@@ -91,6 +78,10 @@
             // update cube position
             //torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
           
+            if (e.shiftKey) {
+              controls.enabled = false;
+            }
+
             var position = intersects[0].point;
 
            if (controls.enabled == false) {

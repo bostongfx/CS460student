@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Annotation Tool</title>
+    <style>
+        #container {
+            position: relative;
+            display: inline-block;
+        }
+        #annotation {
+            position: absolute;
+            color: red;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            padding: 2px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <img id="tennisImage" src="https://example.com/tennis_image.jpg" alt="Tennis Players" width="600">
+    </div>
+    
+    <script>
+        const container = document.getElementById('container');
+        const image = document.getElementById('tennisImage');
+
+        container.addEventListener('click', (event) => {
+            // Calculate the position where the user clicked
+            const rect = image.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // Create an annotation
+            const annotation = document.createElement('div');
+            annotation.classList.add('annotation');
+            annotation.id = 'annotation';
+            annotation.style.left = `${x}px`;
+            annotation.style.top = `${y}px`;
+            annotation.textContent = `Note (${x}, ${y})`;
+
+            // Add the annotation to the container
+            container.appendChild(annotation);
+        });
+    </script>
+</body>
+</html>

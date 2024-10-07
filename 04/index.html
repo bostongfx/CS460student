@@ -88,26 +88,18 @@
       uniform mat4 transform;
 
       void main(void) {
-
         vec4 final_position = transform * vec4( position, 1.);
-
         gl_Position = final_position;
-
-        // TODO Part 2
-
-
+        gl_PointSize = 8.0;
       }
     </script>
 
     <script id="fragmentshader" type="glsl">
       precision mediump float;
-
       uniform vec4 color;
 
       void main(void) {
-
         gl_FragColor = color; //vec4(1., 1., 1., 1.);
-
       }
     </script>
 
@@ -174,9 +166,6 @@
         };
 
         function createPaddle(color, offset) {
-
-
-
             //************************************************************//
             //
             // CREATE GEOMETRY
@@ -202,19 +191,28 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
-
-            // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+ 
+            return [v_buffer, i_buffer, color, offset, gl.TRIANGLES];
 
         }
 
 
 
         function createBall(color, offset) {
-            //
-            // TODO Part 2
-            //
+            vertices = new Float32Array([0.0, 0.0, 0.0])
+            indices = new Uint8Array([0])
 
+            v_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
+
+            i_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
+
+            return [v_buffer, i_buffer, color, offset, gl.POINTS]
         }
 
         function createBrick(color, offset, score) {
@@ -259,6 +257,7 @@
 
             // TODO Part 2
             return [v_buffer, i_buffer, color, offset, 6, score];
+            // return [v_buffer, i_buffer, color, offset, gl.POINTS]
         }
 
         function createBricks() {
@@ -285,6 +284,7 @@
                 return;
             }
 
+            updateBall()
             requestAnimationFrame(animate);
 
             // CLEAR NOW BEFORE ANY DRAWING
@@ -301,6 +301,7 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+    
 
                 //************************************************************//
                 //
@@ -341,7 +342,12 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                if (VERTEXCOUNT === gl.POINTS) {
+                    gl.drawArrays(VERTEXCOUNT, 0, 1)
+                } else {
+                    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0)
+                }
+                // gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
@@ -428,11 +434,18 @@
         }
 
         window.onkeydown = function (e) {
-            if (STOPPED) {
-                // restart the game
-                window.location.reload();
+            var paddle = OBJECTS[0]
+            var paddleSpeed = 0.05
+
+            if (e.key === 'ArrowLeft') {
+                if (paddle[3][0] - paddleSpeed > -0.9) {
+                    paddle[3][0] -= paddleSpeed
+                }
+            } else if (e.key === 'ArrowRight') { 
+                if (paddle[3][0] + paddleSpeed < 0.9) {
+                    paddle[3][0] += paddleSpeed
+                }
             }
-            // TODO Part 3
         };
     </script>
 </head>
@@ -440,7 +453,7 @@
 <body>
     <div id="gameboy">
         <span id="score_name" class="top_bar">SCORE:</span>
-        <span id="score" class="top_bar">0</span>
+        <span id="score" class="top_bar">3</span>
 
         <span id="lives_name" class="top_bar">LIVES:</span>
         <span id="lives" class="top_bar">3</span>

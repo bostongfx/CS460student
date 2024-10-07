@@ -115,6 +115,8 @@
     </script>
 
     <script>
+
+        var BALLDIRECTION = Math.PI / 8 + Math.random();
         window.onload = function () {
             //************************************************************//
             //
@@ -123,6 +125,7 @@
             c = document.getElementById("c"); // setup canvas
             gl = c.getContext("webgl"); // setup GL context
             gl.viewport(0, 0, c.width, c.height);
+            
 
             //************************************************************//
             //
@@ -171,8 +174,6 @@
             OBJECTS.push(createBall([1, 1, 1, 1], [0, 0, 0])); // BALL
             createBricks(); // ADD BRICKS
 
-            
-
             animate();
         };
 
@@ -196,7 +197,7 @@
             ]);
 
 
-            indices = new Uint8Array([0, 1, 2,     // Triangle 1 
+            indices = new Uint8Array([0, 1, 2,     // Triangle 1
                 2, 1, 3]); // Triangle 2
 
 
@@ -219,7 +220,7 @@
 
 
         function createBall(color, offset) {
-            vertices = new Float32Array ([0.0, 0.0, 0.0]); 
+            vertices = new Float32Array ([0.0, 0.0, 0.0]);
             indices = new Uint8Array([0]); //Only one vertex
 
             v_buffer = gl.createBuffer(); //create a new buffer - hold info ab vertices
@@ -291,10 +292,10 @@
             offset_x = -0.8
             offset_y = 0.9
             color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
+                [1, 0, 0.8, 1],
+                [0, 1, 0.2, 1],
+                [0, 0.6, 1, 1],
+                [1, 1, 0, 1],
             ]
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 9; j++) {
@@ -311,18 +312,18 @@
                 return;
             }
 
-           
-            updateBall();
-
             
             requestAnimationFrame(animate);
+
+            updateBall();
+            
 
             // CLEAR NOW BEFORE ANY DRAWING
             gl.clearColor(0, 0, 0, 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
-
+            
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
 
@@ -376,8 +377,7 @@
                     gl.drawArrays (PRIMITIVE, 0, 1);
                 } else {
                     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
-                
-    
+                }
             }
         }
 
@@ -399,6 +399,8 @@
             }
         }
 
+        
+
         function updateBall() {
             BALL_X = OBJECTS[1][3][0];
             BALL_Y = OBJECTS[1][3][1];
@@ -407,6 +409,7 @@
             BOTTOM_PADDLE_Y = OBJECTS[0][3][1];
             BOTTOM_PADDLE_WIDTH = 0.2;
 
+        
             if (BALL_X >= 0.95) {
                 // RIGHT WALL
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
@@ -432,7 +435,7 @@
                     }
                 }
             } else if (BALL_Y <= -0.85) {
-                // BOTTOM 
+                // BOTTOM
 
                 BOTTOM_PADDLE_LEFT = BOTTOM_PADDLE_X - BOTTOM_PADDLE_WIDTH / 2;
                 BOTTOM_PADDLE_RIGHT = BOTTOM_PADDLE_X + BOTTOM_PADDLE_WIDTH / 2;
@@ -456,23 +459,27 @@
         }
 
         window.onkeydown = function (e) {
-            var paddle = OBJECTS[0];
-            var paddleSpeed = 0.05;
+    var paddle = OBJECTS[0]; // Assuming the first object is the paddle
+    var paddleSpeed = 0.2; // Define how much the paddle moves per key press
 
-            if (e.key === 'ArrowLeft') {
-                // Move paddle left, but ensure it stays within viewport bounds
-                if (paddle[3][0] - paddleSpeed > -0.9) {
-                    paddle[3][0] -= paddleSpeed;
-                }
-            } else if (e.key === 'ArrowRight') {
+    if (e.key === 'ArrowLeft') {
+        // Move paddle left, but ensure it stays within viewport bounds
+        if (paddle[3][0] - paddleSpeed > -0.9) {
+            paddle[3][0] -= paddleSpeed;
+        }
+    } else if (e.key === 'ArrowRight') {
+        // Move paddle right, but ensure it stays within viewport bounds
+        if (paddle[3][0] + paddleSpeed < 0.9) {
+            paddle[3][0] += paddleSpeed;
+        }
+    } else if (e.key === 'ArrowRight') {
                 // Move paddle right, but ensure it stays within viewport bounds
                 if (paddle[3][0] + paddleSpeed < 0.9) {
                     paddle[3][0] += paddleSpeed;
                 }
             }
-            // TODO Part 3
         };
-    }
+    
     </script>
 </head>
 
@@ -492,4 +499,3 @@
 </body>
 
 </html>
-

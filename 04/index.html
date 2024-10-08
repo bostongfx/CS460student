@@ -431,8 +431,9 @@
             }
 
             // UPDATE BALL POSITION
-            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * 0.02;
-            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * 0.02;
+            const BALL_SPEED = 0.01
+            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * BALL_SPEED;
+            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * BALL_SPEED;
         }
 
         // part3

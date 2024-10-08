@@ -433,13 +433,31 @@
             OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * 0.02;
         }
 
+        // part3
         window.onkeydown = function (e) {
             if (STOPPED) {
                 // restart the game
                 window.location.reload();
             }
-            // TODO Part 3
+
+            let paddle = OBJECTS[0]; // The bottom paddle is the first object in the OBJECTS array
+            let offset = paddle[3]; // The offset of the paddle
+            let step = 0.05; // Amount by which the paddle moves
+
+            // Handle ArrowLeft and ArrowRight key presses
+            if (e.key === "ArrowLeft") {
+                // Move the paddle left
+                if (offset[0] - step >= -0.9) { // Ensure the paddle doesn't move out of bounds
+                    offset[0] -= step;
+                }
+            } else if (e.key === "ArrowRight") {
+                // Move the paddle right
+                if (offset[0] + step <= 0.9) { // Ensure the paddle doesn't move out of bounds
+                    offset[0] += step;
+                }
+            }
         };
+
     </script>
 </head>
 

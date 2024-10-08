@@ -86,6 +86,7 @@
       attribute vec3 position;
 
       uniform mat4 transform;
+      
 
       void main(void) {
 
@@ -94,6 +95,7 @@
         gl_Position = final_position;
 
         // TODO Part 2
+        gl_PointSize = 8.0;
 
 
       }
@@ -112,6 +114,9 @@
     </script>
 
     <script>
+        let speed = 0.007;
+        let paddleMultiplier = 1.5;
+        
         window.onload = function () {
             //************************************************************//
             //
@@ -120,7 +125,7 @@
             c = document.getElementById("c"); // setup canvas
             gl = c.getContext("webgl"); // setup GL context
             gl.viewport(0, 0, c.width, c.height);
-
+            
             //************************************************************//
             //
             // SHADERS
@@ -164,7 +169,7 @@
             STOPPED = false;
 
             OBJECTS = [];
-            OBJECTS.push(createPaddle([1, 1, 1, 1], [0, -0.9, 0])); // BOTTOM PADDLE
+            OBJECTS.push(createPaddle([1, 1, 1, 1], [0, -0.9, 0], paddleMultiplier)); // BOTTOM PADDLE
             OBJECTS.push(createBall([1, 1, 1, 1], [0, 0, 0])); // BALL
             createBricks(); // ADD BRICKS
 
@@ -173,24 +178,21 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset, scale) {
 
-
-
+            const paddleWidth = 0.1 * scale;
             //************************************************************//
             //
             // CREATE GEOMETRY
             //
 
-            //
-            // TODO Part 1
-            //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -paddleWidth, 0.05, 0.0, // V0
+                -paddleWidth, -0.05, 0.0, // V1
+                paddleWidth, 0.05, 0.0, // V2
+                paddleWidth, -0.05, 0.0 // V3
             ]);
+
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
                 2, 1, 3]); // Triangle 2
@@ -208,17 +210,33 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES];
 
         }
-
-
 
         function createBall(color, offset) {
             //
             // TODO Part 2
             //
+            
+            // Origin
+            vertices = new Float32Array([0.0, 0.0, 0.0]);
 
+            indices = new Uint8Array([0]);
+
+            // Vertex Buffer setup
+            v_buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            i_buffer = gl.createBuffer(); // create 
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind 
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
+
+            // Since it's a single point, we don't need an element buffer
+            return [v_buffer, i_buffer, color, offset, 1, gl.POINTS];
         }
 
         function createBrick(color, offset, score) {
@@ -262,21 +280,26 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES, score];
+
         }
 
         function createBricks() {
+            // New beautiful colors
+            const colors = [
+                [1.0, 0.0, 0.0, 1.0], 
+                [0.0, 1.0, 0.0, 1.0], 
+                [0.0, 0.0, 1.0, 1.0],
+                [1.0, 1.0, 0.0, 1.0] 
+            ];
+            
             offset_x = -0.8
             offset_y = 0.9
-            color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
+            
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 9; j++) {
-                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], 4 - i))
+                    let color = colors[i % colors.length];
+                    OBJECTS.push(createBrick(color, [offset_x, offset_y, 0], 4-i));
                     offset_x += 0.2
                 }
                 offset_x = -0.8
@@ -296,6 +319,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
+            updateBall();
 
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
@@ -305,6 +329,7 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+                var ball = current[5];
 
                 //************************************************************//
                 //
@@ -312,7 +337,9 @@
                 //
                 gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer);
 
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer);
+                if (i_buffer) {
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer);
+                }
 
                 // find the attribute in the shader source
                 var a_position = gl.getAttribLocation(shaderprogram, "position");
@@ -345,7 +372,7 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                gl.drawElements(ball, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
@@ -361,8 +388,21 @@
             var old_score = document.getElementById("score").innerText;
             document.getElementById("score").innerText = parseInt(old_score) + score_value;
             if (OBJECTS.length == 2) { //IF ALL BLRICKS DESTROYED CREATE MORE
+                playSound("winSound");
                 createBricks();
             }
+            
+            //console.log(old_score);
+             if (old_score % 5 === 0) {
+                paddleMultiplier -= 0.1;
+                if (paddleMultiplier < 0.5) {
+                    paddleMultiplier = 0.8;
+                }
+
+                // Update the paddle using the new size
+                OBJECTS[0] = createPaddle([1, 1, 1, 1], OBJECTS[0][3], paddleMultiplier);
+            }
+            
         }
 
         function loseLife() {
@@ -418,17 +458,28 @@
                     // YES, REFLECT
                     BALLDIRECTION = -BALLDIRECTION;
                     //UPDATE STEP ON BOUNCE TO INCREASE SPEED
+                    speed += 0.001;
+
+                    // play sound bounce
+                    playSound("bounceSound");
                 } else {
                     // LOSE LIFE
                     loseLife();
                     resetBall();
+                    playSound("loseSound");
                     return;
                 }
             }
 
             // UPDATE BALL POSITION
-            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * 0.02;
-            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * 0.02;
+            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * speed;
+            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * speed;
+        }
+
+        function playSound(id) {
+            var sound = document.getElementById(id);
+            sound.currentTime = 0; // reset sound if it's already playing
+            sound.play();
         }
 
         window.onkeydown = function (e) {
@@ -437,12 +488,25 @@
                 window.location.reload();
             }
             // TODO Part 3
+
+            const step = 0.14;
+            let paddle = OBJECTS[0];
+
+            if (e.key === "ArrowLeft" && paddle[3][0] > -0.9) {
+                paddle[3][0] -= step;
+            } else if (e.key === "ArrowRight" && paddle[3][0] < 0.9) {
+                paddle[3][0] += step;
+            }
         };
     </script>
 </head>
 
 <body>
+    <audio id="bounceSound" src="bounce.mp3"></audio>
+    <audio id="winSound" src="win.mp3"></audio>
+    <audio id="loseSound" src="lose.mp3"></audio>
     <div id="gameboy">
+        
         <span id="score_name" class="top_bar">SCORE:</span>
         <span id="score" class="top_bar">0</span>
 

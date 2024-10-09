@@ -230,10 +230,6 @@
             gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            i_buffer = gl.createBuffer(); // create 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind 
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // Since it's a single point, we don't need an element buffer
             return [v_buffer, i_buffer, color, offset, 1, gl.POINTS];
@@ -393,9 +389,9 @@
             }
             
             //console.log(old_score);
-             if (old_score % 5 === 0) {
+             if (old_score % 2 === 0) {
                 paddleMultiplier -= 0.1;
-                if (paddleMultiplier < 0.5) {
+                if (paddleMultiplier < 0.8) {
                     paddleMultiplier = 0.8;
                 }
 

@@ -1,18 +1,20 @@
 <html>
-  <head>
-    <style>
-      html, body { 
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important;  
-      }
-    </style>
-    
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
-    <script type="importmap">
+<head>
+  <style>
+    html,
+    body {
+      background-color: #000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden !important;
+    }
+  </style>
+
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+  <script type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three@latest/build/three.module.js",
@@ -21,31 +23,165 @@
     }
     </script>
 
-    <script type="module">
+  <script type="module">
 
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-      var renderer, controls, scene, camera;
+    var renderer, controls, scene, camera;
 
-      window.onload = function() {
+    window.onload = function () {
 
-        // Three.js code goes here
- 
-        // call animation/rendering loop
-        animate();
-        
+      // Three.js code goes here
+      scene = new THREE.Scene();
+
+      // setup the camera
+      var fov = 75;
+      var ratio = window.innerWidth / window.innerHeight;
+      var zNear = 1;
+      var zFar = 10000;
+      var lastTorus;
+      var isScaling = false;
+      var torusArray = [];
+      var previousScaleDirection = 1; // Initial scale direction
+      camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+      camera.position.set(0, 0, 100);
+
+      // create renderer and setup the canvas
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+
+
+      renderer.domElement.onmousedown = function (e) {
+        if (e.shiftKey) {
+
+          controls.enabled = false;
+
+          var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+          var vp_coords = new THREE.Vector2(
+            (pixel_coords.x / window.innerWidth) * 2 - 1,  // X
+            -(pixel_coords.y / window.innerHeight) * 2 + 1 // Y
+          );
+
+          var raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(vp_coords, camera);
+          var intersects = raycaster.intersectObject(invisible_plane);
+
+          var point = intersects[0].point;
+
+          // Create a new torus at the intersection point
+          var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+          var material = new THREE.MeshStandardMaterial({ color: 0xfc5bc4 });
+          var torus = new THREE.Mesh(geometry, material);
+          torus.position.copy(point);
+
+          scene.add(torus);
+
+
+          lastTorus = torus;
+          isScaling = true;
+
+          torusArray.push(torus);
+
+        }
       };
 
-      function animate() {
+      renderer.domElement.onmousemove = function (e) {
+        if (isScaling) {
+          var delta = -e.movementY * 0.01;
 
-        requestAnimationFrame( animate );
+          // Update the scale
+          lastTorus.scale.x += delta;
+          lastTorus.scale.y += delta;
+          lastTorus.scale.z += delta;
 
-        // and here..
-        
+          // Prevent scale from being zero
+          if (lastTorus.scale.x === 0) {
+            lastTorus.scale.set(0.001, 0.001, 0.001);
+          }
+
+          // Detect scale crossing
+          var currentScaleDirection = Math.sign(lastTorus.scale.x);
+
+          if (currentScaleDirection !== previousScaleDirection) {
+            // Scale crossed zero
+            if (currentScaleDirection > 0) {
+              // Positive color to hotpink
+              lastTorus.material.color.set(0xfc5bc4);
+            } else {
+              // Negative color to grassgreen
+              lastTorus.material.color.set(0x7CFC00);
+            }
+            previousScaleDirection = currentScaleDirection;
+          }
+        }
       };
-    </script>
-  </head>
-  <body></body>
+      
+      window.addEventListener('keydown', function (e) {
+        if (e.key === 'w') {
+          torusArray.forEach(function (torus) {
+            torus.material.wireframe = !torus.material.wireframe;
+          });
+        }
+      });
+
+      // setup lights
+      var ambientLight = new THREE.AmbientLight();
+      scene.add(ambientLight);
+
+      var light = new THREE.DirectionalLight(0xffffff, 5.0);
+      light.position.set(10, 100, 10);
+      scene.add(light);
+
+      // configure cube
+      var geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+      var material = new THREE.MeshStandardMaterial({ color: 0xfc5bc4, wireframe: false });
+
+      var torus = new THREE.Mesh(geometry, material);
+
+      scene.add(torus);
+      torusArray.push(torus);
+
+      renderer.domElement.onmouseup = function (e) {
+        // Re-enable OrbitControls
+        controls.enabled = true;
+        isScaling = false; // Disable scaling mode
+      };
+
+      //
+      // The invisible plane
+      //
+      geometry = new THREE.PlaneGeometry(10000, 10000);
+      material = new THREE.MeshBasicMaterial({
+        visible: false
+      });
+
+      var invisible_plane = new THREE.Mesh(geometry, material);
+
+      scene.add(invisible_plane);
+      
+      // interaction
+      controls = new OrbitControls(camera, renderer.domElement);
+
+      // call animation/rendering loop
+      animate();
+
+    };
+
+    function animate() {
+
+      requestAnimationFrame(animate);
+
+      // and here..
+      controls.update();
+      renderer.render(scene, camera);
+
+    };
+  </script>
+</head>
+
+<body></body>
+
 </html>
-

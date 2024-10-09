@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">  <!--Avoid favicon request -->
     <style>
         html,
         body {
@@ -93,6 +94,7 @@
 
         gl_Position = final_position;
 
+        gl_PointSize = 8.; // Point size added
         // TODO Part 2
 
 
@@ -112,7 +114,15 @@
     </script>
 
     <script>
+        var speed = .01;
+        var speedInterval;
+        function updateSpeed() {
+            speed += .001;
+            console.log(speed);
+        }
+
         window.onload = function () {
+
             //************************************************************//
             //
             // INITIALIZE WEBGL
@@ -170,10 +180,11 @@
 
             resetBall();
 
+            speedInterval = setInterval(updateSpeed, 2000);
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset) {
 
 
 
@@ -181,15 +192,15 @@
             //
             // CREATE GEOMETRY
             //
-
+            
             //
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.05, 0.0, // V0      // 0
+                -0.1, -0.05, 0.0, // V1, V4  // 1
+                .1, 0.05, 0.0, // V2, V3  // 2
+                .1, -0.05, 0.0  // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,8 +219,11 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES];
 
+        // Create paddle - This function creates the paddle to be used in the scene. It creates the vertices, and indices (for an indexed
+        // geometry), and creates and binds the v_buffer and i_buffer to be returned. This function returns the v_buffer, i_buffer, 
+        // color, offset, number of vertices, and the primitive (triangles).
         }
 
 
@@ -217,9 +231,28 @@
         function createBall(color, offset) {
             //
             // TODO Part 2
+            vertices = new Float32Array([0., 0., 0.]);
+            indices = new Uint8Array([0, 0, 0]);
+
+            v_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
+
+
+            i_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
+
+            return [v_buffer, i_buffer, color, offset, 3, gl.POINTS];
+
             //
 
         }
+        // Create ball - This function creates the ball to be used in the scene. It creates the vertices, and indices (for an indexed
+        // geometry), and creates and binds the v_buffer and i_buffer to be returned. This function returns the v_buffer, i_buffer, 
+        // color, offset, number of vertices, and the primitive (points).
 
         function createBrick(color, offset, score) {
             //************************************************************//
@@ -262,30 +295,37 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES, score];
         }
 
-        function createBricks() {
+        // Create brick - This function creates new bricks using indexed geometry and binds the v_buffer and i_buffers accordingly.
+        // This function returns the v_buffer and i_buffer along with the color, offset, number of vertices, the primitive (triangles),
+        // and the score. 
+
+        function createBricks(rows=4) {
             offset_x = -0.8
             offset_y = 0.9
-            color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
-            for (let i = 0; i < 4; i++) {
+            color = [];
+            for (let i = 0; i < rows; i++) {
+                color.push([Math.random(), Math.random(), Math.random(), Math.random()]);
+            }
+
+            for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < 9; j++) {
-                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], 4 - i))
+                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], rows - i))
                     offset_x += 0.2
                 }
                 offset_x = -0.8
                 offset_y -= 0.14
             }
         }
+        // Create bricks - This function assigns random colors to the bricks, and pushes the bricks to the objects array 
+        // calling createBrick under the hood to do the work of creating the v_buffers and i_buffers for the individual bricks
 
         function animate() {
             if (STOPPED) {
+                clearInterval(speedInterval);
+                document.getElementById("music").muted = true;
                 return;
             }
 
@@ -296,7 +336,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
-
+            updateBall();
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
 
@@ -305,6 +345,7 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+                var PRIMITIVE = current[5];
 
                 //************************************************************//
                 //
@@ -345,10 +386,17 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                gl.drawElements(PRIMITIVE, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
+        // Animate - This function handles all of the drawing calls to the screen, iterating through all the objects in the 
+        // scene to reach their respective v_buffers, i_buffers, colors, offsets, and primitives. 
+        function resetPaddle() {
+            OBJECTS[0][3][0] = 0; // SET TO CENTER
+        }
+
+        // Reset paddle - This function, similar to reset ball, resets the paddle into the center of the screen (x). 
         function resetBall() {
             OBJECTS[1][3][0] = Math.random() / 10; // SET TO CENTER
             OBJECTS[1][3][1] = Math.random() / 10;
@@ -356,6 +404,8 @@
             BALLDIRECTION = Math.PI / 8 + Math.random();
             BALLDIRECTION *= -1;
         }
+        // Reset ball - This function sets the ball back to the center so that we can continue playing once we lose a life
+        // This function also randomizes which direction the ball will travel on intial movement. 
 
         function score(score_value) {
             var old_score = document.getElementById("score").innerText;
@@ -364,8 +414,11 @@
                 createBricks();
             }
         }
+        // Score - This function adjusts the inner text of the element with the ID of "score", it adjusts the text to reflect the 
+        // current score for the user. This function also monitors the amount of bricks, and creates more if all are destroyed. 
 
         function loseLife() {
+            speed = .01;
             var old_life = document.getElementById("lives").innerText;
             document.getElementById("lives").innerText = parseInt(old_life) - 1;
             if (old_life == 1) {
@@ -374,6 +427,9 @@
                 document.getElementById("game_over").style.display = "block";
             }
         }
+        // Lose life - This function resets the speed back to .01, and also adjusts the inner text of the element with ID "lives".
+        // The inner text is updated to reflect the current lives - 1. On top of this, if the player loses their last life, this 
+        // function stops the game and displays the game over image on the screen. 
 
         function updateBall() {
             BALL_X = OBJECTS[1][3][0];
@@ -422,26 +478,56 @@
                     // LOSE LIFE
                     loseLife();
                     resetBall();
+                    resetPaddle();
                     return;
                 }
             }
-
+        
             // UPDATE BALL POSITION
-            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * 0.02;
-            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * 0.02;
+            // Slowed the ball down
+            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * speed;
+            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * speed;
         }
 
+        // Update ball - This function does a lot of calculations regarding where the ball is hitting, (left wall, right wall, etc.)
+        // This function also does the checking to see if the ball collides with any of the bricks at the top, and updates the score
+        // accordingly. This function also does the checking to see if the ball collides with the paddle on the bottom. If the paddle
+        // does not stop the ball from hitting the bottom, we lose a life, reset the ball, and reset the paddle. As long as have 
+        // not lost a life, we update the balls speed and mutliply by a speed factor (speed).
+
+
         window.onkeydown = function (e) {
+            var movement = .18;
             if (STOPPED) {
                 // restart the game
                 window.location.reload();
+            } else {
+                if (e.key == "ArrowLeft") {
+                    if (OBJECTS[0][3][0] <= -.84) {
+                        movement = 0;
+                    } else {
+                        OBJECTS[0][3][0] -= movement;
+                    }
+                } else if (e.key == "ArrowRight") {
+                    if (OBJECTS[0][3][0] >= .84) {
+                        movement = 0;
+                    } else {
+                        OBJECTS[0][3][0] += movement;
+                    }
+                }
             }
             // TODO Part 3
         };
+        // This function calculates the movement through the arrow keys (either right or left) and adjusts the paddle 
+        // object according to which arrow key was pressed. This function also keeps the paddle in bounds and does not let it move 
+        // beyond the scope of the game. 
     </script>
 </head>
 
 <body>
+    <audio id="music" autoplay style="display: none">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
     <div id="gameboy">
         <span id="score_name" class="top_bar">SCORE:</span>
         <span id="score" class="top_bar">0</span>

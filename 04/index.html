@@ -388,6 +388,12 @@
                 document.getElementById("game_over").style.display = "block";
             }
         } 
+        
+        function collision(mp3) {
+            var collision = document.getElementById('audio')
+            collision.setAttribute('src', mp3)
+        }
+
         score_val = 0
         function updateBall() {
             BALL_X = OBJECTS[1][3][0];
@@ -395,25 +401,30 @@
             BOTTOM_PADDLE_X = OBJECTS[0][3][0];
             BOTTOM_PADDLE_Y = OBJECTS[0][3][1];
             BOTTOM_PADDLE_WIDTH = 0.42;
-
+            
             if (BALL_X >= 0.95) {
                 // RIGHT WALL
+                collision('./paddle_collision.mp3')
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
             } else if (BALL_X <= -0.95) {
                 // LEFT WALL
+                collision('./paddle_collision.mp3')
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
             } else if (BALL_Y >= 0.96) {
-                // TOP WALL
+                // TOP WALL 
+                collision('./paddle_collision.mp3')
                 BALLDIRECTION = - BALLDIRECTION;
             } else if (BALL_Y >= 0.2) {
+                collision('./brick_collision.mp3')
+                
                 // TOP BRICKS
                 for (let i = 2; i < OBJECTS.length; i++) {
                     BRICK_OFFSET_X = OBJECTS[i][3][0];
                     BRICK_OFFSET_Y = OBJECTS[i][3][1];
                     if (BALL_X > BRICK_OFFSET_X - 0.095 &&
-                        BALL_X < BRICK_OFFSET_X + 0.095 &&
-                        BALL_Y > BRICK_OFFSET_Y - 0.05 &&
-                        BALL_Y < BRICK_OFFSET_Y + 0.05) {
+                    BALL_X < BRICK_OFFSET_X + 0.095 &&
+                    BALL_Y > BRICK_OFFSET_Y - 0.05 &&
+                    BALL_Y < BRICK_OFFSET_Y + 0.05) {
                         BALLDIRECTION = - BALLDIRECTION;
                         // score_num = OBJECTS[i][6];
                         OBJECTS.splice(i, 1); 
@@ -422,19 +433,20 @@
                 }
             } else if (BALL_Y <= -0.85) {
                 // BOTTOM 
-
+                
                 BOTTOM_PADDLE_LEFT = BOTTOM_PADDLE_X - BOTTOM_PADDLE_WIDTH / 2;
                 BOTTOM_PADDLE_RIGHT = BOTTOM_PADDLE_X + BOTTOM_PADDLE_WIDTH / 2;
-
+                
                 // LET'S CHECK IF A PADDLE IS THERE
                 if (BALL_X >= BOTTOM_PADDLE_LEFT && BALL_X <= BOTTOM_PADDLE_RIGHT) {
-                    // YES, REFLECT
+                    // YES, REFLECT 
+                    collision('./paddle_collision.mp3')
                     randBallColor()
                     BALLDIRECTION = -BALLDIRECTION;
-                    console.log(OBJECTS)
-                    //UPDATE STEP ON BOUNCE TO INCREASE SPEED
+                    console.log(OBJECTS) 
                 } else {
                     // LOSE LIFE
+                    collision('game_over.mp3')
                     loseLife();
                     resetBall();
                     return;
@@ -474,7 +486,7 @@
             <img id="game_over" class="result" src="game_over.jpg" />
         </div>
         <canvas id="c"></canvas>
-
+        <audio autoplay id="audio"></audio>
     </div>
 </body>
 

@@ -171,9 +171,9 @@
             // CREATE GEOMETRY
             //
             vertices = new Float32Array([
-                -0.1, 0.05, 0.0, // V0 // 0
+                -0.2, 0.05, 0.0, // V0 // 0
                 -0.1, -0.05, 0.0, // V1, V4 // 1
-                0.1, 0.05, 0.0, // V2, V3 // 2
+                0.2, 0.05, 0.0, // V2, V3 // 2
                 0.1, -0.05, 0.0 // V5 // 3
             ]);
 
@@ -194,6 +194,13 @@
  
             return [v_buffer, i_buffer, color, offset, gl.TRIANGLES];
 
+        }
+
+        function randBallColor(ball) {
+            for (let i = 0; i < 4; i++) {
+                OBJECTS[1][2][i] = Math.random()
+
+            }
         }
 
 
@@ -298,7 +305,7 @@
 
                 var v_buffer = current[0];
                 var i_buffer = current[1];
-                var COLOR = current[2];
+                var COLOR =current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
     
@@ -387,7 +394,7 @@
             BALL_Y = OBJECTS[1][3][1]; 
             BOTTOM_PADDLE_X = OBJECTS[0][3][0];
             BOTTOM_PADDLE_Y = OBJECTS[0][3][1];
-            BOTTOM_PADDLE_WIDTH = 0.2;
+            BOTTOM_PADDLE_WIDTH = 0.42;
 
             if (BALL_X >= 0.95) {
                 // RIGHT WALL
@@ -422,7 +429,9 @@
                 // LET'S CHECK IF A PADDLE IS THERE
                 if (BALL_X >= BOTTOM_PADDLE_LEFT && BALL_X <= BOTTOM_PADDLE_RIGHT) {
                     // YES, REFLECT
+                    randBallColor()
                     BALLDIRECTION = -BALLDIRECTION;
+                    console.log(OBJECTS)
                     //UPDATE STEP ON BOUNCE TO INCREASE SPEED
                 } else {
                     // LOSE LIFE
@@ -442,11 +451,11 @@
             var paddleSpeed = 0.25
 
             if (e.key === 'ArrowLeft') {
-                if (paddle[3][0] - paddleSpeed > -0.9) {
+                if (paddle[3][0] - paddleSpeed > -1.) {
                     paddle[3][0] -= paddleSpeed
                 }
             } else if (e.key === 'ArrowRight') { 
-                if (paddle[3][0] + paddleSpeed < 0.9) {
+                if (paddle[3][0] + paddleSpeed < 1.) {
                     paddle[3][0] += paddleSpeed
                 }
             }

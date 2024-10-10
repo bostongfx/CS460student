@@ -162,9 +162,12 @@
 
             STOPPED = false;
 
+            window.PADDLE = createPaddle([1, 1, 1, 1], [0, -0.9, 0]);
+            window.BALL = createBall([1, 1, 1, 1], [0, 0, 0]);
+
             OBJECTS = [];
-            OBJECTS.push(createPaddle([1, 1, 1, 1], [0, -0.9, 0])); // BOTTOM PADDLE
-            OBJECTS.push(createBall([1, 1, 1, 1], [0, 0, 0])); // BALL
+            OBJECTS.push(PADDLE); // BOTTOM PADDLE
+            OBJECTS.push(BALL); // BALL
             createBricks(); // ADD BRICKS
 
             resetBall();
@@ -457,6 +460,17 @@
                 window.location.reload();
             }
             // TODO Part 3
+            if (e.key === "ArrowLeft") {
+              if (PADDLE[3][0] > -0.8) {
+                PADDLE[3][0] -= .1;
+              }
+            } else if (e.key === "ArrowRight") {
+              if (PADDLE[3][0] < 0.8) {
+                PADDLE[3][0] += .1;
+              }
+            }
+            console.log(PADDLE[3][0])
+
         };
     </script>
 </head>

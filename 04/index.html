@@ -313,6 +313,8 @@
 
             requestAnimationFrame(animate);
 
+            updateBall();
+
             // CLEAR NOW BEFORE ANY DRAWING
             gl.clearColor(0, 0, 0, 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -460,13 +462,14 @@
                 window.location.reload();
             }
             // TODO Part 3
+            const movementDistance = .2;
             if (e.key === "ArrowLeft") {
               if (PADDLE[3][0] > -0.8) {
-                PADDLE[3][0] -= .1;
+                PADDLE[3][0] -= movementDistance;
               }
             } else if (e.key === "ArrowRight") {
               if (PADDLE[3][0] < 0.8) {
-                PADDLE[3][0] += .1;
+                PADDLE[3][0] += movementDistance;
               }
             }
             console.log(PADDLE[3][0])

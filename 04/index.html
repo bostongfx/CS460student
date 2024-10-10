@@ -173,7 +173,7 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset) {
 
 
 
@@ -186,10 +186,10 @@
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.5, 0.0, // V0      // 0
+                -0.1, -0.5, 0.0, // V1, V4  // 1
+                0.1, 0.5, 0.0, // V2, V3  // 2
+                0.1, -0.5, 0.0  // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 

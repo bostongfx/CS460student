@@ -161,6 +161,8 @@
             gl.useProgram(shaderprogram);
 
             STOPPED = false;
+            
+            window.audioStarted = false;
 
             window.PADDLE = createPaddle([1, 1, 1, 1], [0, -0.9, 0]);
             window.BALL = createBall([1, 1, 1, 1], [0, 0, 0]);
@@ -397,6 +399,8 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
+                document.getElementById("backgroundMusic").pause();
+                bassDrop();
             }
         }
 
@@ -411,12 +415,15 @@
             if (BALL_X >= 0.95) {
                 // RIGHT WALL
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
+                pewSound();
             } else if (BALL_X <= -0.95) {
                 // LEFT WALL
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
+                pewSound();
             } else if (BALL_Y >= 0.96) {
                 // TOP WALL
                 BALLDIRECTION = - BALLDIRECTION;
+                pewSound();
             } else if (BALL_Y >= 0.2) {
                 // TOP BRICKS
                 for (let i = 2; i < OBJECTS.length; i++) {
@@ -430,6 +437,7 @@
                         score_num = OBJECTS[i][6];
                         OBJECTS.splice(i, 1);
                         score(score_num);
+                        pewSound();
                     }
                 }
             } else if (BALL_Y <= -0.85) {
@@ -442,6 +450,7 @@
                 if (BALL_X >= BOTTOM_PADDLE_LEFT && BALL_X <= BOTTOM_PADDLE_RIGHT) {
                     // YES, REFLECT
                     BALLDIRECTION = -BALLDIRECTION;
+                    pewSound();
                     //UPDATE STEP ON BOUNCE TO INCREASE SPEED
                 } else {
                     // LOSE LIFE
@@ -456,7 +465,20 @@
             OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * 0.02;
         }
 
+        function pewSound() {
+          document.getElementById("pewSound").play();
+        }
+
+        function bassDrop() {
+          document.getElementById("gameOverSound").play();
+        }
+
         window.onkeydown = function (e) {
+            if (!audioStarted) {
+              audioStarted = true;
+              const audioElement = document.getElementById("backgroundMusic");
+              audioElement.play();
+            }
             if (STOPPED) {
                 // restart the game
                 window.location.reload();
@@ -489,7 +511,9 @@
             <img id="game_over" class="result" src="game_over.jpg" />
         </div>
         <canvas id="c"></canvas>
-
+        <audio id="backgroundMusic" loop src="./technologic.mp3"></audio>
+        <audio id="gameOverSound" src="./game-over.mp3"></audio>
+        <audio id="pewSound" src="./pew.mp3"></audio>
     </div>
 </body>
 

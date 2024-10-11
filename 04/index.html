@@ -218,7 +218,20 @@
             //
             // TODO Part 2
             //
+            vertices = new Float32Array([0, 0, 0]) // Ball positioned at (0, 0, 0)
 
+            // No need for indices as this is a single point
+
+            v_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
+
+            // Set the size of the ball through gl_PointSize in the vertex shader
+            gl_PointSize = 8.0;
+
+            // Return buffer, color, offset, and vertex count
+            return [v_buffer, null, color, offset, 1]; // Only 1 vertex for the ball
         }
 
         function createBrick(color, offset, score) {

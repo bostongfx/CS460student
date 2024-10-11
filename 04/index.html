@@ -94,7 +94,8 @@
         gl_Position = final_position;
 
         // TODO Part 2
-
+        // Set the size of the ball through gl_PointSize in the vertex shader
+            gl_PointSize = 8.0;
 
       }
     </script>
@@ -208,7 +209,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, gl.TRIANGLES];
 
         }
 
@@ -227,11 +228,8 @@
             gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
             gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
 
-            // Set the size of the ball through gl_PointSize in the vertex shader
-            gl_PointSize = 8.0;
-
             // Return buffer, color, offset, and vertex count
-            return [v_buffer, null, color, offset, 1]; // Only 1 vertex for the ball
+            return [v_buffer, null, color, offset, gl.POINTS]; 
         }
 
         function createBrick(color, offset, score) {
@@ -275,7 +273,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, gl.TRIANGLES, score];
         }
 
         function createBricks() {
@@ -358,7 +356,14 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                // Draw the object based on its primitive
+                // * REMEMBER: drawElements is used for indexed geometry like triangle, drawArrays used for point. 
+                if (i_buffer) {
+                    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
+                }
+                else {
+                    gl.drawArrays(gl.POINTS, 1, gl.UNSIGNED_BYTE, 0);
+                }
             }
         }
 

@@ -450,12 +450,27 @@
         }
 
         window.onkeydown = function (e) {
+
             if (STOPPED) {
                 // restart the game
                 window.location.reload();
             }
             // TODO Part 3
+            if (e.code == "ArrowLeft") {
+                // Move paddle left
+                if (OBJECTS[0][3][0] > - 0.8) {
+                    OBJECTS[0][3][0] -= 0.05;
+                }
+
+            } else if (e.code == "ArrowRight") {
+                // Move paddle right
+                // [0][3][0] are not coordinates. They represents the properties of a paddle, initializes randomly from us.
+                if (OBJECTS[0][3][0] < 0.8) {
+                    OBJECTS[0][3][0] += 0.05;
+                }
+            }
         };
+        
     </script>
 </head>
 

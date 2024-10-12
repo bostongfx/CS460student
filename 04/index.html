@@ -273,21 +273,32 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, gl.TRIANGLES, score];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES, score];
+        }
+
+        // Additional function to generate random colors for the bricks
+        function getRandomColor() {
+            return [Math.random(), Math.random(), Math.random(), 1];
         }
 
         function createBricks() {
             offset_x = -0.8
             offset_y = 0.9
-            color = [
+            
+            // If you want 4 colors for 4 rows
+            /*color = [
+                [3, 0, 0, 1],
                 [1, 1, 1, 1],
                 [1, 1, 1, 1],
                 [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
+            ]*/
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 9; j++) {
-                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], 4 - i))
+
+                    // Generate a random color for each brick
+                    let randomColor = getRandomColor();
+
+                    OBJECTS.push(createBrick(randomColor /*color[i]*/, [offset_x, offset_y, 0], 4 - i))
                     offset_x += 0.2
                 }
                 offset_x = -0.8
@@ -300,6 +311,9 @@
                 return;
             }
 
+            // This is a built-in browser function that tells the browser that you want to perform an animation
+            // and requests that the browser calls a specified function (animate in this case) to update the
+            // animation before the next repaint.
             requestAnimationFrame(animate);
 
             // CLEAR NOW BEFORE ANY DRAWING
@@ -307,6 +321,8 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
+
+            updateBall();
 
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
@@ -459,14 +475,14 @@
             if (e.code == "ArrowLeft") {
                 // Move paddle left
                 if (OBJECTS[0][3][0] > - 0.8) {
-                    OBJECTS[0][3][0] -= 0.05;
+                    OBJECTS[0][3][0] -= 0.08;
                 }
 
             } else if (e.code == "ArrowRight") {
                 // Move paddle right
                 // [0][3][0] are not coordinates. They represents the properties of a paddle, initializes randomly from us.
                 if (OBJECTS[0][3][0] < 0.8) {
-                    OBJECTS[0][3][0] += 0.05;
+                    OBJECTS[0][3][0] += 0.08;
                 }
             }
         };

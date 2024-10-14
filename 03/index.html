@@ -1,51 +1,151 @@
 <html>
-  <head>
-    <style>
-      html, body { 
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important;  
-      }
-    </style>
-    
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<head>
+  <style>
+    html, body { 
+      background-color: #000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
 
-    <script type="importmap">
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three@latest/build/three.module.js",
         "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
       }
     }
-    </script>
+  </script>
 
-    <script type="module">
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+    let renderer, controls, scene, camera;
+    let activeTorus = null;
+    let isScaling = false;
+    let placedTori = [];
+    let isWireframeMode = false;
+    let currentColor = 0xFF69B4; // Start with hotpink
+    const hotpink = 0xFF69B4;
+    const grassgreen = 0x7CFC00;
 
-      var renderer, controls, scene, camera;
+    window.onload = function() {
+      initScene();
+      initLights();
+      initEventHandlers();
+      animate();
+    };
 
-      window.onload = function() {
+    function initScene() {
+      scene = new THREE.Scene();
+      
+      // Setup camera
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+      camera.position.set(0, 0, 100);
 
-        // Three.js code goes here
- 
-        // call animation/rendering loop
-        animate();
-        
-      };
+      // Setup renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
-      function animate() {
+      // Orbit controls (intersection with invisible plane)
+      controls = new OrbitControls(camera, renderer.domElement);
 
-        requestAnimationFrame( animate );
+      // Invisible plane for raycasting
+      const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
+      const invisiblePlane = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({ visible: false }));
+      scene.add(invisiblePlane);
+      invisiblePlane.name = 'invisiblePlane';
 
-        // and here..
-        
-      };
-    </script>
-  </head>
-  <body></body>
+      scene.invisiblePlane = invisiblePlane;    // Attack invisiblePlane to scene
+    }
+
+    // Setup lights
+    function initLights() {
+      scene.add(new THREE.AmbientLight());
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 5.0);
+      directionalLight.position.set(10, 100, 10);
+      scene.add(directionalLight);
+    }
+
+    function initEventHandlers() {
+      renderer.domElement.addEventListener('mousedown', onMouseDown);
+      renderer.domElement.addEventListener('mouseup', onMouseUp);
+      renderer.domElement.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('keydown', onKeyPress);
+    }
+
+    function onMouseDown(event) {
+      if (!event.shiftKey) return;
+
+      controls.enabled = false;
+      isScaling = true;
+
+      const mousePosition = new THREE.Vector2(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mousePosition, camera);
+      const intersects = raycaster.intersectObject(scene.invisiblePlane);
+
+      if (intersects.length > 0) {
+        // Create new torus and place it at the intersection point
+        const torusGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        const torusMaterial = new THREE.MeshStandardMaterial({ color: hotpink, metalness: 0.7, roughness: 0.3 });
+        const newTorus = new THREE.Mesh(torusGeometry, torusMaterial);
+
+        newTorus.position.copy(intersects[0].point);
+        scene.add(newTorus);
+        placedTori.push(newTorus);
+        activeTorus = newTorus;
+      }
+    }
+
+    function onMouseUp() {
+      isScaling = false;
+      controls.enabled = true;
+    }
+
+    function onMouseMove(event) {
+      if (!isScaling || !activeTorus) return;
+
+      const scaleChange = event.movementY * -0.01;
+      activeTorus.scale.set(
+        activeTorus.scale.x + scaleChange,
+        activeTorus.scale.y + scaleChange,
+        activeTorus.scale.z + scaleChange
+      );
+
+      // Switch color when scaling direction changes
+      const newColor = scaleChange > 0 ? grassgreen : hotpink;
+      if (currentColor !== newColor) {
+        activeTorus.material.color.set(newColor);
+        currentColor = newColor;
+      }
+    }
+
+    function onKeyPress(event) {
+      if (event.key === 'w') {
+        isWireframeMode = !isWireframeMode;
+        placedTori.forEach(torus => {
+          torus.material.wireframe = isWireframeMode;
+          torus.material.needsUpdate = true;
+        });
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</head>
+<body></body>
 </html>
-

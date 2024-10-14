@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">  <!--Avoid favicon request -->
     <style>
         html,
         body {
@@ -93,6 +94,7 @@
 
         gl_Position = final_position;
 
+        gl_PointSize = 8.; // Point size added
         // TODO Part 2
 
 
@@ -112,7 +114,15 @@
     </script>
 
     <script>
+        var speed = .01;
+        var speedInterval;
+        function updateSpeed() {
+            speed += .001;
+            console.log(speed);
+        }
+
         window.onload = function () {
+
             //************************************************************//
             //
             // INITIALIZE WEBGL
@@ -170,26 +180,24 @@
 
             resetBall();
 
+            speedInterval = setInterval(updateSpeed, 2000);
             animate();
         };
 
-        function createRectangle(color, offset) {
-
-
-
+        function createPaddle(color, offset) {
+            // Creates the paddle geometry with vertices and indices for indexed drawing.
+            // Returns v_buffer, i_buffer, color, offset, number of vertices, and gl.TRIANGLES.
             //************************************************************//
             //
             // CREATE GEOMETRY
             //
-
-            //
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.15, 0.05, 0.0, // V0      // 0
+                -0.15, -0.05, 0.0, // V1, V4  // 1
+                .15, 0.05, 0.0, // V2, V3  // 2
+                .15, -0.05, 0.0  // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,20 +216,38 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
-
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES];
         }
 
 
 
         function createBall(color, offset) {
+            // Creates the ball geometry as a point. Returns v_buffer, i_buffer, color, offset, 
+            // number of vertices, and gl.POINTS.
             //
             // TODO Part 2
+            vertices = new Float32Array([0.0, 0.0, 0.0]);
+            indices = new Uint8Array([0, 0, 0]);
+
+            v_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
+
+
+            i_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
+
+            return [v_buffer, i_buffer, color, offset, 3, gl.POINTS];
             //
 
         }
 
         function createBrick(color, offset, score) {
+            // Creates brick geometry with vertices and indices, returns v_buffer, i_buffer, 
+            // color, offset, number of vertices, gl.TRIANGLES, and score.
             //************************************************************//
             //
             // CREATE GEOMETRY
@@ -262,21 +288,26 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES, score];
         }
 
-        function createBricks() {
+        function createBricks(rows=6) {
+            // This function initializes the game by generating a grid of bricks, each 
+            // represented by a rectangular area on the canvas. It determines the number
+            //  of rows and columns based on predefined constants, and calculates the 
+            // position of each brick using a nested loop. The bricks are stored in an 
+            // array for easy access during collision detection. This setup ensures that 
+            // the player has multiple targets to hit throughout the game.
             offset_x = -0.8
             offset_y = 0.9
-            color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
-            for (let i = 0; i < 4; i++) {
+            color = [];
+            for (let i = 0; i < rows; i++) {
+                color.push([Math.random(), Math.random(), Math.random(), Math.random()]);
+            }
+
+            for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < 9; j++) {
-                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], 4 - i))
+                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], rows - i))
                     offset_x += 0.2
                 }
                 offset_x = -0.8
@@ -285,7 +316,11 @@
         }
 
         function animate() {
+            // Manages frame updates, clears the screen, updates ball position, and 
+            // draws each object based on their geometry and shader attributes.
             if (STOPPED) {
+                clearInterval(speedInterval);
+                document.getElementById("music").muted = true;
                 return;
             }
 
@@ -296,7 +331,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
-
+            updateBall();
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
 
@@ -305,6 +340,7 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+                var PRIMITIVE = current[5];
 
                 //************************************************************//
                 //
@@ -345,11 +381,21 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                gl.drawElements(PRIMITIVE, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
+        function resetPaddle() {
+            // Resets paddle to the center (x-axis).
+            OBJECTS[0][3][0] = 0; // SET TO CENTER
+        }
+
         function resetBall() {
+            // This function resets the ball’s position to the center of the canvas
+            // and initializes its velocity to predefined starting values. It is 
+            // typically called when the player loses a life or restarts the game, 
+            // ensuring that the ball begins from the same point each time. By 
+            // standardizing the ball’s starting conditions, it maintains consistent gameplay.
             OBJECTS[1][3][0] = Math.random() / 10; // SET TO CENTER
             OBJECTS[1][3][1] = Math.random() / 10;
 
@@ -358,6 +404,11 @@
         }
 
         function score(score_value) {
+            // This function updates the player's score whenever a brick is successfully destroyed.
+            //  Each brick hit adds a set number of points to the score and updates the displayed 
+            // score on the canvas. While it is primarily focused on scoring, it works in tandem 
+            // with loseLife() and resetBall() by providing feedback on the player's performance
+            // and encouraging engagement.
             var old_score = document.getElementById("score").innerText;
             document.getElementById("score").innerText = parseInt(old_score) + score_value;
             if (OBJECTS.length == 2) { //IF ALL BLRICKS DESTROYED CREATE MORE
@@ -366,6 +417,12 @@
         }
 
         function loseLife() {
+            // This function is invoked when the ball falls below the paddle, indicating 
+            // that the player has lost a life. It decreases the life count and checks 
+            // whether the player has remaining lives. If lives are still available, 
+            // it calls resetBall() to reposition the ball for the next attempt. If no 
+            // lives remain, it triggers the game-over sequence, effectively ending the game.
+            speed = .01;
             var old_life = document.getElementById("lives").innerText;
             document.getElementById("lives").innerText = parseInt(old_life) - 1;
             if (old_life == 1) {
@@ -376,6 +433,12 @@
         }
 
         function updateBall() {
+            // This function adjusts the ball's position based on its current velocity, 
+            // updating its coordinates on each frame. It checks for collisions with the 
+            // walls and the paddle, reversing the ball's direction as needed. If the 
+            // ball collides with a brick, it triggers the destruction of the brick and
+            // reverses the ball's direction. Additionally, it handles the case where 
+            // the ball falls below the paddle, signaling a loss of life.
             BALL_X = OBJECTS[1][3][0];
             BALL_Y = OBJECTS[1][3][1];
 
@@ -422,19 +485,37 @@
                     // LOSE LIFE
                     loseLife();
                     resetBall();
+                    resetPaddle();
                     return;
                 }
             }
-
+        
             // UPDATE BALL POSITION
-            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * 0.02;
-            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * 0.02;
+            // Slowed the ball down
+            OBJECTS[1][3][0] += Math.cos(BALLDIRECTION) * speed;
+            OBJECTS[1][3][1] += Math.sin(BALLDIRECTION) * speed;
         }
 
         window.onkeydown = function (e) {
+            // Moves the paddle left or right based on arrow key input.
+            var movement = .18;
             if (STOPPED) {
                 // restart the game
                 window.location.reload();
+            } else {
+                if (e.key == "ArrowLeft") {
+                    if (OBJECTS[0][3][0] <= -.84) {
+                        movement = 0;
+                    } else {
+                        OBJECTS[0][3][0] -= movement;
+                    }
+                } else if (e.key == "ArrowRight") {
+                    if (OBJECTS[0][3][0] >= .84) {
+                        movement = 0;
+                    } else {
+                        OBJECTS[0][3][0] += movement;
+                    }
+                }
             }
             // TODO Part 3
         };
@@ -442,6 +523,9 @@
 </head>
 
 <body>
+    <audio id="music" autoplay style="display: none">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
     <div id="gameboy">
         <span id="score_name" class="top_bar">SCORE:</span>
         <span id="score" class="top_bar">0</span>
@@ -457,4 +541,3 @@
 </body>
 
 </html>
-

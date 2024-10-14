@@ -26,11 +26,114 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
-      var renderer, controls, scene, camera;
+      var renderer, controls, scene, camera, LASTOBJECT;
+      var ALLTORUS = [];
 
       window.onload = function() {
 
         // Three.js code goes here
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth/ window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+
+        // create renderer and add canvas to DOM
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        renderer.domElement.onmouseup = function() {
+          controls.enabled = true;
+        }
+
+        renderer.domElement.onmousedown = function(e) {
+
+
+          var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+
+          console.log('Pixel Coords: ', pixel_coords);
+
+          var vp_coords = new THREE.Vector2( 
+                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+          console.log('Viewport Coords', vp_coords);
+          var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
+
+          var raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(vp_coords_near, camera);
+          var intersects = raycaster.intersectObject(invisible_plane);
+
+          console.log('Ray to Invisble Plane', intersects[0].point);
+
+          if (e.shiftKey == true) {
+            controls.enabled = false;
+            var geometry = new THREE.TorusKnotGeometry(10, 3, 64, 16);
+            var material = new THREE.MeshStandardMaterial({color: 0xFF69B4, wireframe: false});
+            var new_torus = new THREE.Mesh(geometry, material);
+            new_torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            scene.add(new_torus);
+            LASTOBJECT = new_torus;
+            ALLTORUS.push(new_torus);
+          }
+        }
+
+        renderer.domElement.onmousemove = function(e) {
+          if (!controls.enabled) {
+            if (LASTOBJECT.scale.x > 0 && LASTOBJECT.scale.x + e.movementY <= 0) {
+              console.log("Scale cross down");
+              LASTOBJECT.material.color.set(0x7CFC00);
+            }
+            if (LASTOBJECT.scale.x < 0 && LASTOBJECT.scale.x + e.movementY >= 0) {
+              console.log("Scale cross up");
+              LASTOBJECT.material.color.set(0xFF69B4);
+            }
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + e.movementY,
+              LASTOBJECT.scale.y + e.movementY,
+              LASTOBJECT.scale.z + e.movementY
+            )
+          }
+        }
+
+        window.onkeypress = function(e) {
+          console.log(e.code);
+          if (e.code == "KeyW") {
+            for (let i = 0; i < ALLTORUS.length; i++) {
+              ALLTORUS[i].material.wireframe = !ALLTORUS[i].material.wireframe;
+            }
+          }
+        }
+
+        //setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+
+        var light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 100);
+        scene.add(light);
+
+        //configure torus
+        var geometry = new THREE.TorusKnotGeometry(10, 3, 64, 16);
+        var material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});
+
+        var torus = new THREE.Mesh(geometry, material);
+
+        scene.add(torus);
+
+        // Invisible Plane
+        geometry = new THREE.PlaneGeometry(10000, 10000);
+        material = new THREE.MeshBasicMaterial({visible: false});
+
+        var invisible_plane = new THREE.Mesh(geometry, material);
+
+        scene.add(invisible_plane);
+
+        controls = new OrbitControls(camera, renderer.domElement);
  
         // call animation/rendering loop
         animate();
@@ -42,6 +145,8 @@
         requestAnimationFrame( animate );
 
         // and here..
+        controls.update();
+        renderer.render(scene, camera);
         
       };
     </script>

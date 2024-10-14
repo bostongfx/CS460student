@@ -1,4 +1,4 @@
-import createBricks from './_brick.js';
+import createBricks from './brick.js';
 
 var BOTTOM_PADDLE_WIDTH = 0.2;
 var BOTTOM_PADDLE_LEFT;

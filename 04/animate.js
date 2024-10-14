@@ -1,4 +1,4 @@
-import { updateBall } from './_ball.js';
+import { updateBall } from './ball.js';
 
 function animate(gl, STOPPED, OBJECTS, shaderprogram) {
     if (STOPPED) {

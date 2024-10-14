@@ -1,7 +1,7 @@
-import animate from './_animate.js';
-import { createBall, resetBall } from './_ball.js';
-import createBricks from './_brick.js';
-import createPaddle from './_paddle.js';
+import animate from './animate.js';
+import { createBall, resetBall } from './ball.js';
+import createBricks from './brick.js';
+import createPaddle from './paddle.js';
 
 
 var c, gl, v_shader, f_shader, shaderprogram;

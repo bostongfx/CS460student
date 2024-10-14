@@ -400,6 +400,8 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
+
+                document.getElementById("gameOverSound").play();
             }
         }
 
@@ -500,6 +502,8 @@
         <canvas id="c"></canvas>
 
     </div>
+    <button onclick="document.getElementById('gameOverSound').play();">Test Game Over Sound</button>
+    <audio id="gameOverSound" src="wahwah.mp3"></audio>
 </body>
 
 </html>

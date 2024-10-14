@@ -292,7 +292,12 @@
         }
 
         function createBricks(rows=6) {
-            // Creates rows of bricks with random colors and adds them to the objects array.
+            // This function initializes the game by generating a grid of bricks, each 
+            // represented by a rectangular area on the canvas. It determines the number
+            //  of rows and columns based on predefined constants, and calculates the 
+            // position of each brick using a nested loop. The bricks are stored in an 
+            // array for easy access during collision detection. This setup ensures that 
+            // the player has multiple targets to hit throughout the game.
             offset_x = -0.8
             offset_y = 0.9
             color = [];
@@ -386,7 +391,11 @@
         }
 
         function resetBall() {
-            // Resets the ball to a random position and assigns a random direction for movement.
+            // This function resets the ball’s position to the center of the canvas
+            // and initializes its velocity to predefined starting values. It is 
+            // typically called when the player loses a life or restarts the game, 
+            // ensuring that the ball begins from the same point each time. By 
+            // standardizing the ball’s starting conditions, it maintains consistent gameplay.
             OBJECTS[1][3][0] = Math.random() / 10; // SET TO CENTER
             OBJECTS[1][3][1] = Math.random() / 10;
 
@@ -395,7 +404,11 @@
         }
 
         function score(score_value) {
-            // Updates the score display and creates new bricks when all are destroyed.
+            // This function updates the player's score whenever a brick is successfully destroyed.
+            //  Each brick hit adds a set number of points to the score and updates the displayed 
+            // score on the canvas. While it is primarily focused on scoring, it works in tandem 
+            // with loseLife() and resetBall() by providing feedback on the player's performance
+            // and encouraging engagement.
             var old_score = document.getElementById("score").innerText;
             document.getElementById("score").innerText = parseInt(old_score) + score_value;
             if (OBJECTS.length == 2) { //IF ALL BLRICKS DESTROYED CREATE MORE
@@ -404,7 +417,11 @@
         }
 
         function loseLife() {
-            // Decreases lives, resets speed, and displays the game over screen if no lives remain.
+            // This function is invoked when the ball falls below the paddle, indicating 
+            // that the player has lost a life. It decreases the life count and checks 
+            // whether the player has remaining lives. If lives are still available, 
+            // it calls resetBall() to reposition the ball for the next attempt. If no 
+            // lives remain, it triggers the game-over sequence, effectively ending the game.
             speed = .01;
             var old_life = document.getElementById("lives").innerText;
             document.getElementById("lives").innerText = parseInt(old_life) - 1;
@@ -416,8 +433,12 @@
         }
 
         function updateBall() {
-            // Updates the ball's position and handles collisions with walls, paddle, and bricks.
-            // Adjusts ball direction, speed, and removes bricks on collision, updating score.
+            // This function adjusts the ball's position based on its current velocity, 
+            // updating its coordinates on each frame. It checks for collisions with the 
+            // walls and the paddle, reversing the ball's direction as needed. If the 
+            // ball collides with a brick, it triggers the destruction of the brick and
+            // reverses the ball's direction. Additionally, it handles the case where 
+            // the ball falls below the paddle, signaling a loss of life.
             BALL_X = OBJECTS[1][3][0];
             BALL_Y = OBJECTS[1][3][1];
 

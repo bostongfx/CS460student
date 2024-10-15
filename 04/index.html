@@ -94,7 +94,8 @@
         gl_Position = final_position;
 
         // TODO Part 2
-
+        // Set the size of the point (ball)
+        gl_PointSize = 8.0;  // The size of the ball
 
       }
     </script>
@@ -173,10 +174,7 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
-
-
-
+        function createPaddle(color, offset) {
             //************************************************************//
             //
             // CREATE GEOMETRY
@@ -185,11 +183,12 @@
             //
             // TODO Part 1
             //
+            // Code and changes below given by part 1 of instructions
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.05, 0.0, // V0      // 0
+                -0.1, -0.05, 0.0, // V1, V4  // 1
+                0.1, 0.05, 0.0, // V2, V3  // 2
+                0.1, -0.05, 0.0  // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,18 +207,30 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
-
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES];
         }
 
+    function createBall(color, offset) {
+        vertices = new Float32Array([
+                0.0, 0.0, 0.0  // The single point at (0, 0, 0)
+        ]);
 
+        indices = new Uint8Array([0]);  // Just one point
 
-        function createBall(color, offset) {
-            //
-            // TODO Part 2
-            //
+        // Create and bind buffers, NOTE code inspiration was from code provided in createPaddle function
+        v_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        }
+        i_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+        // Return the buffer and primitive type
+        return [v_buffer, i_buffer, color, offset, 1, gl.POINTS];
+    }
 
         function createBrick(color, offset, score) {
             //************************************************************//
@@ -269,10 +280,10 @@
             offset_x = -0.8
             offset_y = 0.9
             color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
+                [1, 0, 0, 1], // Red
+                [0, 1, 0, 1], // Green
+                [0, 0, 1, 1], // Blue
+                [1, 1, 0, 1]  // Yellow
             ]
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 9; j++) {
@@ -282,6 +293,7 @@
                 offset_x = -0.8
                 offset_y -= 0.14
             }
+            
         }
 
         function animate() {
@@ -296,7 +308,8 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
-
+            updateBall();  // This ensures the ball is updated before rendering
+            
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
 
@@ -305,6 +318,7 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+                var PRIMITIVE = current[5]; // Added new rendering prim
 
                 //************************************************************//
                 //
@@ -345,7 +359,8 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                // Draw with the appropriate primitive
+                gl.drawElements(PRIMITIVE, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
@@ -361,6 +376,11 @@
             var old_score = document.getElementById("score").innerText;
             document.getElementById("score").innerText = parseInt(old_score) + score_value;
             if (OBJECTS.length == 2) { //IF ALL BLRICKS DESTROYED CREATE MORE
+                // Extra credit winning sound
+                var winSound = document.getElementById("win-sound");
+                winSound.currentTime = 0;  // Reset sound
+                winSound.play();
+
                 createBricks();
             }
         }
@@ -369,10 +389,22 @@
             var old_life = document.getElementById("lives").innerText;
             document.getElementById("lives").innerText = parseInt(old_life) - 1;
             if (old_life == 1) {
+                // Extra credit losing sound
+                var loseSound = document.getElementById("lose-sound");
+                loseSound.currentTime = 0;  // Reset sound
+                loseSound.play();
+
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
             }
+        }
+        // Added for bouncing noise, previous implementation wouldnt reset upon bouncing again, so i had to ensure
+        // that each brounce reset the previous current audio to play it again.
+        function playBounceSound() {
+            var bounceSound = document.getElementById("bounce-sound");
+            bounceSound.currentTime = 0;
+            bounceSound.play();
         }
 
         function updateBall() {
@@ -386,12 +418,15 @@
             if (BALL_X >= 0.95) {
                 // RIGHT WALL
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
+                playBounceSound()
             } else if (BALL_X <= -0.95) {
                 // LEFT WALL
                 BALLDIRECTION = Math.PI - BALLDIRECTION;
+                playBounceSound()
             } else if (BALL_Y >= 0.96) {
                 // TOP WALL
                 BALLDIRECTION = - BALLDIRECTION;
+                playBounceSound()
             } else if (BALL_Y >= 0.2) {
                 // TOP BRICKS
                 for (let i = 2; i < OBJECTS.length; i++) {
@@ -402,9 +437,10 @@
                         BALL_Y > BRICK_OFFSET_Y - 0.05 &&
                         BALL_Y < BRICK_OFFSET_Y + 0.05) {
                         BALLDIRECTION = - BALLDIRECTION;
-                        score_num = OBJECTS[i][6];
+                        score_num = OBJECTS[i][5]; // changed to fit right elements 0 to 5 || previous issue would return a score of NaN
                         OBJECTS.splice(i, 1);
                         score(score_num);
+                        playBounceSound()
                     }
                 }
             } else if (BALL_Y <= -0.85) {
@@ -417,6 +453,7 @@
                 if (BALL_X >= BOTTOM_PADDLE_LEFT && BALL_X <= BOTTOM_PADDLE_RIGHT) {
                     // YES, REFLECT
                     BALLDIRECTION = -BALLDIRECTION;
+                    playBounceSound()
                     //UPDATE STEP ON BOUNCE TO INCREASE SPEED
                 } else {
                     // LOSE LIFE
@@ -436,7 +473,25 @@
                 // restart the game
                 window.location.reload();
             }
-            // TODO Part 3
+            // Paddle movement step size
+            var step = 0.05;
+
+            // Get the current position of the bottom paddle
+            var paddle = OBJECTS[0];
+            var currentOffsetX = paddle[3][0];
+
+            if (e.key === "ArrowLeft") {
+            // Move the paddle left
+            if (currentOffsetX - step >= -0.9) {  // Left boundary
+                paddle[3][0] -= step;  // Update paddle's X position
+            }
+        }
+            if (e.key === "ArrowRight") {
+            // Move the paddle right
+            if (currentOffsetX + step <= 0.9) {  // Right boundary
+            paddle[3][0] += step;  // Update paddle's X position
+            }
+        }
         };
     </script>
 </head>
@@ -454,6 +509,10 @@
         <canvas id="c"></canvas>
 
     </div>
+    // Sound extra credit implementation: Credit:https://freesound.org/
+    <audio id="bounce-sound" src="bounce.mp3"></audio>
+    <audio id="win-sound" src="win.mp3"></audio>
+    <audio id="lose-sound" src="lose.mp3"></audio>
 </body>
 
 </html>

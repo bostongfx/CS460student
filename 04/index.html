@@ -398,6 +398,8 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
+                document.getElementById("lose").style.display = "block";
+
             }
         }
 
@@ -489,6 +491,9 @@
         <span id="lives" class="top_bar">3</span>
         <div id="overlay">
             <img id="game_over" class="result" src="game_over.jpg" />
+            <audio lose>
+                <source src="lose.mp3" type="audio/mp3">
+            </audio>
         </div>
         <canvas id="c"></canvas>
 

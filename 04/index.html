@@ -123,7 +123,8 @@
             BRICK_HEIGHT = 0.05;
             BALL_SPEED = 0;
             PARTICLE_SPEED = 0.025;
-            PARTICLE_SIZE = 0.05;   
+            PARTICLE_SIZE = 0.05;  
+            PARTICLE_CLOUD_SIZE = 3.5; // should be between 0 and 10
             DEFAULT_SPEED = 0.01;  
             BALL_SIZE = 8.0;  
             var paddle, ball, bricks, audio, music;
@@ -191,6 +192,8 @@
                 gl.linkProgram(shaderprogram);
 
                 gl.useProgram(shaderprogram);
+
+                gl.enable(gl.BLEND);
 
                 var u_pointSize = gl.getUniformLocation(shaderprogram, "point_size");
                 gl.uniform1f(u_pointSize, BALL_SIZE);
@@ -527,16 +530,13 @@
                     // UPDATE PARTICLE POSITION
                     let angle = PARTICLES[i][7];
                     let velocity = PARTICLES[i][8];
-                    PARTICLES[i][3][0] += Math.cos(angle) * velocity;
-                    PARTICLES[i][3][1] += Math.sin(angle) * velocity;
+                    PARTICLES[i][3][0] += Math.cos(angle) * Math.random() * 2 * Math.PI * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
+                    PARTICLES[i][3][1] += Math.sin(angle) * Math.random() * 2 * Math.PI * Math.random() * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
 
-                    // SCALE DOWN SIZE AND OPACITY
-                    if (PARTICLES[i][2][3] > 0) {
-                        PARTICLES[i][2][3] -= 0.0035; //OPACITY
-                    } 
+                    // SCALE DOWN SIZE OVER TIME
                     if (PARTICLES[i][6][0] > 0) {
-                        PARTICLES[i][6][0] -= 0.0025; //X SCALE
-                        PARTICLES[i][6][1] -= 0.0025; //Y SCALE
+                        PARTICLES[i][6][0] -= 0.0015; //X SCALE
+                        PARTICLES[i][6][1] -= 0.0015; //Y SCALE
                     } else {
                         PARTICLES.splice(i, 1);
                     }
@@ -546,8 +546,8 @@
             function createExplosion(color, offset) {  // plays particle fx when a brick is destroyed
                 var offset_x = offset[0];
                 var offset_y = offset[1];   
-                for (var i = 0; i < 5; i++) {
-                    for (var j = 0; j < 5; j++) {
+                for (var i = 0; i < 20; i++) {
+                    for (var j = 0; j < 20; j++) {
                         PARTICLES.push(createParticle(color, [offset_x, offset_y, 0], Math.random()*2*Math.PI, PARTICLE_SPEED));
                     }
                 }

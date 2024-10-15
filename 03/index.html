@@ -1,3 +1,14 @@
+<!-- 
+Project: Pink (and Green) Torus World using Three.js
+Description: This project creates an interactive 3D scene using Three.js where users can place, scale, and color-switch toruses.
+- Toruses are placed at the mouse click position when the SHIFT key is pressed.
+- After placement, users can drag the mouse up or down to scale the torus dynamically.
+- The torus color flips between hot pink (#ff69b4) and grass green (#7CFC00) when the scale crosses zero.
+- The project includes camera controls using OrbitControls, but these are disabled while interacting with the scene.
+
+- Jongsoo Ha
+- CS460 Fall 2024
+-->
 <html>
   <head>
     <style>
@@ -26,26 +37,137 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
-      var renderer, controls, scene, camera;
+      let renderer, controls, scene, camera, isShiftPressed = false, LASTOBJECT = null, isDragging = false;
+      let currentColor = 0xff69b4;  // Start with hotpink
+      let lastScaleSign = 1;  // Keep track of scale direction
+      let torusObjects = [];  // Store all placed toruses
+      let wireframeMode = false;  // Initialize wireframe mode flag
 
       window.onload = function() {
 
-        // Three.js code goes here
- 
-        // call animation/rendering loop
+        // Part 1: Initialize scene
+        scene = new THREE.Scene();
+
+        // Setup the camera
+        const fov = 75;
+        const ratio = window.innerWidth / window.innerHeight;
+        const zNear = 1;
+        const zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+
+        // Create renderer and setup the canvas 
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Setup lights for the scene
+        const ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+        const light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
+
+        // Part 2: Invisible plane for raycasting
+        const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
+        const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        const invisiblePlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        scene.add(invisiblePlane);
+
+        // Initialize OrbitControls for camera movement
+        controls = new OrbitControls(camera, renderer.domElement);
+
+        // Part 3: Shift key and wireframe toggle handling
+        window.addEventListener('keydown', function(event) {
+          if (event.key === 'Shift') {
+            isShiftPressed = true;
+            controls.enabled = false;  // Disable camera movement
+          } else if (event.key === 'w') {
+            toggleWireframe();
+          }
+        });
+
+        window.addEventListener('keyup', function(event) {
+          if (event.key === 'Shift') {
+            isShiftPressed = false;
+            controls.enabled = true;  // Enable camera movement
+          }
+        });
+
+        // Part 4: Mouse down event to add a torus
+        renderer.domElement.onmousedown = function(e) {
+          if (isShiftPressed) {
+            const pixelCoords = new THREE.Vector2(e.clientX, e.clientY);
+            const vpCoords = new THREE.Vector2(
+              (pixelCoords.x / window.innerWidth) * 2 - 1,
+              -(pixelCoords.y / window.innerHeight) * 2 + 1
+            );
+            const vpCoordsNear = new THREE.Vector3(vpCoords.x, vpCoords.y, 0);
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vpCoordsNear, camera);
+            const intersects = raycaster.intersectObject(invisiblePlane);
+
+            if (intersects.length > 0) {
+              const torusKnotGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+              const torusMaterial = new THREE.MeshStandardMaterial({ color: currentColor });
+              const torusKnot = new THREE.Mesh(torusKnotGeometry, torusMaterial);
+
+              torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              scene.add(torusKnot);
+
+              LASTOBJECT = torusKnot;  // Store the reference to the last placed object
+              isDragging = true;
+              lastScaleSign = 1;  // Reset scale sign
+              torusObjects.push(torusKnot);  // Add to the list of toruses
+            }
+          }
+        };
+
+        // Mouse move event to scale the last placed torus while dragging
+        renderer.domElement.onmousemove = function(e) {
+          if (isDragging && LASTOBJECT) {
+            const deltaY = e.movementY;
+            const scaleDelta = deltaY * -0.01; // Negative for intuitive scaling
+
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + scaleDelta,
+              LASTOBJECT.scale.y + scaleDelta,
+              LASTOBJECT.scale.z + scaleDelta
+            );
+
+            // Part 6: Add some green
+            const currentScaleSign = Math.sign(LASTOBJECT.scale.x);
+            if (currentScaleSign !== lastScaleSign) {
+              currentColor = (currentColor === 0xff69b4) ? 0x7CFC00 : 0xff69b4;  // Switch color
+              LASTOBJECT.material.color.set(currentColor);
+              lastScaleSign = currentScaleSign;
+            }
+          }
+        };
+
+        function toggleWireframe() {
+          torusObjects.forEach((torus) => {
+            // Toggle the wireframe mode directly on the torus material
+            torus.material.wireframe = !torus.material.wireframe;
+          });
+        }
+
+
+        // Mouse up event to stop dragging
+        renderer.domElement.onmouseup = function() {
+          isDragging = false;
+        };
+
+        // Animation/rendering loop
+        function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          renderer.render(scene, camera);
+        }
         animate();
-        
-      };
-
-      function animate() {
-
-        requestAnimationFrame( animate );
-
-        // and here..
-        
       };
     </script>
   </head>
   <body></body>
 </html>
-

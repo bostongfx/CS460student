@@ -26,6 +26,7 @@
       #description {
         text-align: justify;
       }
+
       #technology {
         text-align: justify;
       }
@@ -34,8 +35,16 @@
       }
 
       #bonus {
-        width: 100%;
-      }
+        display: inline-block;
+				width: 800px;
+			}
+      .viewer {
+				border: 0px;
+				width: 200px;
+				height: 200px;
+				padding: 10px;
+			}
+      
 
     </style>
   </head>
@@ -48,22 +57,43 @@
     <div class='demo'>
 
       <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
-      <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
+      <img id="screenshot" src="image/rome_screenshot.png" alt="RO.ME Screenshot">
+
+      <p id="description">
+        "3 Dreams of Black" is an interactive WebGL film developed by Chris Milk in partnership with Google. 
+        Released in 2011, it showcased the potential of WebGL by enabling high-quality 3D graphics directly in 
+        the browser without requiring additional plugins. The film provides not only stunning visuals but also 
+        allows users to interact with surreal environments and creatures. At the time, it represented a major 
+        breakthrough in web technology, demonstrating the exciting possibilities for creating immersive and 
+        interactive experiences on the web. - GPT4o
       </p>
-      <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
+      
+      <p id="technology">
+        <strong>Technologies:</strong> WebGL, HTML5, JavaScript, CSS, 3D Rendering, Canvas API, OpenGL Shading Language (GLSL).<br>
+        Sources: 
+        <a href="https://bostongfx.github.io/tech/" target="_blank">ROME</a>, 
+        <a href="https://www.chromeexperiments.com/experiment/3-dreams-of-black" target="_blank">Chrome Experiments</a>, 
+        and Chatgpt.
       </p>
-      <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
+      
+      <p id="comparison">
+        <strong>Comparison:</strong> While RO.ME offers a narrative-driven experience, combining film with interactive 3D environments, 
+        <a href="https://blobmixer.14islands.com/" target="_blank">Blobmixer</a> takes a more playful approach. 
+        Instead of focusing on a story, Blobmixer invites users to experiment with abstract forms, creating animated 
+        "blobs" by adjusting various settings. RO.ME leans towards artistic storytelling, whereas Blobmixer is more 
+        about fun and creative expl oration. Both projects highlight the versatility of WebGL, but they offer very 
+        different experiences immersive and artistic, the other light-hearted and experimental. - GPT4o
       </p>
 
 
-      <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
+      <div id="bonus">
+        <!-- Viewer based on code from mrdoob's rome-gltf: https://github.com/mrdoob/rome-gltf -->
+        <h2>Bonus: 3D Animated Models - from ROME GLTF</h2>
+        <iframe class="viewer" src="viewer.html?model\alligator.gltf"></iframe>
+			  <iframe class="viewer" src="viewer.html?model\birds_raven.gltf"></iframe>
+			  <iframe class="viewer" src="viewer.html?model\birds_vulture.gltf"></iframe>
       </div>
+      
 
     </div>
 

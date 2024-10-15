@@ -1,5 +1,7 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="./loader.js"></script>
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -10,6 +12,151 @@
         overflow: hidden !important; 
       }
     </style>
+    <script>
+      var cameraRotate = false;
+      var CAMERAS = [];
+      var isCameraCycling = false;
+      var interval = null;
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+
+      window.onload = function() {
+
+      r = new X.renderer3D();
+      r.init();
+
+      r.onRender = function() {
+        if (cameraRotate) {
+          // spin the camera in X direction by 1 degree
+          r.camera.rotate([1,0]);
+        }
+      }
+
+      c = new X.cube();
+      c.color = [0, 1, 1]; // r g b
+      c.center = [10, 0, 0]; // x y z
+      c.lengthX = 19.9;
+
+      // handle keyboard events to move the cube
+      window.onkeypress = function(e) {
+        // cube movement
+        if (e.code == 'KeyD') {
+          console.log('D was pressed');
+          c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+        } 
+        else if (e.code == 'KeyA') {
+          console.log('A was pressed');
+          c.transform.translateX(CUBE_SIDELENGTH + GAP);
+        }
+        else if (e.code == 'KeyW') {
+          console.log('W was pressed');
+          c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+        }
+        else if (e.code == 'KeyS') {
+          console.log('S was pressed');
+          c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+        }
+        else if (e.code == 'KeyQ') {
+          console.log('Q was pressed');
+          c.transform.translateY(CUBE_SIDELENGTH + GAP);
+        }
+        else if (e.code == 'KeyE') {
+          console.log('E was pressed');
+          c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+        }
+
+        // cube color update
+        else if (e.code == 'Digit1') {
+          console.log('1 was pressed');
+          c.color = [1, 1, 1];
+        }
+        else if (e.code == 'Digit2') {
+          console.log('2 was pressed');
+          c.color = [1, 0, 0];
+        }
+        else if (e.code == 'Digit3') {
+          console.log('3 was pressed');
+          c.color = [0, 1, 0];
+        }
+        else if (e.code == 'Digit4') {
+          console.log('4 was pressed');
+          c.color = [0, 0, 1];
+        }
+        else if (e.code == 'Digit5') {
+          console.log('5 was pressed');
+          c.color = [1, 1, 0];
+        }
+        else if (e.code == 'Digit6') {
+          console.log('6 was pressed');
+          c.color = [1, 0, 1];
+        }
+        else if (e.code == 'Digit7') {
+          console.log('7 was pressed');
+          c.color = [0, 1, 1];
+        }
+        else if (e.code == 'Digit0') {
+          console.log('0 was pressed');
+          c.color = [0, 0, 0];
+        }
+       
+        // Developing placement of cubes
+        else if (e.code == 'Space') {
+          new_cube = new X.cube();
+          new_cube.color = c.color;
+          new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+          new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+          r.add(new_cube);
+        }
+
+        // implementing scene storage using loader.js
+        else if (e.code == 'KeyO') {
+          console.log('O was pressed');
+          download();
+        }
+        else if (e.code == 'KeyL') {
+          console.log('L was pressed');
+          upload("scene.json");
+        }
+
+        // camera rotation
+        else if (e.code == 'KeyB') {
+          cameraRotate = !cameraRotate;
+        }
+
+        // store camera
+        else if (e.code == 'KeyC') {
+          CAMERAS.push(new Float32Array(Object.values(r.camera.view)));
+          console.log('Camera stored:', r.camera.view);
+        }
+
+        // toggle camera list
+        else if (e.code == 'KeyV') {
+          console.log('V was pressed');
+          if (CAMERAS.length) {
+            console.log('Cameras exist');
+            if (isCameraCycling) {
+              console.log('Stopping camera cycling');
+              clearInterval(interval);
+              interval = null;
+            }
+            else {
+              console.log('Starting camera cycling');
+              var time = 0;
+              interval = setInterval(function() {
+                r.camera.view = new Float32Array(Object.values(CAMERAS[time % CAMERAS.length])); // Cycle through the camera views
+                time++;
+              }, 1000);
+            }
+            isCameraCycling = !isCameraCycling;
+          }
+        }
+      }
+
+      r.add(c);
+      r.render();
+    }
+    
+    </script>
   </head>
   <body>
   </body>

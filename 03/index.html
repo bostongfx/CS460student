@@ -2,7 +2,11 @@
   <head>
     <style>
       html, body { 
+<<<<<<< HEAD
+        background-color: #000;
+=======
         background-color:#000;
+>>>>>>> 35d5d7f242a82be949b384d5d448de5fd79d11dc
         margin: 0;
         padding: 0;
         height: 100%;
@@ -22,6 +26,152 @@
     </script>
 
     <script type="module">
+<<<<<<< HEAD
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+
+      var renderer, controls, scene, camera, mouseDown;
+      let torusKnot, invisible_plane; 
+      let torusKnots = []; // Array to store all torus knots
+      var LASTOBJECT;
+
+      window.onload = function() {
+        // Create the scene
+        scene = new THREE.Scene();
+
+        // Setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+
+        // Create the renderer and set up the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        renderer.domElement.onmousedown = function(e) {
+          mouseDown = true;
+          let newtorusKnot;
+          if (e.shiftKey) {
+            controls.enabled = false;
+
+            // Creating new torus knot geometry and material
+            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 20); 
+            const material = new THREE.MeshPhongMaterial({color: 0xFF69B4});
+            newtorusKnot = new THREE.Mesh(geometry, material); 
+            scene.add(newtorusKnot);
+          }
+          console.log('Yay! We clicked!');
+          
+          var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+          console.log('Pixel coords', pixel_coords);
+
+          var vp_coords = new THREE.Vector2(
+            (pixel_coords.x / window.innerWidth) * 2 - 1,  // X
+            -(pixel_coords.y / window.innerHeight) * 2 + 1 // Y
+          );
+
+          console.log('Viewport coords', vp_coords);
+
+          var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
+
+          var raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(vp_coords, camera);
+          var intersects = raycaster.intersectObject(invisible_plane);
+
+          if (intersects.length > 0) {
+            console.log('Ray to Invisible Plane', intersects[0].point);
+            // Update torusKnot position
+            if (newtorusKnot != null) {
+              newtorusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              LASTOBJECT = newtorusKnot;
+              // Add the new torus knot to the array
+              torusKnots.push(newtorusKnot);
+            }
+            else {
+              torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              LASTOBJECT = torusKnot;
+            }
+          }
+        };
+        
+        renderer.domElement.onmouseup = function(e) {
+          controls.enabled = true;
+          mouseDown = false;
+        }
+
+        renderer.domElement.onmousemove = function(e) {
+          const DELTA = e.movementY * 0.04;
+          if (mouseDown) {
+            LASTOBJECT.scale.set(LASTOBJECT.scale.x + DELTA,
+            LASTOBJECT.scale.y + DELTA,
+            LASTOBJECT.scale.z + DELTA);
+
+            // if DELTA > 0, switch to grassgreen
+            if (DELTA > 0) {
+              LASTOBJECT.material.color.set(0x7CFC00);
+            }
+            // if DELTA > 0, switch to hotpink
+            else if (DELTA < 0) {
+              LASTOBJECT.material.color.set(0xFF69B4);
+            }
+          }
+        }
+
+        window.onkeypress = function(e) {
+            if (e.code == "KeyW") {
+              toggleWireframe();  
+            }
+        }
+
+        function toggleWireframe() {
+          // Toggle the wireframe mode for each torus knot
+          torusKnots.forEach(knot => {
+            knot.material.wireframe = !knot.material.wireframe;
+            // Counting number of vertices, edges and faces of the torus in the scene
+            var vertices = geometry.attributes.position.count * torusKnots.length;
+            var edges = (vertices * (vertices - 1)) / 2;
+            var faces = Math.floor((vertices)/3);
+            console.log("Number of vertices: ", vertices);
+            console.log("Number of edges: ", edges);
+            console.log("Number of faces: ", faces);
+          });
+        }
+
+         // Creating torus knot geometry and material
+        const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 20); 
+        const material = new THREE.MeshPhongMaterial({color: 0x89CFF0}); 
+        torusKnot = new THREE.Mesh(geometry, material);
+        scene.add(torusKnot);
+
+        // Setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+
+        var light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
+
+        // Create the invisible plane
+        const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
+        const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        invisible_plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        scene.add(invisible_plane);
+
+        // Interaction
+        controls = new OrbitControls(camera, renderer.domElement);
+        // Call animation/rendering loop
+        animate();
+      };
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+=======
 
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
@@ -43,9 +193,13 @@
 
         // and here..
         
+>>>>>>> 35d5d7f242a82be949b384d5d448de5fd79d11dc
       };
     </script>
   </head>
   <body></body>
 </html>
+<<<<<<< HEAD
+=======
 
+>>>>>>> 35d5d7f242a82be949b384d5d448de5fd79d11dc

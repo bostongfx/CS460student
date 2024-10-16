@@ -124,7 +124,7 @@
             BALL_SPEED = 0;
             PARTICLE_SPEED = 0.025;
             PARTICLE_SIZE = 0.05;  
-            PARTICLE_CLOUD_SIZE = 3.5; // should be between 0 and 10
+            PARTICLE_CLOUD_SIZE = 7.5; // should be between 0 and 10
             DEFAULT_SPEED = 0.01;  
             BALL_SIZE = 8.0;  
             var paddle, ball, bricks, audio, music;
@@ -385,7 +385,6 @@
                 }
 
                 for (var o = 0; o < PARTICLES.length; o++) {
-                    //console.log("particle "+ o)
                     var current = PARTICLES[o];
                     drawObject(current);
                 }
@@ -403,6 +402,7 @@
                 var VERTEXCOUNT = current[4];
                 var RENDER_TYPE = current[5];
                 var SCALE_FACTOR = current[6];
+                var ROTATION_ANGLE = current[9];
 
                 //************************************************************//
                 //
@@ -429,11 +429,15 @@
 
                 var u_transform = gl.getUniformLocation(shaderprogram, "transform");
 
+                if (ROTATION_ANGLE == null) {   // THIS SHOULDN'T NEED TO BE HERE 
+                    ROTATION_ANGLE = 0; // HACKY AF FIX FOR NOW BECAUSE IT IS 11 AND THIS IS DUE IN LESS THAN AN HOUR :'(
+                }
+
                 current_transform = new Float32Array([
                     SCALE_FACTOR[0], 0, 0, 0,
                     0, SCALE_FACTOR[1], 0, 0,
-                    0, 0, 0, 0,
-                    OFFSET[0], OFFSET[1], 0, 1,
+                    0, 0, 1, 0,
+                    OFFSET[0], OFFSET[1], 0, 1
                 ]);
 
                 gl.uniformMatrix4fv(u_transform, false, current_transform);
@@ -530,8 +534,10 @@
                     // UPDATE PARTICLE POSITION
                     let angle = PARTICLES[i][7];
                     let velocity = PARTICLES[i][8];
-                    PARTICLES[i][3][0] += Math.cos(angle) * Math.random() * 2 * Math.PI * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
-                    PARTICLES[i][3][1] += Math.sin(angle) * Math.random() * 2 * Math.PI * Math.random() * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
+                    PARTICLES[i][3][0] += Math.cos(angle) * Math.random() * Math.PI * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
+                    PARTICLES[i][3][1] += Math.sin(angle) * Math.random() * Math.PI * Math.random() * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
+
+                    PARTICLES[i][9] += 0.02;
 
                     // SCALE DOWN SIZE OVER TIME
                     if (PARTICLES[i][6][0] > 0) {
@@ -546,8 +552,8 @@
             function createExplosion(color, offset) {  // plays particle fx when a brick is destroyed
                 var offset_x = offset[0];
                 var offset_y = offset[1];   
-                for (var i = 0; i < 20; i++) {
-                    for (var j = 0; j < 20; j++) {
+                for (var i = 0; i < 5; i++) {
+                    for (var j = 0; j < 5; j++) {
                         PARTICLES.push(createParticle(color, [offset_x, offset_y, 0], Math.random()*2*Math.PI, PARTICLE_SPEED));
                     }
                 }
@@ -555,31 +561,32 @@
 
             function createParticle(color, offset, angle, velocity) {
                     vertices = new Float32Array( [  
-                        0.0, Math.random()*2, 0.0,   // V0 // 0   // V2, V3 // 2
-                        Math.random(), 0.0, 0.0,  
-                        -Math.random(), 0.0, 0.0,  
-                        0.0, -Math.random()*2, 0.0
-                        
+                        Math.random(), Math.random(), 0.0,
+                        Math.random(), -1*Math.random(), 0.0,
+                        0.0, 2*Math.random(), 0.0,
+                        0.0, -2*Math.random(), 0.0,
+                        -1*Math.random(), -1*Math.random(), 0.0,
+                        -1*Math.random(), Math.random(), 0.0   // V0 // 0   // V2, V3 // 2       
                     ] );
 
                     indices = new Uint8Array([
-                        0, 1, 2,     // Triangle 1 
-                        2, 1, 3
+                        0, 5, 3,
+                        2, 4, 1
                     ]); 
-
 
                     v_buffer = gl.createBuffer(); // create
                     gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
                     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
                     gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
 
+                    let ROTATION_ANGLE = 0;
 
                     i_buffer = gl.createBuffer(); // create
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
                     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
-                    return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLE_STRIP, [PARTICLE_SIZE, PARTICLE_SIZE, PARTICLE_SIZE], angle, velocity];
+                    return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLE_STRIP, [PARTICLE_SIZE, PARTICLE_SIZE, PARTICLE_SIZE], angle, velocity, ROTATION_ANGLE];
             }
         }
         ////////////////
@@ -633,6 +640,11 @@
                 if (DYNAMIC_DIFFICULTY) {
                     if (CURRENT_DIFFICULTY < 7) {
                         CURRENT_DIFFICULTY += 1;
+                        if (CURRENT_DIFFICULTY == 4) {
+                            music.pause();
+                            music = new Audio('music2.mp3');
+                            music.play();
+                        }
                     }
                 }
                 populateGameEntities(CURRENT_DIFFICULTY);

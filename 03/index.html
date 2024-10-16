@@ -11,7 +11,7 @@
     </style>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-
+ 
     <script type="importmap">
     {
       "imports": {
@@ -20,32 +20,145 @@
       }
     }
     </script>
-
+ 
     <script type="module">
-
+ 
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
-
-      var renderer, controls, scene, camera;
+ 
+      var renderer, controls, scene, camera, invisible_plane;
+      var LASTOBJECT = null;
+      var justPlaced = false;  // Flag to track if a torus was just placed
+      var lastScalePositive = true;  // To track if the scale was positive in the previous frame
 
       window.onload = function() {
-
-        // Three.js code goes here
  
-        // call animation/rendering loop
+        // Three.js setup code goes here
+        scene = new THREE.Scene();
+ 
+        // Setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 0, 100);
+ 
+        // Create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+ 
+        // Setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+ 
+        var light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
+ 
+        // Setup a yellow torus knot at the center of the scene
+        var torusKnotGeometry = new THREE.TorusKnotGeometry(5, 2, 100, 16);  // Yellow torus knot
+        var yellowMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 }); // Yellow color
+        var centerTorusKnot = new THREE.Mesh(torusKnotGeometry, yellowMaterial);
+        centerTorusKnot.position.set(0, 0, 0);
+        scene.add(centerTorusKnot);
+ 
+        // Setup invisible plane for raycasting
+        var geometry = new THREE.PlaneGeometry(10000, 10000);
+        var material = new THREE.MeshBasicMaterial({ visible: false });
+        invisible_plane = new THREE.Mesh(geometry, material);
+        scene.add(invisible_plane);
+ 
+        // Interaction controls
+        controls = new OrbitControls(camera, renderer.domElement);
+ 
+        // onmousedown callback for placing hotpink torus knot when SHIFT key is pressed
+        renderer.domElement.onmousedown = function(e) {
+          if (e.shiftKey) {
+            controls.enabled = false;  // Disable OrbitControls when SHIFT is pressed
+ 
+            // Normalize mouse coordinates
+            var mouse = new THREE.Vector2(
+              (e.clientX / window.innerWidth) * 2 - 1,
+              -(e.clientY / window.innerHeight) * 2 + 1
+            );
+ 
+            // Raycaster setup
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+ 
+            // Intersect with invisible plane
+            var intersects = raycaster.intersectObject(invisible_plane);
+            if (intersects.length > 0) {
+              var point = intersects[0].point;
+ 
+              // Create a new hotpink torus knot at the intersection point
+              var torusKnotGeometry = new THREE.TorusKnotGeometry(5, 2, 100, 16);
+              var torusMaterial = new THREE.MeshStandardMaterial({ color: 0xff69b4 }); // Hotpink color
+              var torusKnot = new THREE.Mesh(torusKnotGeometry, torusMaterial);
+ 
+              // Position the torus knot at the intersection point
+              torusKnot.position.copy(point);
+              scene.add(torusKnot);
+ 
+              // Set the LASTOBJECT to the newly created torus knot
+              LASTOBJECT = torusKnot;
+              justPlaced = true;  // Mark that a torus knot was just placed
+              lastScalePositive = true;  // Start with positive scale
+            }
+          }
+        };
+        
+        // onmouseup callback to re-enable OrbitControls and stop scaling
+        renderer.domElement.onmouseup = function() {
+          controls.enabled = true;  // Re-enable OrbitControls when mouse button is released
+          justPlaced = false;  // Stop scaling after mouse button is released
+        };
+        
+        // onmousemove callback to scale the last placed torus knot
+        renderer.domElement.onmousemove = function(e) {
+          if (justPlaced && LASTOBJECT) {
+            var DELTA = e.movementY * 0.01;  // Scale factor based on mouse movement along Y-axis
+            
+            // Scale the object
+            LASTOBJECT.scale.set(
+              LASTOBJECT.scale.x + DELTA,
+              LASTOBJECT.scale.y + DELTA,
+              LASTOBJECT.scale.z + DELTA
+            );
+
+            // Check if the scale has crossed zero
+            var scaleIsPositive = LASTOBJECT.scale.x > 0;
+            if (scaleIsPositive !== lastScalePositive) {
+              // Switch color when the scale crosses zero
+              if (scaleIsPositive) {
+                LASTOBJECT.material.color.set(0xff69b4);  // Hotpink
+              } else {
+                LASTOBJECT.material.color.set(0x7CFC00);  // Grassgreen
+              }
+              lastScalePositive = scaleIsPositive;  // Update lastScalePositive
+            }
+          }
+        };
+ 
+        // Animation loop
         animate();
-        
       };
-
+ 
       function animate() {
-
-        requestAnimationFrame( animate );
-
-        // and here..
-        
-      };
+        requestAnimationFrame(animate);
+        controls.update();  // Update OrbitControls
+        renderer.render(scene, camera);  // Render the scene
+      }
+ 
+      window.addEventListener('resize', function() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }, false);
+ 
     </script>
   </head>
   <body></body>
 </html>
-

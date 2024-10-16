@@ -119,13 +119,16 @@
         {
             PADDLE_SPEED = 0.1;
             BOTTOM_PADDLE_WIDTH = 1.0;
-            BRICK_WIDTH = 0.085;
+            BRICK_WIDTH = 0.095;
             BRICK_HEIGHT = 0.05;
-            BRICK_SPACING = 0.2;
+            BRICK_SPACING_X = 0.2;
+            BRICK_SPACING_Y = 0.14;
             BALL_SPEED = 0;
+            
             PARTICLE_SPEED = 0.025;
             PARTICLE_SIZE = 0.05;  
-            PARTICLE_CLOUD_SIZE = 6.5; // should be between 0 and 10
+            PARTICLE_CLOUD_SIZE = 7.5; // should be between 0 and 10
+
             DEFAULT_SPEED = 0.01;  
             BALL_SIZE = 8.0;  
             var paddle, ball, bricks, audio, music;
@@ -346,10 +349,10 @@
                     for (var j = 0; j < 9; j++) {
                         BRICKS.push(createBrick(color[i], [offset_x, offset_y, 0], difficulty - i));
 
-                        offset_x += BRICK_SPACING;
+                        offset_x += BRICK_SPACING_X;
                     }
                     offset_x = -0.9 + BRICK_WIDTH;
-                    offset_y -= BRICK_SPACING;
+                    offset_y -= BRICK_SPACING_Y;
                 }
 
                 return BRICKS;
@@ -434,8 +437,8 @@
                 }
 
                 current_transform = new Float32Array([
-                    SCALE_FACTOR[0], 0, 0, 0,
-                    0, SCALE_FACTOR[1], 0, 0,
+                    SCALE_FACTOR[0]*Math.cos(ROTATION_ANGLE), SCALE_FACTOR[0]*Math.sin(ROTATION_ANGLE), 0, 0,
+                    SCALE_FACTOR[1]*-1*Math.sin(ROTATION_ANGLE), SCALE_FACTOR[1]*Math.cos(ROTATION_ANGLE), 0, 0,
                     0, 0, 1, 0,
                     OFFSET[0], OFFSET[1], 0, 1
                 ]);
@@ -538,7 +541,7 @@
                     PARTICLES[i][3][1] += Math.sin(angle) * Math.random() * Math.PI * Math.random() * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
 
                     // ROTATE PARTICLE
-                    PARTICLES[i][9] += 0.02;
+                    PARTICLES[i][9] += 0.3;
 
                     // SCALE DOWN SIZE OVER TIME
                     if (PARTICLES[i][6][0] > 0) {
@@ -564,8 +567,8 @@
                     vertices = new Float32Array( [  
                         Math.random(), Math.random(), 0.0,
                         Math.random(), -1*Math.random(), 0.0,
-                        0.0, 2*Math.random(), 0.0,
-                        0.0, -2*Math.random(), 0.0,
+                        0.0, Math.random(), 0.0,
+                        0.0, -1*Math.random(), 0.0,
                         -1*Math.random(), -1*Math.random(), 0.0,
                         -1*Math.random(), Math.random(), 0.0   // V0 // 0   // V2, V3 // 2       
                     ] );

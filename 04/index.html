@@ -161,6 +161,9 @@
 
             gl.useProgram(shaderprogram);
 
+            const bgm = document.getElementById("bgm");
+            bgm.play();
+
             STOPPED = false;
 
             OBJECTS = [];
@@ -397,6 +400,10 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
+                bgm.pause()
+                const gameover = document.getElementById("gameover");
+                gameover.play()
+
             }
         }
 
@@ -493,6 +500,8 @@
             <img id="game_over" class="result" src="game_over.jpg" />
         </div>
         <canvas id="c"></canvas>
+        <audio id="bgm" src="bgm.mp3" preload="auto" type="audio/mpeg" autoplay></audio>
+        <audio id="gameover" src="fail.mp3" preload="auto" type="audio/mpeg"></audio>
 
     </div>
 </body>

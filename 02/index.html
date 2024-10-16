@@ -1,5 +1,8 @@
 <html>
   <head>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -11,6 +14,156 @@
       }
     </style>
   </head>
-  <body>
+  <body> 
+  <script>
+    looping_angles = false;
+    CUBE_SIDELENGTH = 10;
+    GAP = 0;
+    rotating = false;
+    cameras = [];
+
+    window.onload = function() {
+      
+      r = new X.renderer3D();
+      r.init();
+
+      c = new X.cube();
+      c.color = [1,1,1];
+      c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH + 0.001;
+
+      r.render();
+      r.add(c);
+    };
+
+    window.onkeypress = function(e) {
+      let cubes = [];
+      switch (e.code) {
+        
+        case 'KeyD':
+        c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+        break;
+
+        
+        case 'KeyA':
+        c.transform.translateX(CUBE_SIDELENGTH + GAP);
+        break;
+
+       
+        case 'KeyW':
+        c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+        break;
+
+        case 'KeyS':
+        c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+        break;
+
+        case 'KeyE':
+        c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+        break;
+
+        case 'KeyQ':
+        c.transform.translateY(CUBE_SIDELENGTH + GAP);
+        break;
+
+        case 'Digit0':
+        c.color = [0, 0, 0]
+        break;
+
+        case 'Digit1':
+        c.color = [1, 1, 1];
+        break;
+
+        case 'Digit2':
+        c.color = [1, 0, 0];
+        break;
+
+        case 'Digit3':
+        c.color = [0, 1, 0];
+        break;
+
+        case 'Digit4':
+        c.color = [0, 0, 1];
+        break;
+          
+        case 'Digit5':
+        c.color = [1, 1, 0];
+        break;
+
+        case 'Digit6':
+        c.color = [1, 0.7, 0.8];
+        break;
+
+        case 'Digit7':
+        c.color = [0, 1, 1];
+        break;
+
+        case 'Space':
+        console.log("ADDING A CUBE WITH COLOR "+ c.color);
+        new_cube = new X.cube();
+        new_cube.color = c.color;
+        new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+        new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+        r.add(new_cube);
+        break;
+
+        case 'KeyO':
+        download();
+        break;
+
+        case 'KeyL':
+        upload("scene.json");
+        break;
+
+        case 'KeyB':
+        if (rotating) {
+          rotating = false;
+          //stop spinning
+          r.onRender = function() {}
+        } else {
+          rotating = true;
+          //spin
+          r.onRender = function() {
+            r.camera.rotate([1,0]);
+          }
+        }
+        break;
+
+        case 'KeyC':
+        cameras.push(new Float32Array(r.camera.view));
+        console.log("Camera view " + r.camera.view + " saved. Currently saved " + cameras.length + " angles");
+        break;
+
+        case 'KeyV':
+          i = 0;
+          if (!looping_angles) {
+            console.log("looping views");
+            loop = setInterval(nextView, 1000);
+
+            looping_angles = true;
+          } else {
+            console.log("stopping view change");
+            clearInterval(loop);
+            looping_angles = false;
+          }
+        
+        break;
+
+        default:
+        break;
+      }
+
+      function nextView() {
+              if (i < cameras.length) {
+                r.camera.view = cameras[i];
+              } else {
+                i = 0;
+                r.camera.view = cameras[i];
+              }
+              console.log("next view");
+              i++;
+            }
+    };
+
+  </script>
   </body>
 </html>

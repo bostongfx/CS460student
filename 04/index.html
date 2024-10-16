@@ -95,6 +95,8 @@
 
         // TODO Part 2
 
+        gl_PointSize = 8.0;
+
 
       }
     </script>
@@ -173,7 +175,7 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset) {
 
 
 
@@ -186,10 +188,10 @@
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.05, 0.0,  // V0      // 0
+                -0.1, -0.05, 0.0, // V1, V4  // 1
+                0.1, 0.05, 0.0, // V2, V3  // 2
+                0.1, -0.05, 0.0,  // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,7 +210,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, gl.TRIANGLES, 6];
 
         }
 
@@ -218,6 +220,23 @@
             //
             // TODO Part 2
             //
+            const ballVertices = new Float32Array([ 
+                0.0, 0.0, 0.0
+            ]);
+
+            const ballIndices = new Uint8Array([0])
+
+            v_buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer)
+            gl.bufferData(gl.ARRAY_BUFFER, ballVertices, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            i_buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ballIndices, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,  null);
+
+            return [v_buffer, i_buffer, color, offset, gl.POINTS, 1]
 
         }
 
@@ -262,21 +281,22 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, gl.TRIANGLES, 6, score];
         }
 
         function createBricks() {
             offset_x = -0.8
             offset_y = 0.9
-            color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
+            // removed the old color variable 
+
             for (let i = 0; i < 4; i++) {
+                // generate a random color for each row
+                var r = Math.random();
+                var g = Math.random(); 
+                var b = Math.random();
+                var color = [r, g, b, 1];
                 for (let j = 0; j < 9; j++) {
-                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], 4 - i))
+                    OBJECTS.push(createBrick(color, [offset_x, offset_y, 0], 4 - i))
                     offset_x += 0.2
                 }
                 offset_x = -0.8
@@ -297,6 +317,8 @@
 
             // TODO Part 4
 
+            updateBall();
+
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
 
@@ -304,7 +326,8 @@
                 var i_buffer = current[1];
                 var COLOR = current[2];
                 var OFFSET = current[3];
-                var VERTEXCOUNT = current[4];
+                var PRIMITIVE = current[4]; 
+                var VERTEXCOUNT = current[5];
 
                 //************************************************************//
                 //
@@ -345,7 +368,8 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                
+                gl.drawElements(PRIMITIVE, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
@@ -437,6 +461,21 @@
                 window.location.reload();
             }
             // TODO Part 3
+            
+            rectangle_width = 0.2; 
+            gap = 1;
+            var paddle = OBJECTS[0];
+            console.log(typeof paddle);
+            if(e.code == 'KeyA') {
+                console.log("A has been clicked")
+                if (paddle[3][0] - rectangle_width > -1. ) {
+                    paddle[3][0] -= rectangle_width;
+                }
+            } else if (e.code == 'KeyD') {
+                if (paddle[3][0] + rectangle_width < 1.) {
+                    paddle[3][0] += rectangle_width;
+                }
+            }
         };
     </script>
 </head>

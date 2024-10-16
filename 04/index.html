@@ -401,7 +401,9 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
-                
+                var gameover = document.getElementById("gameover");
+                gameover.play()
+                bgm.pause()
 
             }
         }
@@ -451,9 +453,7 @@
                     //UPDATE STEP ON BOUNCE TO INCREASE SPEED
                 } else {
                     
-                    var gameover = document.getElementById("gameover");
-                    gameover.play()
-                    bgm.pause()
+                    
                     // LOSE LIFE
                     loseLife();
                     resetBall();

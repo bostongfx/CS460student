@@ -95,6 +95,8 @@
 
         // TODO Part 2
 
+        gl_PointSize = 8.0;
+
 
       }
     </script>
@@ -118,6 +120,9 @@
             // INITIALIZE WEBGL
             //
             c = document.getElementById("c"); // setup canvas
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+
             gl = c.getContext("webgl"); // setup GL context
             gl.viewport(0, 0, c.width, c.height);
 
@@ -134,6 +139,7 @@
                 document.getElementById("vertexshader").innerText
             );
             gl.compileShader(v_shader);
+
             if (!gl.getShaderParameter(v_shader, gl.COMPILE_STATUS)) {
                 console.log(gl.getShaderInfoLog(v_shader));
             } else {
@@ -173,7 +179,7 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset) {
 
 
 
@@ -186,10 +192,10 @@
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.05, 0.0, // V0 // 0
+                -0.1, -0.05, 0.0, // V1, V4 // 1
+                0.1, 0.05, 0.0, // V2, V3 // 2
+                0.1, -0.05, 0.0 // V5 // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,7 +214,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, gl.POINTS];
 
         }
 
@@ -218,6 +224,13 @@
             //
             // TODO Part 2
             //
+            var ball = new Uint8Array( [ 0, 0, 0 ]);
+
+// In the starter code, createBall(color,offset) is an empty method. 
+// Please implement it to render a single point at 0,0,0 using an indexed
+//  geometry. Now, please make sure that we render that single point by 
+// specifying a gl_PointSize of 8 pixels in the vertex shader 
+// (make sure it is a float).
 
         }
 
@@ -262,17 +275,17 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, gl.POINTS, createBall, createBrick, createPaddle, score];
         }
 
         function createBricks() {
             offset_x = -0.8
             offset_y = 0.9
             color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
+                [1, 0, 0, 1], // brick color?
+                [0, 1, 0, 1], // part 5?
+                [0, 0, 1, 1],
+                [1, 0, 1, 1],
             ]
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 9; j++) {
@@ -284,6 +297,8 @@
             }
         }
 
+        // if no bricks, add more back...
+
         function animate() {
             if (STOPPED) {
                 return;
@@ -292,10 +307,18 @@
             requestAnimationFrame(animate);
 
             // CLEAR NOW BEFORE ANY DRAWING
-            gl.clearColor(0, 0, 0, 0);
+            gl.clearColor(0., 0., 0., 0.);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
+
+            // ... animate call...
+
+// The starter code includes the updateBall method. Please 
+// study the code and be ready to explain it when submitting 
+// the form. Also, the method needs to be called every frame. 
+// Please modify animate to call it at the proper time.
+// With these changes, you can control your paddle while the ball moves. 
 
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
@@ -345,11 +368,11 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                gl.drawElements(gl.POINTS, VERTEXCOUNT, gl.UNSIGNED_BYTE, createBall, createBrick, createPaddle);
             }
         }
 
-        function resetBall() {
+        function resetBall() { // study
             OBJECTS[1][3][0] = Math.random() / 10; // SET TO CENTER
             OBJECTS[1][3][1] = Math.random() / 10;
 
@@ -357,7 +380,7 @@
             BALLDIRECTION *= -1;
         }
 
-        function score(score_value) {
+        function score(score_value) { // study
             var old_score = document.getElementById("score").innerText;
             document.getElementById("score").innerText = parseInt(old_score) + score_value;
             if (OBJECTS.length == 2) { //IF ALL BLRICKS DESTROYED CREATE MORE
@@ -365,7 +388,7 @@
             }
         }
 
-        function loseLife() {
+        function loseLife() { // study
             var old_life = document.getElementById("lives").innerText;
             document.getElementById("lives").innerText = parseInt(old_life) - 1;
             if (old_life == 1) {
@@ -437,7 +460,37 @@
                 window.location.reload();
             }
             // TODO Part 3
+            else if (e.code == 'ArrowLeft'){
+                console.log("Left Arrow Key Has Been Pressed!")
+                // paddle moves left ...
+
+            //  if (...){
+            //         // paddle tries to go out of bound
+            //         // change offset?
+            //     }   
+                
+            }
+
+            else if(e.code == 'ArrowRight') {
+                console.log("Right Arrow Key Has Been Pressed!")
+                // paddle moves right ...
+
+                // if (...){
+                //     // paddle tries to go out of bound
+                //     // change offset?
+                // }
+            }
         };
+
+// But nothing moves yet! For this part, please modify the last method 
+// in the code: the window.onkeydown callback. Please implement movement 
+// of the Keen’s paddle—the one in the bottom—when you press ArrowLeft 
+// or ArrowRight. 2 Make sure that the paddle does not leave the viewport 
+// and change the offset by a small amount for each press. After this, you 
+// should be able to control the paddle.
+
+
+        // Random powerups to change sizes maybe??? 
     </script>
 </head>
 
@@ -457,4 +510,3 @@
 </body>
 
 </html>
-

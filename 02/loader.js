@@ -16,6 +16,9 @@ function download() {
   // create JSON object
   var out = {};
   out['cubes'] = ALL_CUBES;
+  
+  out['cameras'] = CAMERAS;
+
   out['camera'] = r.camera.view;
 
   // from https://stackoverflow.com/a/30800715
@@ -57,6 +60,7 @@ function upload(scene) {
 
     // restore camera
     r.camera.view = new Float32Array(Object.values(loaded['camera']));
+    CAMERAS = loaded['cameras'] || [];
 
 
   };

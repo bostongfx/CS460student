@@ -200,10 +200,10 @@
             // TODO Part 1
             //
             vertices = new Float32Array( [
-                -0.1, 0.05, 0.0, // V0 // 0
-                -0.1, -0.05, 0.0, // V1, V4 // 1
-                0.1, 0.05, 0.0, // V2, V3 // 2
-                0.1, -0.05, 0.0 // V5 // 3
+                -0.2, 0.05, 0.0, // V0 // 0
+                -0.2, -0.05, 0.0, // V1, V4 // 1
+                0.2, 0.05, 0.0, // V2, V3 // 2
+                0.2, -0.05, 0.0 // V5 // 3
             ] );
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -396,8 +396,6 @@
             var old_score = document.getElementById("score").innerText;
             document.getElementById("score").innerText = parseInt(old_score) + score_value;
             if (OBJECTS.length == 2) { //IF ALL BLRICKS DESTROYED CREATE MORE
-                BGMUSIC.pause();
-                BGMUSIC.currentTime = 0;
                 WINSFX.play();
             }
         }
@@ -423,7 +421,7 @@
 
             BOTTOM_PADDLE_X = OBJECTS[0][3][0];
             BOTTOM_PADDLE_Y = OBJECTS[0][3][1];
-            BOTTOM_PADDLE_WIDTH = 0.2;
+            BOTTOM_PADDLE_WIDTH = 0.4;
 
             if (BALL_X >= 0.95) {
                 BALLSFX.play();

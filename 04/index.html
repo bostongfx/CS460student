@@ -119,12 +119,13 @@
         {
             PADDLE_SPEED = 0.1;
             BOTTOM_PADDLE_WIDTH = 1.0;
-            BRICK_WIDTH = 0.095;
+            BRICK_WIDTH = 0.085;
             BRICK_HEIGHT = 0.05;
+            BRICK_SPACING = 0.2;
             BALL_SPEED = 0;
             PARTICLE_SPEED = 0.025;
             PARTICLE_SIZE = 0.05;  
-            PARTICLE_CLOUD_SIZE = 7.5; // should be between 0 and 10
+            PARTICLE_CLOUD_SIZE = 6.5; // should be between 0 and 10
             DEFAULT_SPEED = 0.01;  
             BALL_SIZE = 8.0;  
             var paddle, ball, bricks, audio, music;
@@ -327,7 +328,6 @@
             }
 
             function createBricks(difficulty) {
-                let brick_spacing = 0.2;
                 let BRICKS =  [];
                 offset_x = -0.9 + BRICK_WIDTH
                 offset_y = 0.9
@@ -346,10 +346,10 @@
                     for (var j = 0; j < 9; j++) {
                         BRICKS.push(createBrick(color[i], [offset_x, offset_y, 0], difficulty - i));
 
-                        offset_x += brick_spacing;
+                        offset_x += BRICK_SPACING;
                     }
                     offset_x = -0.9 + BRICK_WIDTH;
-                    offset_y -= 0.14;
+                    offset_y -= BRICK_SPACING;
                 }
 
                 return BRICKS;
@@ -537,6 +537,7 @@
                     PARTICLES[i][3][0] += Math.cos(angle) * Math.random() * Math.PI * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
                     PARTICLES[i][3][1] += Math.sin(angle) * Math.random() * Math.PI * Math.random() * (Math.random()*velocity/(10-PARTICLE_CLOUD_SIZE));
 
+                    // ROTATE PARTICLE
                     PARTICLES[i][9] += 0.02;
 
                     // SCALE DOWN SIZE OVER TIME

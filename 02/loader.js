@@ -3,6 +3,7 @@ function download() {
   // get all cubes
   ALL_CUBES = [];
 
+
   for (var i = 0; i<r.Ha.length; i++) {
     // note: r.Ha are all objects in the scene
 
@@ -16,7 +17,7 @@ function download() {
   // create JSON object
   var out = {};
   out['cubes'] = ALL_CUBES;
-  out['camera'] = r.camera.view;
+  out['camera'] = CAMERAS;//r.camera.view
 
   // from https://stackoverflow.com/a/30800715
   var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out));
@@ -56,7 +57,9 @@ function upload(scene) {
     }
 
     // restore camera
-    r.camera.view = new Float32Array(Object.values(loaded['camera']));
+    CAMERAS = new Float32Array(Object.values(loaded['camera'][0]));
+  
+    
 
 
   };

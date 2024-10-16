@@ -94,6 +94,7 @@
         gl_Position = final_position;
 
         // TODO Part 2
+        gl_PointSize = 8.0;
 
 
       }
@@ -173,7 +174,7 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset) {
 
 
 
@@ -186,10 +187,10 @@
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.05, 0.0, // V0      // 0
+                -0.1, -0.05, 0.0, // V1, V4  // 1
+                0.1, 0.05, 0.0, // V2, V3  // 2
+                0.1, -0.05, 0.0  // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,17 +209,29 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES];
 
         }
 
 
 
         function createBall(color, offset) {
-            //
-            // TODO Part 2
-            //
+            // Ball is a single point at (0, 0, 0)
+            vertices = new Float32Array([0.0, 0.0, 0.0]);
 
+            indices = new Uint8Array([0]);  // Single point, so index 0
+
+            v_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
+
+            i_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
+
+            return [v_buffer, i_buffer, color, offset, 1, gl.POINTS];
         }
 
         function createBrick(color, offset, score) {
@@ -262,27 +275,30 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES, score];
         }
 
         function createBricks() {
-            offset_x = -0.8
-            offset_y = 0.9
-            color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-            ]
-            for (let i = 0; i < 4; i++) {
+            let offset_x = -0.8;
+            let offset_y = 0.9;
+
+            for (let i = 0; i < 6; i++) {
+                let rowColor = [
+                    Math.random(), 
+                    Math.random(), 
+                    Math.random(), 
+                    1.0            
+        ];
                 for (let j = 0; j < 9; j++) {
-                    OBJECTS.push(createBrick(color[i], [offset_x, offset_y, 0], 4 - i))
-                    offset_x += 0.2
-                }
-                offset_x = -0.8
-                offset_y -= 0.14
+                    OBJECTS.push(createBrick(rowColor, [offset_x, offset_y, 0], 4 - i)); // Use rowColor here
+                    offset_x += 0.2;
             }
+            offset_x = -0.8;
+            offset_y -= 0.1;
         }
+    }
+        let speed = 0.002;
+
 
         function animate() {
             if (STOPPED) {
@@ -296,6 +312,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // TODO Part 4
+            updateBall();
 
             for (var o = 0; o < OBJECTS.length; o++) {
                 var current = OBJECTS[o];
@@ -305,6 +322,7 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+                var PRIMITIVE = current[5];
 
                 //************************************************************//
                 //
@@ -345,7 +363,16 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                gl.drawElements(PRIMITIVE, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+            }
+            speed += 0.0001;
+
+            updatePaddleSize();
+
+            if (gameOverCondition) {
+                document.getElementById("overlay").style.display = "block";
+                document.getElementById("gameover").style.display = "block";
+                STOPPED = true;
             }
         }
 
@@ -436,7 +463,23 @@
                 // restart the game
                 window.location.reload();
             }
+            let BOTTOM_PADDLE_X = OBJECTS[0][3][0];
+            let PADDLE_STEP = 0.05;
+            let PADDLE_LIMIT = 0.9;
+
+            if (e.key === "ArrowLeft") {
+                BOTTOM_PADDLE_X -= PADDLE_STEP;
+                if (BOTTOM_PADDLE_X < -PADDLE_LIMIT) {
+                    BOTTOM_PADDLE_X = -PADDLE_LIMIT;
+                }
+            } else if (e.key === "ArrowRight") {
+                BOTTOM_PADDLE_X += PADDLE_STEP;
+                if (BOTTOM_PADDLE_X > PADDLE_LIMIT) {
+                    BOTTOM_PADDLE_X = PADDLE_LIMIT;
+                }
+            }
             // TODO Part 3
+            OBJECTS[0][3][0] = BOTTOM_PADDLE_X;
         };
     </script>
 </head>
@@ -448,6 +491,11 @@
 
         <span id="lives_name" class="top_bar">LIVES:</span>
         <span id="lives" class="top_bar">3</span>
+
+        <audio id="ballReflectionSound" src="ball_reflection.mp3" preload="auto"></audio>
+        <audio id="backgroundMusic" src="background_music.mp3" loop preload="auto"></audio>
+        <audio id="gameOverSound" src="game_over.mp3" preload="auto"></audio>
+
         <div id="overlay">
             <img id="game_over" class="result" src="game_over.jpg" />
         </div>

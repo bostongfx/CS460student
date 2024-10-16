@@ -1,5 +1,9 @@
 <html>
   <head>
+    <script src="loader.js"></script>
+    <script type="text/javascript"
+        src="https://get.goXTK.com/xtk_edge.js">
+      </script>
     <title>CS460.org Assignment 2</title>
     <style>
       body {
@@ -10,6 +14,100 @@
         overflow: hidden !important; 
       }
     </style>
+    <script>
+            
+            
+      window.onload = function() {
+
+      CUBE_SIDELENGTH = 20;
+      GAP = 0.05;  
+      r = new X.renderer3D();
+      r.init();
+      c = new X.cube();
+      c.color = [255,0,0];
+      r.add(c);
+      r.render();
+  };
+      window.onkeypress = function(e) {
+        if (e.code == 'KeyD') {
+          console.log('D was pressed');
+          c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+          
+        } else if (e.code == 'KeyA') {
+
+          console.log('A was pressed');
+          c.transform.translateX(
+            CUBE_SIDELENGTH + GAP);
+          
+        } else if (e.code == 'KeyQ') {
+            
+            console.log('Q was pressed');
+            c.transform.translateY(
+                GAP + CUBE_SIDELENGTH);
+        } else if (e.code == 'KeyE') {
+            
+            console.log('E was pressed');
+            c.transform.translateY(
+                GAP - CUBE_SIDELENGTH);
+        } else if (e.code == 'KeyS') {
+            
+            console.log('S was pressed');
+            c.transform.translateZ(
+                GAP - CUBE_SIDELENGTH);
+        } else if (e.code == 'KeyW') {
+
+            console.log('W was pressed');
+            c.transform.translateZ(
+                GAP + CUBE_SIDELENGTH);
+        } else if (e.code == 'Digit1') {
+            
+            console.log('1 was pressed');
+            c.color = [255,255,255];
+        } else if (e.code == 'Digit2') {
+            
+            c.color = [255,0,0];
+        } else if (e.code == 'Digit3') {
+            
+            c.color = [0,255,0];
+        } else if (e.code == 'Digit5') {
+            
+            c.color = [255,165,0];
+        } else if (e.code == 'Digit4') {
+            
+            c.color = [0,0,255];
+        } else if (e.code == 'Digit6') {
+            
+            c.color = [12,0,14];
+        } else if (e.code == 'Digit7') {
+            
+            c.color = [0,255,255];
+        }  else if (e.code == 'Digit0') {
+            
+            c.color = [0,0,0];  
+        }  else if (e.code == 'KeyB') {
+            
+            r.onRender = function() {
+              r.camera.rotate([1, 0]);
+            }
+        } else if (e.code == 'KeyO') {
+          download();
+
+        } else if (e.code == 'KeyL') {
+          upload("scene.json")
+        
+        } else if (e.code == 'Space') {
+            new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+
+            r.add(new_cube);
+
+        }
+        
+      };
+
+</script>
   </head>
   <body>
   </body>

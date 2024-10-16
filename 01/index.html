@@ -37,6 +37,13 @@
         width: 100%;
       }
 
+      .viewer {
+				border: 0px;
+				width: 300px;
+				height: 300px;
+				padding: 10px;
+			}
+
     </style>
   </head>
   <body>
@@ -47,22 +54,33 @@
 
     <div class='demo'>
 
-      <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
+      <img id='screenshot' src='ss.png'>
       <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
+      RO.ME is a very cool webgl demo! This demo is somthing that we take for granted today because
+      of all the websites that use features like this. Before we had this technology everywhere, I 
+      remember buying a custom pair of shoes as a kid and on the nike store there was a "3d" model
+      of them. But it was actually just a few images of the shoes from different angles that was 
+      giving the poor illusion of 3d. Now a days we expect 3b models to all be super fast and 
+      high quality like the modern day shoe customization.
       </p>
       <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
+      Technology: webgl in html5 
       </p>
       <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
+      Comparison: I did <a href="https://dillasdonuts.shop/">dillasdonuts</a> and this an 
+      interactive page where you can click on donuts and they will play a jdilla beat. In terms of
+      comparison this website looks waaaay better than rome does. The video quality is much higher 
+      and the models have a lot more pollygons than there are in rome.
       </p>
 
 
       <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
+			  <iframe class="viewer" src="viewer.html?alligator.gltf"></iframe>
+        <iframe class="viewer" src="viewer.html?quadruped_frog.gltf"></iframe>
+        <iframe class="viewer" src="viewer.html?quadruped_panther.gltf"></iframe>
+        <p id="note">
+          i see why the original didnt have the frog...
+        </p>
       </div>
 
     </div>

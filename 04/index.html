@@ -311,7 +311,7 @@
             if (STOPPED) {
                 return;
             }
-            const bgm = document.getElementById("bgm");
+            var bgm = document.getElementById("bgm");
             bgm.play();
 
             requestAnimationFrame(animate);
@@ -401,9 +401,7 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
-                bgm.pause()
-                const gameover = document.getElementById("gameover");
-                gameover.play()
+                
 
             }
         }
@@ -452,6 +450,10 @@
                     BALLDIRECTION = -BALLDIRECTION;
                     //UPDATE STEP ON BOUNCE TO INCREASE SPEED
                 } else {
+                    
+                    var gameover = document.getElementById("gameover");
+                    gameover.play()
+                    bgm.pause()
                     // LOSE LIFE
                     loseLife();
                     resetBall();
@@ -476,7 +478,7 @@
 
         function updatePaddle(OBJECTS, e){
             const theta = .1;
-            console.log(e.key)
+            // console.log(e.key)
             if (e.key === "ArrowLeft") {
               if (OBJECTS[0][3][0] > -0.85) {
                 OBJECTS[0][3][0] -= theta;

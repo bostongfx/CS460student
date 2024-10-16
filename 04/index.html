@@ -161,8 +161,7 @@
 
             gl.useProgram(shaderprogram);
 
-            const bgm = document.getElementById("bgm");
-            bgm.play();
+            
 
             STOPPED = false;
 
@@ -312,6 +311,8 @@
             if (STOPPED) {
                 return;
             }
+            const bgm = document.getElementById("bgm");
+            bgm.play();
 
             requestAnimationFrame(animate);
 

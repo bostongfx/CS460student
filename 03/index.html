@@ -181,6 +181,30 @@
 
         requestAnimationFrame( animate );
 
+        for(var t in window.All_TORUSES) {
+          t = ALL-Toures(t);
+
+          console.log("We reached this part of the code");
+
+          var T = Math.PI/2;
+          
+          var x = Math.sin(T/2) * 0;
+          var y = Math.sin(T/2) * 0;
+          var z = Math.sin(T/2)*1;
+          var w = Math.cos(T/2);
+          
+          var q = new THREE.Quaternion(
+            x,
+            y,
+            z,
+            w);
+
+            t.Quaternion.slerp(q, 0.01);
+          }
+
+          
+        
+
         // and here..
         controls.update();
         renderer.render( scene, camera );

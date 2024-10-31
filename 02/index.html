@@ -10,6 +10,119 @@
         overflow: hidden !important; 
       }
     </style>
+
+    <script type="text/javascript"
+    src="https://get.goXTK.com/xtk_edge.js">
+    </script>
+
+    <script type="text/javascript"
+    src= 'loader.js'>
+    </script>
+
+    <script>
+      // PART 1: CREATE "Painter" CUBE
+      window.onload = function() {
+        r = new X.renderer3D();
+        r.init();
+
+        c = new X.cube();
+        //c_i.center = [40*(i%4), 60*(i%3), 20*(i%2)];
+        //c_i.color = [, i%3, i%4];
+        r.add(c);
+        r.render();
+    
+        GAP = 0;
+        CUBE_SIDELENGTH = c.lengthX;
+        ROTATING = false;
+      }
+    </script>
+
+    <script>
+      // PART 2: MOVE PAINTER CUBE SCRIPT
+      // onkeypress is deprecated. Using onkeydown instead.
+      // reference: https://codegazerants.com/2015/09/12/javascript-catch-keystrokes/
+
+      document.onkeydown = function (e) {
+        switch (e.keyCode) {
+          case "D".charCodeAt(0):
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+            console.log(CUBE_SIDELENGTH);
+            break;
+          
+          case "A".charCodeAt(0):
+            c.transform.translateX(CUBE_SIDELENGTH - GAP);
+            break;
+          
+          case "W".charCodeAt(0):
+            c.transform.translateZ(CUBE_SIDELENGTH - GAP);
+            break;
+          
+          case "S".charCodeAt(0):
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+            break;
+
+          case "Q".charCodeAt(0):
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+            break;
+
+          case "E".charCodeAt(0):
+            c.transform.translateY(CUBE_SIDELENGTH - GAP);
+            break;
+        }
+
+      // PART 3: ADD COLORS
+        color_map = {
+            0: [0, 0, 0],
+            1: [1, 1, 1],
+            2: [1, 0, 0],
+            3: [0, 1, 0],
+            4: [0, 0, 1],
+            5: [1, 1, 0],
+            6: [1, 0, 1], 
+            7: [0, 1, 1]
+        };
+        if (e.keyCode >= "0".charCodeAt(0) && e.keyCode <= "7".charCodeAt(0)) {
+          c.color = color_map[e.keyCode - "0".charCodeAt(0)];
+          r.render();
+        };
+
+      // PART 4: PLACE CUBES
+        if (e.keyCode == " ".charCodeAt(0)) {
+          new_cube = new X.cube();
+          new_cube.color = c.color;
+          new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+          new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+
+          r.add(new_cube);
+          r.render();
+        }
+  
+      // PART 5: Saving the scene
+        if (e.keyCode == "O".charCodeAt(0)) {
+          download();
+        }
+        if (e.keyCode == "L".charCodeAt(0)) {
+          upload("scene.json");
+        }
+      
+      // PART 6: ROTATE
+      if (e.keyCode == "B".charCodeAt(0)){
+        ROTATING = !ROTATING;
+            if (ROTATING) {
+              r.onRender = function() {
+                r.camera.rotate([1,0]);
+              }
+            }
+            else {
+              r.onRender = function() {
+                r.camera.rotate([0,0]);
+              }
+            }
+        }
+      };
+
+
+    </script> 
   </head>
   <body>
   </body>

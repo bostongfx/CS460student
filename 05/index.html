@@ -26,8 +26,10 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
+      import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+      //import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
 
-      var renderer, controls, scene, camera;
+      var renderer, controls, scene, camera, loader, pane;
 
       window.onload = function() {
 
@@ -41,20 +43,44 @@
         var zNear = 1;
         var zFar = 10000;
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
-        camera.position.set(0, 0, 100);
+        camera.position.set(5, 0, 10);
 
         // create renderer and add canvas
         renderer = new THREE.WebGLRenderer({antialias:true});
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
         
-        //.. setup lights
+        // setup lights
         var ambientLight = new THREE.AmbientLight();
         scene.add( ambientLight );
 
         var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
         light.position.set( 10, 100, 10 );
         scene.add( light );
+
+        // Importing gltf files
+        loader = new GLTFLoader();
+        loader.load('2_11_2024.glb', function ( gltf ){
+          scene.add(gltf.scene);
+          var poly = gltf.scenes[0].children[0];
+
+          poly.scale.x = 2;
+          poly.scale.y = 2;
+          poly.scale.z = 2;
+        } );
+
+        loader.load('backpack.glb', function ( gltf ){
+          scene.add(gltf.scene);
+          var poly = gltf.scenes[0].children[0];
+
+          poly.position.x = 5;
+          poly.position.y = 0;
+          poly.position.z = 0;
+        } );
+
+        // Import Tweakpane
+        pane = new Pane();
+        var sceneui = pane.addFolder({title : 'Scene'});
 
         // setup interaction
         controls = new OrbitControls( camera, renderer.domElement );

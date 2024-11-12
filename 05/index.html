@@ -42,13 +42,19 @@
 
 
 
-        let camera, scene, renderer, controls, effect, loader, pane;
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+        let camera, scene, renderer, controls, effect, loader, pane, directionalLight, ambientLight;
+        
 
         // SETTINGS and HELPER for TWEAKPANE
         window['SCENE'] = {
-            anaglyph: false // Toggle for anaglyph effect
+            anaglyph: false, // Toggle for anaglyph effect;
+            poly: null, // To store the PolyCam mesh once loaded;
+            rotate_poly: false, // Flag for rotation
+            do_rotate_poly: function() { // Function to toggle rotation flag
+                window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+            
+            }
+
         };
 
 
@@ -65,27 +71,50 @@
             pane = new Pane();
             const sceneui = pane.addFolder({ title: 'Scene' });
 
+            // Initialize Lights
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+
             // Add Anaglyph toggle control
             sceneui.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph Effect' });
+
+            // Directional light controls
+            sceneui.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
+            sceneui.addBinding(directionalLight.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+            sceneui.addBinding(directionalLight.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+            sceneui.addBinding(directionalLight, 'intensity', { min: 0, max: 5, step: 0.1, label: 'Light Intensity' });
+
+            // Ambient light color control
+            sceneui.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Light Color' });
+            
+
+            const polyui = pane.addFolder({ title: 'PolyCam Mesh' });
+
             
             // Scene
             scene = new THREE.Scene();
 
+            // Create an AxesHelper with a size of 5 (adjust size as needed)
+            const axesHelper = new THREE.AxesHelper(5);
+
+            // Add the AxesHelper to the scene
+            scene.add(axesHelper);
+
             // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 5, 0); // Move camera for better view
-
-
             // OrbitControls
             controls = new OrbitControls(camera, renderer.domElement);
+
+
+
+            // Add Lights to Scene
+            scene.add(ambientLight);
+            scene.add(directionalLight);
 
             // AnaglyphEffect
             effect = new AnaglyphEffect(renderer);
             effect.setSize(window.innerWidth, window.innerHeight);
-
-            // Ambient light for soft illumination
-            var ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // lower intensity for ambient light
-            scene.add(ambientLight);
 
             // Directional light for strong, directional illumination
             var directionalLight = new THREE.DirectionalLight(0xffffff, 2);
@@ -108,6 +137,17 @@
                 poly.translateX(1)
                 poly.translateY(3)
 
+                // Set the loaded PolyCam mesh to window.SCENE.poly
+                window.SCENE.poly = poly;
+
+                // Wireframe checkbox for the PolyCam mesh
+                polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+
+                // Rotation button for the PolyCam mesh
+                polyui.addButton({ title: 'rotate!' }).on('click', () => {
+                    window.SCENE.do_rotate_poly();
+                });
+
                 scene.add(gltf.scene);
             }, undefined, function(error) {
                 console.error('An error occurred while loading the model:', error);
@@ -125,9 +165,10 @@
                 original.quaternion.z = 0;
 
                 original.translateX (-1);
-                original.translateY(3)
+                original.translateY(3);
 
                 scene.add(gltf.scene);
+
             }, undefined, function(error) {
                 console.error('An error occurred while loading the model:', error);
             });
@@ -151,7 +192,33 @@
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-            renderer.render(scene, camera);
+
+        // Check if PolyCam mesh is loaded
+        if (window.SCENE.poly) {
+            // Quaternion for a 180-degree rotation around the Y-axis
+            const targetQuaternion = new THREE.Quaternion();
+            targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees around Y-axis
+
+            // Quaternion for the original orientation (identity quaternion)
+            const identityQuaternion = new THREE.Quaternion(0, 0, 0, 1);
+
+            if (window.SCENE.rotate_poly) {
+                // Rotate to 180 degrees
+                window.SCENE.poly.quaternion.slerp(targetQuaternion, 0.02); // Adjust 0.02 for rotation speed
+            } else {
+                // Reset rotation to the original orientation
+                window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.02);
+            }
+        }
+
+            
+            // Check the anaglyph toggle to decide which renderer to use
+        if (window.SCENE.anaglyph) {
+            effect.render(scene, camera); // Render with AnaglyphEffect
+        } else {
+            renderer.render(scene, camera); // Render normally
+        }
+
         }
     </script>
 </body>

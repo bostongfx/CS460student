@@ -25,6 +25,8 @@
                 "three/addons/": "https://unpkg.com/three@0.145.0/examples/jsm/",
                 "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.145.0/examples/jsm/loaders/GLTFLoader.js",
                 "three/examples/jsm/effects/AnaglyphEffect.js": "https://unpkg.com/three@0.145.0/examples/jsm/effects/AnaglyphEffect.js"
+
+
             }
         }
     </script>
@@ -36,8 +38,19 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
-        let camera, scene, renderer, controls, effect, loader;
+
+
+        let camera, scene, renderer, controls, effect, loader, pane;
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+
+        // SETTINGS and HELPER for TWEAKPANE
+        window['SCENE'] = {
+            anaglyph: false // Toggle for anaglyph effect
+        };
+
 
         // Initialize the scene and set up basic components
         window.onload = function() {
@@ -45,6 +58,15 @@
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
+
+            // Initialize Tweakpane
+
+            // Initialize Tweakpane and controls
+            pane = new Pane();
+            const sceneui = pane.addFolder({ title: 'Scene' });
+
+            // Add Anaglyph toggle control
+            sceneui.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph Effect' });
             
             // Scene
             scene = new THREE.Scene();
@@ -78,7 +100,32 @@
                 // Scale the model for visibility
                 poly.scale.set(10, 10, 10);
 
+                poly.quaternion.w = 1;
+                poly.quaternion.x = 0;
+                poly.quaternion.y = 0;
+                poly.quaternion.z = 0;
 
+                poly.translateX(1)
+                poly.translateY(3)
+
+                scene.add(gltf.scene);
+            }, undefined, function(error) {
+                console.error('An error occurred while loading the model:', error);
+            });
+
+            // Load the second (edited) model
+            loader.load('originalairpod.glb', function(gltf) {  
+                const original = gltf.scenes[0].children[0];
+                // Scale the model
+                original.scale.set(10, 10, 10);
+                
+                original.quaternion.w = 1;
+                original.quaternion.x = 0;
+                original.quaternion.y = 0;
+                original.quaternion.z = 0;
+
+                original.translateX (-1);
+                original.translateY(3)
 
                 scene.add(gltf.scene);
             }, undefined, function(error) {

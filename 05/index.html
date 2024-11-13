@@ -25,11 +25,12 @@
                 "three/addons/": "https://unpkg.com/three@0.145.0/examples/jsm/",
                 "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.145.0/examples/jsm/loaders/GLTFLoader.js",
                 "three/examples/jsm/effects/AnaglyphEffect.js": "https://unpkg.com/three@0.145.0/examples/jsm/effects/AnaglyphEffect.js"
-
-
+                
             }
         }
     </script>
+
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
 
 </head>
 <body>
@@ -39,41 +40,72 @@
         import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
+        let camera, scene, renderer, controls, effect, loader, pane, directionalLight, ambientLight, stats;
 
-
-        let camera, scene, renderer, controls, effect, loader, pane, directionalLight, ambientLight;
-        
-
-        // SETTINGS and HELPER for TWEAKPANE
         window['SCENE'] = {
-            anaglyph: false, // Toggle for anaglyph effect;
-            poly: null, // To store the PolyCam mesh once loaded;
-            rotate_poly: false, // Flag for rotation
-            do_rotate_poly: function() { // Function to toggle rotation flag
+            anaglyph: false,
+            poly: null,                   // PolyCam mesh
+            original: null,               // Second model
+            blender: null,                // Blender mesh
+            blender_helper: null,         // Helper to visualize normals
+            rotate_poly: false,           // Flag for rotation
+            rotate_blender: false,        // Flag for Blender rotation
+            blender_old_material: null,   // Store original material for toggling
+            do_rotate_poly: function() {  // Toggle rotation for PolyCam
                 window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
-            
+            },
+            do_rotate_blender: function() { // Toggle rotation for Blender mesh
+                window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+            },
+            change_material: function() { // Toggle material to MeshNormalMaterial and back
+                if (!window['SCENE']['blender_old_material']) {
+                    // Store original material and set to MeshNormalMaterial
+                    window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+                    window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+                } else {
+                    // Revert to original material
+                    window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+                    window['SCENE']['blender_old_material'] = null;
+                }
             }
-
         };
 
-
-        // Initialize the scene and set up basic components
         window.onload = function() {
-            // Renderer
+            // Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
+            
+            stats = new Stats();
 
-            // Initialize Tweakpane
+            document.body.appendChild(stats.domElement);
 
-            // Initialize Tweakpane and controls
-            pane = new Pane();
-            const sceneui = pane.addFolder({ title: 'Scene' });
+            // Scene setup
+            scene = new THREE.Scene();
 
-            // Initialize Lights
+            // AxesHelper
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1, 0);
+
+            // Controls setup
+            controls = new OrbitControls(camera, renderer.domElement);
+
+            // Lights setup
             ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
             directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+            directionalLight.position.set(10, 100, 10);
+            scene.add(ambientLight);
+            scene.add(directionalLight);
+
+            // Initialize Tweakpane
+            pane = new Pane();
+            const sceneui = pane.addFolder({ title: 'Scene' });
 
             // Add Anaglyph toggle control
             sceneui.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph Effect' });
@@ -86,64 +118,26 @@
 
             // Ambient light color control
             sceneui.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Light Color' });
-            
-
-            const polyui = pane.addFolder({ title: 'PolyCam Mesh' });
-
-            
-            // Scene
-            scene = new THREE.Scene();
-
-            // Create an AxesHelper with a size of 5 (adjust size as needed)
-            const axesHelper = new THREE.AxesHelper(5);
-
-            // Add the AxesHelper to the scene
-            scene.add(axesHelper);
-
-            // Camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 5, 0); // Move camera for better view
-            // OrbitControls
-            controls = new OrbitControls(camera, renderer.domElement);
-
-
-
-            // Add Lights to Scene
-            scene.add(ambientLight);
-            scene.add(directionalLight);
 
             // AnaglyphEffect
             effect = new AnaglyphEffect(renderer);
             effect.setSize(window.innerWidth, window.innerHeight);
 
-            // Directional light for strong, directional illumination
-            var directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-            directionalLight.position.set(10, 100, 10);
-            scene.add(directionalLight);
-                
-             // GLTFLoader
+            // PolyCam Mesh loading and controls
+            const polyui = pane.addFolder({ title: 'PolyCam Mesh' });
             loader = new GLTFLoader();
             loader.load('airpod.glb', function(gltf) {
-
                 const poly = gltf.scenes[0].children[0];
-                // Scale the model for visibility
                 poly.scale.set(10, 10, 10);
-
-                poly.quaternion.w = 1;
-                poly.quaternion.x = 0;
-                poly.quaternion.y = 0;
-                poly.quaternion.z = 0;
-
-                poly.translateX(1)
-                poly.translateY(3)
+                poly.quaternion.set(1, 0, 0, 0);
+                poly.translateX(1);
+                poly.translateY(1);
 
                 // Set the loaded PolyCam mesh to window.SCENE.poly
                 window.SCENE.poly = poly;
 
                 // Wireframe checkbox for the PolyCam mesh
                 polyui.addBinding(window.SCENE.poly.material, 'wireframe');
-
-                // Rotation button for the PolyCam mesh
                 polyui.addButton({ title: 'rotate!' }).on('click', () => {
                     window.SCENE.do_rotate_poly();
                 });
@@ -153,25 +147,42 @@
                 console.error('An error occurred while loading the model:', error);
             });
 
-            // Load the second (edited) model
-            loader.load('originalairpod.glb', function(gltf) {  
-                const original = gltf.scenes[0].children[0];
-                // Scale the model
-                original.scale.set(10, 10, 10);
-                
-                original.quaternion.w = 1;
-                original.quaternion.x = 0;
-                original.quaternion.y = 0;
-                original.quaternion.z = 0;
+            // Blender Mesh loading and controls
+            const blenderui = pane.addFolder({ title: 'Blender Mesh' });
+            loader.load('originalairpod.glb', function(gltf) {
+            const blender = gltf.scenes[0].children[0];
+            blender.scale.set(10, 10, 10);
+            blender.quaternion.set(1, 0, 0, 0);
+            blender.translateX(-1);
+            blender.translateY(1);
 
-                original.translateX (-1);
-                original.translateY(3);
+            // Set the Blender mesh to window.SCENE.blender
+            window.SCENE.blender = blender;
+            scene.add(gltf.scene);
 
-                scene.add(gltf.scene);
+            // Check if geometry has normals, otherwise compute them
+            if (!blender.geometry.attributes.normal) {
+                blender.geometry.computeVertexNormals();
+            }
 
-            }, undefined, function(error) {
-                console.error('An error occurred while loading the model:', error);
+            // Add VertexNormalsHelper for the Blender mesh
+            const helper = new VertexNormalsHelper(blender, 0.1, 'blue');
+            helper.visible = false; // Start with the helper hidden
+            window.SCENE.blender_helper = helper;
+            scene.add(helper);
+
+            // Blender mesh controls in Tweakpane
+            blenderui.addBinding(helper, 'visible', { label: 'Show normals!' });
+            blenderui.addButton({ title: 'Change Material!' }).on('click', () => {
+                window.SCENE.change_material();
             });
+            blenderui.addButton({ title: 'Rotate Blender!' }).on('click', () => {
+                window.SCENE.do_rotate_blender();
+            });
+        }, undefined, function(error) {
+            console.error('An error occurred while loading the model:', error);
+        });
+
 
             // Handle window resize
             window.addEventListener('resize', onWindowResize);
@@ -188,38 +199,53 @@
             effect.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Animation loop
+
+
         function animate() {
             requestAnimationFrame(animate);
+
+            // Update stats every frame
+            stats.update();
+
             controls.update();
 
-        // Check if PolyCam mesh is loaded
-        if (window.SCENE.poly) {
-            // Quaternion for a 180-degree rotation around the Y-axis
+            // 180-degree rotation quaternion around the Y-axis
             const targetQuaternion = new THREE.Quaternion();
-            targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees around Y-axis
+            targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
-            // Quaternion for the original orientation (identity quaternion)
             const identityQuaternion = new THREE.Quaternion(0, 0, 0, 1);
 
-            if (window.SCENE.rotate_poly) {
-                // Rotate to 180 degrees
-                window.SCENE.poly.quaternion.slerp(targetQuaternion, 0.02); // Adjust 0.02 for rotation speed
+            // Rotate PolyCam mesh if loaded and flagged
+            if (window.SCENE.poly) {
+                if (window.SCENE.rotate_poly) {
+                    window.SCENE.poly.quaternion.slerp(targetQuaternion, 0.02);
+                } else {
+                    window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.02);
+                }
+            }
+
+            // Rotate Blender mesh if loaded and flagged
+            if (window.SCENE.blender) {
+                if (window.SCENE.rotate_blender) {
+                    window.SCENE.blender.quaternion.slerp(targetQuaternion, 0.02);
+                } else {
+                    window.SCENE.blender.quaternion.slerp(identityQuaternion, 0.02);
+                }
+
+                // Check if blender_helper exists before calling update
+                if (window.SCENE.blender_helper) {
+                    window.SCENE.blender_helper.update();
+                }
+            }
+
+            // Render scene with or without AnaglyphEffect
+            if (window.SCENE.anaglyph) {
+                effect.render(scene, camera);
             } else {
-                // Reset rotation to the original orientation
-                window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.02);
+                renderer.render(scene, camera);
             }
         }
 
-            
-            // Check the anaglyph toggle to decide which renderer to use
-        if (window.SCENE.anaglyph) {
-            effect.render(scene, camera); // Render with AnaglyphEffect
-        } else {
-            renderer.render(scene, camera); // Render normally
-        }
-
-        }
     </script>
 </body>
 </html>

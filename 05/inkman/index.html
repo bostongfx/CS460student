@@ -36,6 +36,8 @@
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
       import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
+      import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+
       const container = document.getElementById( 'container' );
 
       let renderer, scene, camera, stats;
@@ -71,6 +73,7 @@
       } );
 
       const decals = [];
+      let effect;
       let mouseHelper;
       const position = new THREE.Vector3();
       const orientation = new THREE.Euler();
@@ -96,6 +99,9 @@
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
+
+        effect = new AnaglyphEffect( renderer );
+        effect.setSize( window.innerWidth, window.innerHeight)
 
         stats = new Stats();
         container.appendChild( stats.dom );
@@ -298,6 +304,8 @@
         requestAnimationFrame( animate );
 
         renderer.render( scene, camera );
+
+        effect.render(scene, camera);
 
         stats.update();
 

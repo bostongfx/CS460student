@@ -11,6 +11,7 @@
     </style>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
 
     <script type="importmap">
     {
@@ -26,10 +27,12 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
-      import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
-      //import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+      import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+      import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+      import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
       var renderer, controls, scene, camera, loader, pane;
+      var anaglyphOn, effect, stats;
 
       window.onload = function() {
 
@@ -62,28 +65,99 @@
         loader = new GLTFLoader();
         loader.load('2_11_2024.glb', function ( gltf ){
           scene.add(gltf.scene);
+          // console.log("Loaded poly");
           var poly = gltf.scenes[0].children[0];
+          
+          window.SCENE.poly = poly;
 
           poly.scale.x = 2;
           poly.scale.y = 2;
           poly.scale.z = 2;
-        } );
+
+          var polyui = pane.addFolder({title : 'PolyCam Mesh'});
+          polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+          polyui.addButton({title: 'rotate!'}).on('click', () => 
+          {
+            window.SCENE.do_rotate_poly();
+          });
+        });
 
         loader.load('backpack.glb', function ( gltf ){
           scene.add(gltf.scene);
-          var poly = gltf.scenes[0].children[0];
+          var blender = gltf.scenes[0].children[0];
 
-          poly.position.x = 5;
-          poly.position.y = 0;
-          poly.position.z = 0;
-        } );
+          window.SCENE.blender = blender;
+
+          blender.position.x = 5;
+          blender.position.y = 0;
+          blender.position.z = 0;
+
+          var helper = new VertexNormalsHelper(blender, 0.1, 'blue');
+          scene.add(helper);
+          window.SCENE.blender_helper = helper;
+          helper.visible = false;
+          
+          var blenderui = pane.addFolder({title : 'Blender Mesh'});
+          blenderui.addBinding(helper, 'visible', {label:"Show normals!"});
+          blenderui.addButton({title: "Change Material!"}).on('click', () =>
+          {
+            window.SCENE.change_material();
+          });
+          blenderui.addButton({title: 'rotate!'}).on('click', () => 
+          {
+            window.SCENE.do_rotate_blender();
+          });
+        });
+
+        window['SCENE'] = {
+          'anaglyph' : false,
+          'poly' : null,
+          'blender' : null,
+          'rotate_poly' : false,
+          'do_rotate_poly' : function() {
+            window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+          },
+          'rotate_blender' : false,
+          'do_rotate_blender' : function() {
+            window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+          },
+          'blender_helper' : null,
+          'blender_old_material': null,
+          'change_material': function() {
+            if (!window['SCENE']['blender_old_material']) {
+              window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+              window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+            } else {
+              window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+              window['SCENE']['blender_old_material'] = null;
+            }
+          }
+        };
+      
+        // Anaglyph function
+        effect = new AnaglyphEffect( renderer );
+        effect.setSize(window.innerWidth, window.innerHeight);
 
         // Import Tweakpane
         pane = new Pane();
         var sceneui = pane.addFolder({title : 'Scene'});
 
+        sceneui.addBinding(window.SCENE, 'anaglyph')
+        .on('change', (event) => {
+          anaglyphOn = event.value;
+        });
+        sceneui.addBinding(light.position, 'x', {min: -100, man: 100, label: 'Light X'});
+        sceneui.addBinding(light.position, 'y', {min: -100, man: 100, label: 'Light Y'});
+        sceneui.addBinding(light.position, 'z', {min: -100, man: 100, label: 'Light Z'});
+        sceneui.addBinding(light, 'intensity', {min: 0, man: 10, label: 'Intensity'});
+        sceneui.addBinding(light, 'color', {label: 'AmbientLight Color'});        
+
         // setup interaction
         controls = new OrbitControls( camera, renderer.domElement );
+
+        // stats.js widget
+        stats = new Stats();
+        document.body.appendChild( stats.domElement );
  
         // call animation/rendering loop
         animate();
@@ -95,7 +169,53 @@
         requestAnimationFrame( animate );
 
         controls.update();
-        renderer.render( scene, camera );
+        
+        if (window.SCENE.poly){
+          if (window.SCENE.rotate_poly){
+            var T = Math.PI;
+            var q = new THREE.Quaternion( 0 ,
+                                          Math.sin( T / 2 ) * 1 ,
+                                          0 ,
+                                          Math.cos( T / 2) );
+            window.SCENE.poly.quaternion.slerp( q, 0.01 );
+          } else {
+            var T = 2*Math.PI;
+            var q = new THREE.Quaternion( 0 ,
+                                          Math.sin( T / 2 ) * 1 ,
+                                          0 ,
+                                          Math.cos( T / 2) );
+            window.SCENE.poly.quaternion.slerp( q, 0.01 );
+          }
+        }
+
+        if (window.SCENE.blender){
+          if (window.SCENE.rotate_blender){
+            var T = Math.PI;
+            var q = new THREE.Quaternion( 0 ,
+                                          Math.sin( T / 2 ) * 1 ,
+                                          0 ,
+                                          Math.cos( T / 2) );
+            window.SCENE.blender.quaternion.slerp( q, 0.01 );
+            window.SCENE.blender_helper.update();
+          } else {
+            var T = 2*Math.PI;
+            var q = new THREE.Quaternion( 0 ,
+                                          Math.sin( T / 2 ) * 1 ,
+                                          0 ,
+                                          Math.cos( T / 2) );
+            window.SCENE.blender.quaternion.slerp( q, 0.01 );
+            window.SCENE.blender_helper.update();
+          }
+        }
+        
+        if (anaglyphOn){
+          effect.render( scene, camera );
+        }
+        else{
+          renderer.render( scene, camera );
+        }
+
+        stats.update();
 
       };
     </script>

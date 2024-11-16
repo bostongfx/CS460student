@@ -59,11 +59,25 @@
         var loader = new GLTFLoader();
         loader.load( 'shoes_mcqueen.glb', function ( gltf ) {
 
-            // Stretch the poly (you can change x,y,z to see how st)
+            // Stretch the poly (you can change x,y,z to see how stretch)
             var poly = gltf.scenes[0].children[0];
             poly.scale.x = 10;
             poly.scale.y = 10;
             poly.scale.z = 10;
+            scene.add( gltf.scene );
+
+        } );
+
+        // Load a binary glTF file, BUT this time load the edited version.
+        loader.load( 'shoes_mcqueen_finalVer.glb', function ( gltf ) {
+            
+            var shoes = gltf.scenes[0].children[0];
+            shoes.scale.x = 10;
+            shoes.scale.y = 10;
+            shoes.scale.z = 10;
+            // Without this line, couldn't see the edited shoes due to overlap.
+            // Delete the unedited shoes portion above and set x-position to 0, you will see.
+            shoes.position.set(4, 0, 0);
             scene.add( gltf.scene );
 
         } );
@@ -76,10 +90,8 @@
       function animate() {
 
         requestAnimationFrame( animate );
-
-        // and here..
         renderer.render( scene, camera );
-        
+
       };
     </script>
   </head>

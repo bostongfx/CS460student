@@ -24,7 +24,8 @@
     <script type="module">
 
       import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';    
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';  
 
       var renderer, controls, scene, camera;
 
@@ -53,6 +54,12 @@
         var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
         light.position.set( 10, 100, 10 );
         scene.add( light );
+
+        // Load a binary glTF file
+        var loader = new GLTFLoader();
+        loader.load( 'shoes_mcqueen.glb', function ( gltf ) {
+            scene.add( gltf.scene );
+        } );
 
         // call animation/rendering loop
         animate();

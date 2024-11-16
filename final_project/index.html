@@ -51,6 +51,11 @@
         document.body.appendChild( VRButton.createButton( renderer ) );
         renderer.xr.enabled = true;
 
+        // VR controls 
+        console.log(renderer.xr);
+        let controller1 = renderer.xr.getControllerGrip(0);
+        let controller1Ray = renderer.xr.getController(0);
+
         renderer.domElement.onmouseup = function() {
           controls.enabled = true;
         }
@@ -64,12 +69,15 @@
         scene.add(light);
 
         //configure torus
-        var geometry = new THREE.TorusKnotGeometry(10, 3, 64, 16);
+        var geometry = new THREE.SphereGeometry(1, 32, 16);
         var material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});
 
-        var torus = new THREE.Mesh(geometry, material);
+        var sphere = new THREE.Mesh(geometry, material);
+        sphere.scale.set = 0.25;
 
-        scene.add(torus);
+        controller1.add(sphere);
+
+        scene.add( controller1 );
 
         controls = new OrbitControls(camera, renderer.domElement);
  

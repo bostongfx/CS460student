@@ -51,6 +51,7 @@
         // Configure VR Support
         document.body.appendChild( VRButton.createButton( renderer ) );
         renderer.xr.enabled = true;
+        renderer.setAnimationLoop(animate);
 
         // VR controls 
         const controllerModelFactory = new XRControllerModelFactory();
@@ -95,19 +96,12 @@
         scene.add(sphere);
 
         controls = new OrbitControls(camera, renderer.domElement);
- 
-        // call animation/rendering loop
-        animate();
         
       };
 
       function animate() {
-
-        renderer.setAnimationLoop( function () {
-            controls.update();
-            renderer.render( scene, camera );
-
-        } );
+        controls.update();
+        renderer.render( scene, camera );
         
       };
     </script>

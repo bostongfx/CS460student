@@ -54,18 +54,28 @@
         renderer.xr.enabled = true;
         renderer.setAnimationLoop(animate);
 
+        const line = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
+            new THREE.LineBasicMaterial({ color: 0x00ff00 })
+        );
+        line.scale.z = 5;
+
         // VR controls 
         const controllerModelFactory = new XRControllerModelFactory();
 
-        let controller1 = renderer.xr.getControllerGrip(0);
+        const controller1 = renderer.xr.getControllerGrip(0);
         controller1.add(controllerModelFactory.createControllerModel(controller1));
         scene.add(controller1);
         let controller1Ray = renderer.xr.getController(0);
+        controller1Ray.add(line.clone());
+        scene.add(controller1Ray);
 
-        let controller2 = renderer.xr.getControllerGrip(1);
+        const controller2 = renderer.xr.getControllerGrip(1);
         controller2.add(controllerModelFactory.createControllerModel(controller2));
         scene.add(controller2);
         let controller2Ray = renderer.xr.getController(1);
+        controller2Ray.add(line.clone());
+        scene.add(controller2Ray);
 
         renderer.domElement.onmouseup = function() {
           controls.enabled = true;

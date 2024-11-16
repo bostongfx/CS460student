@@ -33,7 +33,7 @@
       window.onload = function() {
 
         // Three.js code goes here
-        scene = new THREE.Scene();
+        scene = new THREE.Scene({antialias: true});
 
         // setup the camera
         var fov = 75;
@@ -45,6 +45,7 @@
 
         // create renderer and add canvas to DOM
         renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -59,8 +60,12 @@
         let controller1 = renderer.xr.getControllerGrip(0);
         controller1.add(controllerModelFactory.createControllerModel(controller1));
         scene.add(controller1);
-
         let controller1Ray = renderer.xr.getController(0);
+
+        let controller2 = renderer.xr.getControllerGrip(1);
+        controller2.add(controllerModelFactory.createControllerModel(controller2));
+        scene.add(controller2);
+        let controller2Ray = renderer.xr.getController(1);
 
         renderer.domElement.onmouseup = function() {
           controls.enabled = true;
@@ -76,7 +81,7 @@
 
         // Create floor
 
-        let floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1000, 1000);
+        let floorGeometry = new THREE.PlaneGeometry(1000, 1000, 15, 15);
         let floorMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: false});
         floorMaterial.side = THREE.DoubleSide;
         let floor = new THREE.Mesh(floorGeometry, floorMaterial);

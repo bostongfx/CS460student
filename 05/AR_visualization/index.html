@@ -40,7 +40,7 @@
         var zNear = 1;
         var zFar = 10000;
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
-        camera.position.set(0, 0, 100);
+        camera.position.set(0, 0, 10);
 
         // create renderer and setup the canvas
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -58,7 +58,14 @@
         // Load a binary glTF file
         var loader = new GLTFLoader();
         loader.load( 'shoes_mcqueen.glb', function ( gltf ) {
+
+            // Stretch the poly (you can change x,y,z to see how st)
+            var poly = gltf.scenes[0].children[0];
+            poly.scale.x = 10;
+            poly.scale.y = 10;
+            poly.scale.z = 10;
             scene.add( gltf.scene );
+
         } );
 
         // call animation/rendering loop

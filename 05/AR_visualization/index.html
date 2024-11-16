@@ -46,6 +46,14 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
  
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
         // call animation/rendering loop
         animate();
         
@@ -56,6 +64,7 @@
         requestAnimationFrame( animate );
 
         // and here..
+        renderer.render( scene, camera );
         
       };
     </script>

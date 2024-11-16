@@ -73,6 +73,19 @@
         light.position.set(10, 100, 100);
         scene.add(light);
 
+        // Create floor
+
+        let floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1000, 1000);
+        let floorMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: false});
+        floorMaterial.side = THREE.DoubleSide;
+        let floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.position.set(0, -10, 0);
+        floor.rotation.x = Math.PI / 2;
+
+        console.log(floor);
+        scene.add(floor);
+
+
         //configure torus
         var geometry = new THREE.SphereGeometry(5, 32, 16);
         var material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});

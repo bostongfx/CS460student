@@ -2,7 +2,7 @@
   <head>
     <style>
       html, body { 
-        background-color:#000;
+        background-color:#000000;
         margin: 0;
         padding: 0;
         height: 100%;
@@ -26,6 +26,7 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';     
       import { VRButton } from 'three/addons/webxr/VRButton.js'; 
+      import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
       var renderer, controls, scene, camera;
 
@@ -40,7 +41,7 @@
         var zNear = 1;
         var zFar = 10000;
         camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
-        camera.position.set(0, 0, 100);
+        camera.position.set(0, 0, 0);
 
         // create renderer and add canvas to DOM
         renderer = new THREE.WebGLRenderer({antialias: true});
@@ -52,8 +53,12 @@
         renderer.xr.enabled = true;
 
         // VR controls 
-        console.log(renderer.xr);
+        const controllerModelFactory = new XRControllerModelFactory();
+
         let controller1 = renderer.xr.getControllerGrip(0);
+        controller1.add(controllerModelFactory.createControllerModel(controller1));
+        scene.add(controller1);
+
         let controller1Ray = renderer.xr.getController(0);
 
         renderer.domElement.onmouseup = function() {
@@ -69,15 +74,12 @@
         scene.add(light);
 
         //configure torus
-        var geometry = new THREE.SphereGeometry(1, 32, 16);
+        var geometry = new THREE.SphereGeometry(5, 32, 16);
         var material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});
 
         var sphere = new THREE.Mesh(geometry, material);
-        sphere.scale.set = 0.25;
-
-        controller1.add(sphere);
-
-        scene.add( controller1 );
+        sphere.translateZ(-100);
+        scene.add(sphere);
 
         controls = new OrbitControls(camera, renderer.domElement);
  

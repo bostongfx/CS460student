@@ -59,11 +59,22 @@
         var loader = new GLTFLoader();
         loader.load( 'shoes_mcqueen.glb', function ( gltf ) {
 
-            // Stretch the poly (you can change x,y,z to see how stretch)
             var poly = gltf.scenes[0].children[0];
+
+            // Stretch the poly (you can change x,y,z to see how stretch)
             poly.scale.x = 10;
             poly.scale.y = 10;
             poly.scale.z = 10;
+
+            // Reset quarternion to identify (no rotation)
+            poly.quaternion.w = 1;
+            poly.quaternion.x = 0;
+            poly.quaternion.y = 0;
+            poly.quaternion.z = 0;
+
+            // Translate to avoid overlap
+            poly.translateX(3);
+
             scene.add( gltf.scene );
 
         } );
@@ -72,12 +83,17 @@
         loader.load( 'shoes_mcqueen_finalVer.glb', function ( gltf ) {
             
             var shoes = gltf.scenes[0].children[0];
+
             shoes.scale.x = 10;
             shoes.scale.y = 10;
             shoes.scale.z = 10;
-            // Without this line, couldn't see the edited shoes due to overlap.
-            // Delete the unedited shoes portion above and set x-position to 0, you will see.
-            shoes.position.set(4, 0, 0);
+            
+            // Reset quaternion to identity (no rotation)
+            shoes.quaternion.w = 1;
+            shoes.quaternion.x = 0;
+            shoes.quaternion.y = 0;
+            shoes.quaternion.z = 0;
+
             scene.add( gltf.scene );
 
         } );

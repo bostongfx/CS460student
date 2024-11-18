@@ -25,7 +25,8 @@
 
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';    
-      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';  
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; 
+      import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js'; 
 
       var renderer, controls, scene, camera;
 
@@ -97,6 +98,10 @@
             scene.add( gltf.scene );
 
         } );
+
+        // Set up the user interface and configure the Scene panel (Tweakpane UI).
+        pane = new Pane();
+        var sceneui = pane.addFolder({title: 'Scene'});
 
         // call animation/rendering loop
         animate();

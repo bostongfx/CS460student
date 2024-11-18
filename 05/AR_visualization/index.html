@@ -105,6 +105,18 @@
             // Assign the Blender mesh to window.SCENE
             window.SCENE.blender = blender;
 
+            // Set up the helper in the callback with a color of choice
+            var helper = new VertexNormalsHelper( blender, 0.1, 'pink' );
+            helper.visible = false;
+            scene.add(helper);
+
+            // Normal Visualization Checkbox
+            blenderui.addBinding(helper, 'visible', { label: 'Show normals!' });
+
+            // Assign the Blender mesh and helper to SCENE
+            window.SCENE.blender = blender;
+            window.SCENE.blender_helper = helper;
+
             scene.add( gltf.scene );
 
         } );
@@ -206,6 +218,9 @@
                 const identityQuaternion = new THREE.Quaternion();
                 window.SCENE.blender.quaternion.slerp(identityQuaternion, 0.01);
             }
+
+            // Update the VertexNormalsHelper to match the mesh's new orientation
+            window.SCENE.blender_helper.update();
         }
 
       };

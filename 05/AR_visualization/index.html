@@ -27,6 +27,7 @@
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';    
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; 
       import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js'; 
+      import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
       var renderer, controls, scene, camera;
 
@@ -89,17 +90,20 @@
         // Load a binary glTF file, BUT this time load the edited version.
         loader.load( 'shoes_mcqueen_finalVer.glb', function ( gltf ) {
             
-            var shoes = gltf.scenes[0].children[0];
+            var blender = gltf.scenes[0].children[0];
 
-            shoes.scale.x = 10;
-            shoes.scale.y = 10;
-            shoes.scale.z = 10;
+            blender.scale.x = 10;
+            blender.scale.y = 10;
+            blender.scale.z = 10;
             
             // Reset quaternion to identity (no rotation)
-            shoes.quaternion.w = 1;
-            shoes.quaternion.x = 0;
-            shoes.quaternion.y = 0;
-            shoes.quaternion.z = 0;
+            blender.quaternion.w = 1;
+            blender.quaternion.x = 0;
+            blender.quaternion.y = 0;
+            blender.quaternion.z = 0;
+
+            // Assign the Blender mesh to window.SCENE
+            window.SCENE.blender = blender;
 
             scene.add( gltf.scene );
 
@@ -117,6 +121,12 @@
             'do_rotate_poly' : function() { // toggles this flag
                 window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
             },
+
+            'blender' : null,
+            'rotate_blender' : false,
+            'do_rotate_blender' : function() {
+                window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+            }
         };
 
         // addBinding format ("object", "property", "range")
@@ -143,9 +153,17 @@
         // PolyCam Mesh UI
         var polyui = pane.addFolder({title: 'PolyCam Mesh'});
 
-        // Rotate Button
+        // Rotation Button
         polyui.addButton({title:'rotate!'}).on('click', () => {
             window.SCENE.do_rotate_poly();
+        });
+
+        // Blender Mesh UI
+        var blenderui = pane.addFolder({title: 'Blender Mesh'}); 
+
+        // Rotation Button
+        blenderui.addButton({title:'rotate!'}).on('click', () => {
+            window.SCENE.do_rotate_blender();
         });
 
         // call animation/rendering loop
@@ -158,6 +176,7 @@
         requestAnimationFrame( animate );
         renderer.render( scene, camera );
 
+        // Poly Mesh
         if (window.SCENE.poly) {
             if (window.SCENE.rotate_poly) {
                 // Create a quaternion for a 180-degree rotation around the Y-axis
@@ -170,6 +189,22 @@
                 // Reset quaternion to identity
                 const identityQuaternion = new THREE.Quaternion(); // Identity quaternion
                 window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.01);
+            }
+        }
+
+        // Blender Mesh
+        if (window.SCENE.blender) {
+            if (window.SCENE.rotate_blender) {
+                // Create a quaternion for a 180-degree rotation around the Y-axis
+                const targetQuaternion = new THREE.Quaternion();
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+                // Smoothly rotate to the target quaternion
+                window.SCENE.blender.quaternion.slerp(targetQuaternion, 0.01);
+            } else {
+                // Reset quaternion to identity
+                const identityQuaternion = new THREE.Quaternion();
+                window.SCENE.blender.quaternion.slerp(identityQuaternion, 0.01);
             }
         }
 

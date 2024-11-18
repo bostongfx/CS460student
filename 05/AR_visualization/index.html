@@ -138,6 +138,20 @@
             'rotate_blender' : false,
             'do_rotate_blender' : function() {
                 window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+            },
+
+            // We can use the window.SCENE helper to store a clone of the current material,
+            // overwrite it with a new THREE.MeshNormalMaterial,
+            // and re-store it when clicked again
+            'blender_old_material' : null,
+            'change_material' : function() {
+                if (!window['SCENE']['blender_old_material']) {
+                    window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+                    window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+                } else {
+                    window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+                    window['SCENE']['blender_old_material'] = null;
+                }
             }
         };
 
@@ -176,6 +190,11 @@
         // Rotation Button
         blenderui.addButton({title:'rotate!'}).on('click', () => {
             window.SCENE.do_rotate_blender();
+        });
+
+        // Change Material Button
+        blenderui.addButton({title: 'Change Material!'}).on('click', () => {
+            window.SCENE.change_material();
         });
 
         // call animation/rendering loop

@@ -100,8 +100,34 @@
         } );
 
         // Set up the user interface and configure the Scene panel (Tweakpane UI).
-        pane = new Pane();
+        var pane = new Pane();
         var sceneui = pane.addFolder({title: 'Scene'});
+
+        // SETTINGS and HELPER for TWEAKPANE
+        window['SCENE'] = {
+            'anaglyph' : false, // Default: standard rendering
+        };
+
+        // addBinding format ("object", "property", "range")
+
+        // Add anaglyph toggle to the Scene panel
+        sceneui.addBinding(window.SCENE, 'anaglyph');
+
+        // Directional light position and intensity controls
+        sceneui.addBinding(light.position, 'x', { min: -100, max: 100, label: 'Light X' });
+        sceneui.addBinding(light.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+        sceneui.addBinding(light.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+        sceneui.addBinding(light, 'intensity', { min: 0, max: 10, label: 'Intensity' });
+
+        // AmbientLight color
+        const ambientParams = { 
+            color: {r: 0, g: 0, b: 0},
+        };
+
+        sceneui.addBinding(ambientParams, 'color', { label: 'AmbientLight Color' }).on('change', (ev) => {
+            // Update the ambient light color dynamically
+            ambientLight.color.setRGB(ev.value.r, ev.value.g, ev.value.b);
+        });
 
         // call animation/rendering loop
         animate();

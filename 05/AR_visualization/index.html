@@ -76,6 +76,12 @@
             // Translate to avoid overlap
             poly.translateX(3);
 
+            // Assign the PolyCam mesh to window.SCENE
+            window.SCENE.poly = poly;
+
+            // Add the wireframe checkbox to the UI (also in the callback) 
+            polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+
             scene.add( gltf.scene );
 
         } );
@@ -106,6 +112,7 @@
         // SETTINGS and HELPER for TWEAKPANE
         window['SCENE'] = {
             'anaglyph' : false, // Default: standard rendering
+            'poly' : null // Placeholder for PolyCam mesh
         };
 
         // addBinding format ("object", "property", "range")
@@ -119,7 +126,7 @@
         sceneui.addBinding(light.position, 'z', { min: -100, max: 100, label: 'Light Z' });
         sceneui.addBinding(light, 'intensity', { min: 0, max: 10, label: 'Intensity' });
 
-        // AmbientLight color
+        // Add AmbientLight color
         const ambientParams = { 
             color: {r: 0, g: 0, b: 0},
         };
@@ -128,6 +135,9 @@
             // Update the ambient light color dynamically
             ambientLight.color.setRGB(ev.value.r, ev.value.g, ev.value.b);
         });
+
+        // Add Wireframe Flag (Checkbox) inside new PolyCam Mesh panel
+        var polyui = pane.addFolder({title: 'PolyCam Mesh'});
 
         // call animation/rendering loop
         animate();

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS460 Project 5</title> 
+
+    <style>
+        body {
+            background-color: white; 
+            margin: 0;
+            padding: 0;
+            height: 100%; 
+            overflow: hidden !important;
+        }
+    </style>
+</head>
+<body>
+    
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@latest/build/three.module.js", 
+            "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
+    } 
+</script> 
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'  
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    let renderer, controls, scene, camera; 
+
+    window.onload = function() {
+    
+        scene = new THREE.Scene(); 
+
+        // set up camera 
+        let fov = 75;
+        let ratio = window.innerWidth / window.innerHeight; 
+        let zNear = 0.1;
+        let zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar);
+        camera.position.set(0, 10, 0);  
+
+        // create renderer and set up canvas 
+        renderer = new THREE.WebGLRenderer({ antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight); 
+        document.body.appendChild(renderer.domElement);  
+
+        // now we need to set up the lights
+        let ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+        let light = new THREE.DirectionalLight(0xffffff, 5.0); 
+        light.position.set(10, 100, 10); 
+        scene.add(light);  
+
+        controls = new OrbitControls(camera, renderer.domElement); 
+        animate();
+
+        // load poly.glb file
+        let loader = new GLTFLoader();
+        loader.load('blender_stuff/poly.glb', function (gltf) {
+            // add object to the scene
+            let poly = scene.add(gltf.scene);
+            poly = gltf.scenes[0].children[0];
+            poly.scale.x = 10; 
+            poly.scale.y = 10;
+            poly.scale.z = 10;
+        }); 
+
+        
+        
+    }; 
+    
+    // part of the setup
+    function animate() {
+        requestAnimationFrame(animate); 
+        controls.update();
+        renderer.render(scene, camera);
+
+    };
+
+    console.log("Project 5 is working just fine.");
+</script>
+</body>
+</html>

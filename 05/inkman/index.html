@@ -1,309 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>three.js webgl - decal splatter</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link type="text/css" rel="stylesheet" href="https://threejs.org/examples/main.css">
-  </head>
-  <body>
 
-    <div id="container"></div>
-    <div id="info">
-      <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - decal splatter<br/>
-      click to shoot
-    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 5 - GLTF Loader with Adjustments</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+    </style>
 
+    <!-- Import ES module shim for compatibility -->
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+    <!-- Importmap for Three.js and its addons -->
     <script type="importmap">
     {
-      "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
-      }
+        "imports": {
+            "three": "https://unpkg.com/three@latest/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
     }
     </script>
 
     <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // Imported as instructed using assignment 3 as a baseline for a lot of the code
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
-      import * as THREE from 'three';
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
-      import Stats from 'three/addons/libs/stats.module.js';
-      import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+        // Imported as instructed in part 3
+        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
 
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-      import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
-      const container = document.getElementById( 'container' );
 
-      let renderer, scene, camera, stats;
-      let mesh;
-      let raycaster;
-      let line;
 
-      const intersection = {
-        intersects: false,
-        point: new THREE.Vector3(),
-        normal: new THREE.Vector3()
-      };
-      const mouse = new THREE.Vector2();
-      const intersects = [];
+        let scene, camera, renderer, controls, poly, newPoly, stats, anaglyphEffect;
 
-      const textureLoader = new THREE.TextureLoader();
-      const decalDiffuse = textureLoader.load( 'https://threejs.org/examples/textures/decal/decal-diffuse.png' );
-      decalDiffuse.colorSpace = THREE.SRGBColorSpace;
-      const decalNormal = textureLoader.load( 'https://threejs.org/examples/textures/decal/decal-normal.jpg' );
-
-      const decalMaterial = new THREE.MeshPhongMaterial( {
-        specular: 0x444444,
-        map: decalDiffuse,
-        normalMap: decalNormal,
-        normalScale: new THREE.Vector2( 1, 1 ),
-        shininess: 30,
-        transparent: true,
-        depthTest: true,
-        depthWrite: false,
-        polygonOffset: true,
-        polygonOffsetFactor: - 4,
-        wireframe: false
-      } );
-
-      const decals = [];
-      let mouseHelper;
-      const position = new THREE.Vector3();
-      const orientation = new THREE.Euler();
-      const size = new THREE.Vector3( 10, 10, 10 );
-
-      const params = {
-        minScale: 10,
-        maxScale: 20,
-        rotate: true,
-        clear: function () {
-
-          removeDecals();
-
-        }
-      };
-
-      init();
-      animate();
-
-      function init() {
-
-        renderer = new THREE.WebGLRenderer( { antialias: true } );
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        container.appendChild( renderer.domElement );
-
+        // After setting up the renderer
         stats = new Stats();
-        container.appendChild( stats.dom );
+        document.body.appendChild(stats.domElement);
 
-        scene = new THREE.Scene();
+        // This was instructed by part 9
+        window['SCENE'] = {
+            'anaglyph': false, // Boolean for Anaglyph rendering toggle
 
-        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
-        camera.position.z = 120;
+            // Part 10
+            'poly': null,
+            'rotate_poly': false,
+            'do_rotate_poly': function () {
+                window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+            },
 
-        const controls = new OrbitControls( camera, renderer.domElement );
-        controls.minDistance = 50;
-        controls.maxDistance = 200;
+            'blender': null,
+            'rotate_blender': true,
+            'do_rotate_blender': function () {
+                // Logs implemented to help trouble shoot rotation error
+                console.log("Before toggle: ", window['SCENE']['rotate_blender']);
+                window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+                console.log("After toggle: ", window['SCENE']['rotate_blender']);
+            },
 
-        scene.add( new THREE.AmbientLight( 0x666666 ) );
+            // Code provided by assignment part 11, credited
+            'blender_helper': null,
+            'blender_old_material': null,
+            'change_material': function () {
+                if (!window['SCENE']['blender_old_material']) {
+                    window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+                    window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+                } else {
+                    window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+                    window['SCENE']['blender_old_material'] = null;
+                }
+            }
+        };
 
-        const dirLight1 = new THREE.DirectionalLight( 0xffddcc, 3 );
-        dirLight1.position.set( 1, 0.75, 0.5 );
-        scene.add( dirLight1 );
+        window.onload = function () {
+            // Initialize the scene
+            scene = new THREE.Scene();
 
-        const dirLight2 = new THREE.DirectionalLight( 0xccccff, 3 );
-        dirLight2.position.set( - 1, 0.75, - 0.5 );
-        scene.add( dirLight2 );
+            // Please note all code below related to ambient lighting was code directly influenced by Assignment 3, aided by Professor Haehn
+            // Link credit: https://github.com/slpys/CS460student/blob/main/03/index.html | Aided by in class lecture slides
 
-        const geometry = new THREE.BufferGeometry();
-        geometry.setFromPoints( [ new THREE.Vector3(), new THREE.Vector3() ] );
+            // Set up the camera
+            const fov = 75;
+            const aspect = window.innerWidth / window.innerHeight;
+            const near = 0.1;
+            const far = 10000;
+            camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            camera.position.set(0, 10, 20); // Adjust camera position
 
-        line = new THREE.Line( geometry, new THREE.LineBasicMaterial() );
-        scene.add( line );
+            // Set up the renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
 
-        loadLeePerrySmith();
+            // Create AnaglyphEffect AFTER renderer is configured
+            anaglyphEffect = new AnaglyphEffect(renderer);
+            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
 
-        raycaster = new THREE.Raycaster();
+            // Set up OrbitControls
+            controls = new OrbitControls(camera, renderer.domElement);
 
-        mouseHelper = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 10 ), new THREE.MeshNormalMaterial() );
-        mouseHelper.visible = false;
-        scene.add( mouseHelper );
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
 
-        window.addEventListener( 'resize', onWindowResize );
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
 
-        let moved = false;
+            // Tweakpane setup
+            const pane = new Pane();
+            const sceneui = pane.addFolder({ title: 'Scene' });
+            // Add bindings for the directional light | Note code below is influenced by part 9, credit to 460 assignment 05 instructions
+            sceneui.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
+            sceneui.addBinding(directionalLight.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+            sceneui.addBinding(directionalLight.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+            sceneui.addBinding(directionalLight, 'intensity', { min: 0, max: 2, label: 'Light Intensity' });
 
-        controls.addEventListener( 'change', function () {
+            // Add bindings for the ambient light
+            sceneui.addBinding(ambientLight, 'intensity', { min: 0, max: 2, label: 'Ambient Intensity' });
 
-          moved = true;
+            // Add bindings for the ambient light color
+            sceneui.addBinding(ambientLight, 'color', {
+                view: 'color',
+                label: 'Ambient Color'
+            });
 
-        } );
+            // Add toggle for anaglyph rendering
+            sceneui.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph' });
 
-        window.addEventListener( 'pointerdown', function () {
+            // Load poly.glb | Initially realized from part 3
+            const loader1 = new GLTFLoader();
+            loader1.load('poly.glb', function (gltf) {
+                const poly = gltf.scene.children[0]; // Access the mesh
 
-          moved = false;
+                // Assign to window.SCENE.poly
+                window.SCENE.poly = poly;
 
-        } );
+                // Set scaling | Note code idea given by part 4
+                poly.scale.set(10, 10, 10);
 
-        window.addEventListener( 'pointerup', function ( event ) {
+                // Set identity quaternion (no rotation) | Part 6 code credit
+                poly.quaternion.w = 1;
+                poly.quaternion.x = 0;
+                poly.quaternion.y = 0;
+                poly.quaternion.z = 0;
 
-          if ( moved === false ) {
+                // Apply a small translation to avoid overlap, had to constantly tweak
+                poly.translateX(5);
+                poly.translateY(2);
 
-            checkIntersection( event.clientX, event.clientY );
+                // Add the model to the scene
+                scene.add(gltf.scene);
 
-            if ( intersection.intersects ) shoot();
+                // Code below was directly influenced by part 10 snippet | credit Professor Haehn through assignment pdf https://www.overleaf.com/project/5d994e1994540200017857f0 
+                const polyui = pane.addFolder({ title: 'PolyCam Mesh' });
+                polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+                polyui.addButton({ title: 'rotate!' }).on('click', () => {
+                    window.SCENE.do_rotate_poly();
+                });
 
-          }
+            });
 
-        } );
+            // Load newpoly.glb
+            const loader2 = new GLTFLoader();
+            loader2.load('newpoly.glb', function (gltf) {
 
-        window.addEventListener( 'pointermove', onPointerMove );
+                const newpoly = gltf.scene.children[0]; // Access the mesh
+                window.SCENE.blender = newpoly;
 
-        function onPointerMove( event ) {
+                // Set scaling
+                newpoly.scale.set(25, 25, 25);
 
-          if ( event.isPrimary ) {
+                // Set identity quaternion (no rotation)
+                newpoly.quaternion.w = 1;
+                newpoly.quaternion.x = 0;
+                newpoly.quaternion.y = 0;
+                newpoly.quaternion.z = 0;
+                newpoly.rotation.y = Math.PI;
 
-            checkIntersection( event.clientX, event.clientY );
+                // Console logs implemented to help trouble shoot rotation error
+                console.log("Initial rotation:", newpoly.rotation);
+                console.log("Initial quaternion:", newpoly.quaternion);
 
-          }
+                // Add the model to the scene
+                scene.add(gltf.scene);
 
+                // Add VertexNormalsHelper
+                const helper = new VertexNormalsHelper(newpoly, 0.1, 'blue');
+                helper.visible = false;
+                scene.add(helper);
+                window.SCENE.blender_helper = helper;
+
+                // Set up UI for Blender Mesh | code below was for part 11, directly inspired by the snippet provided by the instructions for poly click
+                const blenderui = pane.addFolder({ title: 'Blender Mesh' });
+                blenderui.addBinding(helper, 'visible', { label: 'Show normals!' });
+                blenderui.addButton({ title: 'Change Material!' }).on('click', () => {
+                    window.SCENE.change_material();
+                });
+                blenderui.addButton({ title: 'Rotate Blender!' }).on('click', () => {
+                    window.SCENE.do_rotate_blender();
+                });
+            });
+
+            // Handle window resizing
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Start the animation loop
+            animate();
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update Stats.js widget
+            stats.update();
+
+            // Rotation logic for poly and blender | part 10 helped with poly, and part 11 helped with blender
+            if (window.SCENE.poly) {
+                const q = new THREE.Quaternion();
+                if (window.SCENE.rotate_poly) {
+                    q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                } else {
+                    q.identity();
+                }
+                window.SCENE.poly.quaternion.slerp(q, 0.01);
+            }
+
+            // Similar code from above which was provided
+            if (window.SCENE.blender) {
+                const qt = new THREE.Quaternion();
+                if (window.SCENE.rotate_blender) {
+                    qt.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                } else {
+                    qt.identity();
+                }
+                window.SCENE.blender.quaternion.slerp(qt, 0.01);
+
+                // Update normals helper for Blender
+                if (window.SCENE.blender_helper) {
+                    window.SCENE.blender_helper.update();
+                }
+            }
+
+            // Render using anaglyphEffect if enabled, otherwise use normal renderer
+            if (window.SCENE.anaglyph) {
+                anaglyphEffect.render(scene, camera);
+            } else {
+                renderer.render(scene, camera);
+            }
+            controls.update();
         }
 
-        function checkIntersection( x, y ) {
-
-          if ( mesh === undefined ) return;
-
-          mouse.x = ( x / window.innerWidth ) * 2 - 1;
-          mouse.y = - ( y / window.innerHeight ) * 2 + 1;
-
-          raycaster.setFromCamera( mouse, camera );
-          raycaster.intersectObject( mesh, false, intersects );
-
-          if ( intersects.length > 0 ) {
-
-            const p = intersects[ 0 ].point;
-            mouseHelper.position.copy( p );
-            intersection.point.copy( p );
-
-            const n = intersects[ 0 ].face.normal.clone();
-            n.transformDirection( mesh.matrixWorld );
-            n.multiplyScalar( 10 );
-            n.add( intersects[ 0 ].point );
-
-            intersection.normal.copy( intersects[ 0 ].face.normal );
-            mouseHelper.lookAt( n );
-
-            const positions = line.geometry.attributes.position;
-            positions.setXYZ( 0, p.x, p.y, p.z );
-            positions.setXYZ( 1, n.x, n.y, n.z );
-            positions.needsUpdate = true;
-
-            intersection.intersects = true;
-
-            intersects.length = 0;
-
-          } else {
-
-            intersection.intersects = false;
-
-          }
-
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // Added so the toggle didnt freeze entire scene
+            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
         }
-
-        const gui = new GUI();
-
-        gui.add( params, 'minScale', 1, 30 );
-        gui.add( params, 'maxScale', 1, 30 );
-        gui.add( params, 'rotate' );
-        gui.add( params, 'clear' );
-        gui.open();
-
-      }
-
-      function loadLeePerrySmith() {
-
-        const map = textureLoader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/Map-COL.jpg' );
-        map.colorSpace = THREE.SRGBColorSpace;
-        const specularMap = textureLoader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/Map-SPEC.jpg' );
-        const normalMap = textureLoader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/Infinite-Level_02_Tangent_SmoothUV.jpg' );
-
-        const loader = new GLTFLoader();
-
-        loader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb', function ( gltf ) {
-
-          mesh = gltf.scene.children[ 0 ];
-          mesh.material = new THREE.MeshPhongMaterial( {
-            specular: 0x111111,
-            map: map,
-            specularMap: specularMap,
-            normalMap: normalMap,
-            shininess: 25
-          } );
-
-          scene.add( mesh );
-          mesh.scale.set( 10, 10, 10 );
-
-        } );
-
-      }
-
-      function shoot() {
-
-        position.copy( intersection.point );
-        orientation.copy( mouseHelper.rotation );
-
-        if ( params.rotate ) orientation.z = Math.random() * 2 * Math.PI;
-
-        const scale = params.minScale + Math.random() * ( params.maxScale - params.minScale );
-        size.set( scale, scale, scale );
-
-        const material = decalMaterial.clone();
-        material.color.setHex( Math.random() * 0xffffff );
-
-        const m = new THREE.Mesh( new DecalGeometry( mesh, position, orientation, size ), material );
-        m.renderOrder = decals.length; // give decals a fixed render order
-
-        decals.push( m );
-        scene.add( m );
-
-      }
-
-      function removeDecals() {
-
-        decals.forEach( function ( d ) {
-
-          scene.remove( d );
-
-        } );
-
-        decals.length = 0;
-
-      }
-
-      function onWindowResize() {
-
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize( window.innerWidth, window.innerHeight );
-
-      }
-
-      function animate() {
-
-        requestAnimationFrame( animate );
-
-        renderer.render( scene, camera );
-
-        stats.update();
-
-      }
 
     </script>
+</head>
 
-  </body>
+<body>
+</body>
+
 </html>

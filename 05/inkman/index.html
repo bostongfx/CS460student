@@ -1,309 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>three.js webgl - decal splatter</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link type="text/css" rel="stylesheet" href="https://threejs.org/examples/main.css">
-  </head>
-  <body>
-
-    <div id="container"></div>
-    <div id="info">
-      <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - decal splatter<br/>
-      click to shoot
-    </div>
-
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-
-    <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
-      }
+<head>
+  <title>three.js webgl - decal splatter</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link type="text/css" rel="stylesheet" href="https://threejs.org/examples/main.css">
+  <style>
+    html, body { 
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden !important;  
     }
-    </script>
+  </style>
+</head>
+<body>
 
-    <script type="module">
+  <div id="container"></div>
+  <div id="info">
+    <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - decal splatter<br/>
+    click to shoot
+  </div>
 
-      import * as THREE from 'three';
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@latest/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+    import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+    import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
-      import Stats from 'three/addons/libs/stats.module.js';
-      import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+    var renderer, controls, scene, camera, loader, pane;
+    var anaglyphOn, effect, stats;
 
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-      import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
+    window.onload = function() {
+      scene = new THREE.Scene();
 
-      const container = document.getElementById( 'container' );
+      // Setup camera 
+      var fov = 75;
+      var ratio = window.innerWidth / window.innerHeight;
+      var zNear = .1;
+      var zFar = 10000;
+      camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+      camera.position.set(5, 0, 10);
 
-      let renderer, scene, camera, stats;
-      let mesh;
-      let raycaster;
-      let line;
 
-      const intersection = {
-        intersects: false,
-        point: new THREE.Vector3(),
-        normal: new THREE.Vector3()
-      };
-      const mouse = new THREE.Vector2();
-      const intersects = [];
+      renderer = new THREE.WebGLRenderer({antialias:true});
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
-      const textureLoader = new THREE.TextureLoader();
-      const decalDiffuse = textureLoader.load( 'https://threejs.org/examples/textures/decal/decal-diffuse.png' );
-      decalDiffuse.colorSpace = THREE.SRGBColorSpace;
-      const decalNormal = textureLoader.load( 'https://threejs.org/examples/textures/decal/decal-normal.jpg' );
+      effect = new AnaglyphEffect(renderer);
+      effect.setSize(window.innerWidth, window.innerHeight);
 
-      const decalMaterial = new THREE.MeshPhongMaterial( {
-        specular: 0x444444,
-        map: decalDiffuse,
-        normalMap: decalNormal,
-        normalScale: new THREE.Vector2( 1, 1 ),
-        shininess: 30,
-        transparent: true,
-        depthTest: true,
-        depthWrite: false,
-        polygonOffset: true,
-        polygonOffsetFactor: - 4,
-        wireframe: false
-      } );
+      var ambientLight = new THREE.AmbientLight();
+      scene.add(ambientLight);
 
-      const decals = [];
-      let mouseHelper;
-      const position = new THREE.Vector3();
-      const orientation = new THREE.Euler();
-      const size = new THREE.Vector3( 10, 10, 10 );
+      var light = new THREE.DirectionalLight(0xffffff, 5.0);
+      light.position.set(10, 100, 10);
+      scene.add(light);
 
-      const params = {
-        minScale: 10,
-        maxScale: 20,
-        rotate: true,
-        clear: function () {
+      // tweakpane
 
-          removeDecals();
+      pane = new Pane();
+      var sceneui = pane.addFolder({title : 'Scene'});
 
-        }
-      };
 
-      init();
-      animate();
+      window['SCENE'] = {
+          'anaglyph': false,
+          'poly': null,
+          'blender': null,
+          'rotate_poly': false,
+          'rotate_blender': false,
+          'blender_helper': null,
+          'blender_old_material': null,
+          'do_rotate_poly': function() {
+            window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+          },
+          'do_rotate_blender': function() {
+            window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+          },
+          'change_material': function() {
+            if (!window['SCENE']['blender_old_material']) {
+              window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+              window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+            } else {
+              window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+              window['SCENE']['blender_old_material'] = null;
+            }
+          }
+        };
 
-      function init() {
+        sceneui.addBinding(window.SCENE, 'anaglyph')
+        .on('change', (event) => {
+          anaglyphOn = event.value;
+        });
+        sceneui.addBinding(light.position, 'x', {min: -100, max: 100, label: 'Light X'}); 
+        sceneui.addBinding(light.position, 'y', {min: -100, max: 100, label: 'Light Y'}); 
+        sceneui.addBinding(light.position, 'z', {min: -100, max: 100, label: 'Light Z'}); 
+        sceneui.addBinding(light, 'intensity', {min: 0, max: 10, label: 'Intensity'}); 
+        sceneui.addBinding(light, 'color', {label: 'AmbientLight Color'}); 
 
-        renderer = new THREE.WebGLRenderer( { antialias: true } );
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        container.appendChild( renderer.domElement );
 
+        loader = new GLTFLoader();
+        loader.load('poly.glb', function (gltf) {
+          // set up the PolyCam mesh
+          var poly = gltf.scenes[0].children[0];
+
+          poly.scale.x = 5;
+          poly.scale.y = 5;
+          poly.scale.z = 5;
+
+          poly.translateX(-30);
+          poly.translateY(0); 
+
+
+          // Reset quaternion to identity
+          poly.quaternion.w = 1;
+          poly.quaternion.x = 0;
+          poly.quaternion.y = 0;
+          poly.quaternion.z = 0;
+
+          scene.add(gltf.scene);
+          window.SCENE.poly = poly;
+
+          // Add UI controls for the PolyCam mesh
+          var polyui = pane.addFolder({title : 'PolyCam Mesh'});
+          polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+          polyui.addButton({title: 'rotate!'}).on('click', () => 
+          {
+            window.SCENE.do_rotate_poly();
+          });
+        });
+
+        // Importing another GLTF file
+        loader.load('poly2.glb', function (gltf) {
+          // Load and set up the Blender mesh
+          var poly2 = gltf.scenes[0].children[0];
+
+          poly2.scale.x = 10;
+          poly2.scale.y = 10;
+          poly2.scale.z = 10;
+
+          // Reset quaternion to identity
+          poly2.quaternion.w = 1;
+          poly2.quaternion.x = 0;
+          poly2.quaternion.y = 0;
+          poly2.quaternion.z = 0;
+
+          scene.add(gltf.scene);
+          window.SCENE.blender = poly2;
+
+          const helper = new VertexNormalsHelper(poly2, 0.1, 'blue');
+          helper.visible = false; // Start with the helper hidden
+          scene.add(helper);
+          window.SCENE.blender_helper = helper;
+
+          // Add UI controls for the Blender mesh
+          var blenderui = pane.addFolder({title : 'Blender Mesh'});
+          blenderui.addBinding(helper, 'visible', {label: "Show normals!"});
+          blenderui.addButton({title: "Change Material!"}).on('click', () => {
+            window.SCENE.change_material();
+          });
+          blenderui.addButton({title: 'rotate!'}).on('click', () => {
+            window.SCENE.do_rotate_blender();
+          });
+        });
+
+        controls = new OrbitControls(camera, renderer.domElement);
+
+        // Stats.js widget for performance monitoring
         stats = new Stats();
-        container.appendChild( stats.dom );
+        document.body.appendChild(stats.domElement);
 
-        scene = new THREE.Scene();
+        // Handle window resize to update renderer and effect size
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          effect.setSize(window.innerWidth, window.innerHeight);
+        });
 
-        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
-        camera.position.z = 120;
+        // Call animation/rendering loop
+        animate();
+      };
 
-        const controls = new OrbitControls( camera, renderer.domElement );
-        controls.minDistance = 50;
-        controls.maxDistance = 200;
+  
+    function animate() {
+      // Animation loop here 
 
-        scene.add( new THREE.AmbientLight( 0x666666 ) );
+      requestAnimationFrame(animate);
 
-        const dirLight1 = new THREE.DirectionalLight( 0xffddcc, 3 );
-        dirLight1.position.set( 1, 0.75, 0.5 );
-        scene.add( dirLight1 );
+        // Update controls
+        controls.update();
 
-        const dirLight2 = new THREE.DirectionalLight( 0xccccff, 3 );
-        dirLight2.position.set( - 1, 0.75, - 0.5 );
-        scene.add( dirLight2 );
-
-        const geometry = new THREE.BufferGeometry();
-        geometry.setFromPoints( [ new THREE.Vector3(), new THREE.Vector3() ] );
-
-        line = new THREE.Line( geometry, new THREE.LineBasicMaterial() );
-        scene.add( line );
-
-        loadLeePerrySmith();
-
-        raycaster = new THREE.Raycaster();
-
-        mouseHelper = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 10 ), new THREE.MeshNormalMaterial() );
-        mouseHelper.visible = false;
-        scene.add( mouseHelper );
-
-        window.addEventListener( 'resize', onWindowResize );
-
-        let moved = false;
-
-        controls.addEventListener( 'change', function () {
-
-          moved = true;
-
-        } );
-
-        window.addEventListener( 'pointerdown', function () {
-
-          moved = false;
-
-        } );
-
-        window.addEventListener( 'pointerup', function ( event ) {
-
-          if ( moved === false ) {
-
-            checkIntersection( event.clientX, event.clientY );
-
-            if ( intersection.intersects ) shoot();
-
-          }
-
-        } );
-
-        window.addEventListener( 'pointermove', onPointerMove );
-
-        function onPointerMove( event ) {
-
-          if ( event.isPrimary ) {
-
-            checkIntersection( event.clientX, event.clientY );
-
-          }
-
-        }
-
-        function checkIntersection( x, y ) {
-
-          if ( mesh === undefined ) return;
-
-          mouse.x = ( x / window.innerWidth ) * 2 - 1;
-          mouse.y = - ( y / window.innerHeight ) * 2 + 1;
-
-          raycaster.setFromCamera( mouse, camera );
-          raycaster.intersectObject( mesh, false, intersects );
-
-          if ( intersects.length > 0 ) {
-
-            const p = intersects[ 0 ].point;
-            mouseHelper.position.copy( p );
-            intersection.point.copy( p );
-
-            const n = intersects[ 0 ].face.normal.clone();
-            n.transformDirection( mesh.matrixWorld );
-            n.multiplyScalar( 10 );
-            n.add( intersects[ 0 ].point );
-
-            intersection.normal.copy( intersects[ 0 ].face.normal );
-            mouseHelper.lookAt( n );
-
-            const positions = line.geometry.attributes.position;
-            positions.setXYZ( 0, p.x, p.y, p.z );
-            positions.setXYZ( 1, n.x, n.y, n.z );
-            positions.needsUpdate = true;
-
-            intersection.intersects = true;
-
-            intersects.length = 0;
-
+        // Handle rotation for PolyCam mesh
+        if (window.SCENE.poly) {
+          if (window.SCENE.rotate_poly) {
+            var T = Math.PI;
+            var q = new THREE.Quaternion(0, Math.sin(T / 2) * 1, 0, Math.cos(T / 2));
+            window.SCENE.poly.quaternion.slerp(q, 0.01);
           } else {
-
-            intersection.intersects = false;
-
+            var T = 2 * Math.PI;
+            var q = new THREE.Quaternion(0, Math.sin(T / 2) * 1, 0, Math.cos(T / 2));
+            window.SCENE.poly.quaternion.slerp(q, 0.01);
           }
-
         }
 
-        const gui = new GUI();
+        if (window.SCENE.blender) {
+          if (window.SCENE.rotate_blender) {
+            var T = Math.PI;
+            var q = new THREE.Quaternion(0, Math.sin(T / 2) * 1, 0, Math.cos(T / 2));
+            window.SCENE.blender.quaternion.slerp(q, 0.01);
+            window.SCENE.blender_helper.update();
+          } else {
+            var T = 2 * Math.PI;
+            var q = new THREE.Quaternion(0, Math.sin(T / 2) * 1, 0, Math.cos(T / 2));
+            window.SCENE.blender.quaternion.slerp(q, 0.01);
+            window.SCENE.blender_helper.update();
+          }
+        }
 
-        gui.add( params, 'minScale', 1, 30 );
-        gui.add( params, 'maxScale', 1, 30 );
-        gui.add( params, 'rotate' );
-        gui.add( params, 'clear' );
-        gui.open();
+        if (anaglyphOn) {
+          effect.render(scene, camera);
+        } else {
+          renderer.render(scene, camera);
+        }
 
-      }
-
-      function loadLeePerrySmith() {
-
-        const map = textureLoader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/Map-COL.jpg' );
-        map.colorSpace = THREE.SRGBColorSpace;
-        const specularMap = textureLoader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/Map-SPEC.jpg' );
-        const normalMap = textureLoader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/Infinite-Level_02_Tangent_SmoothUV.jpg' );
-
-        const loader = new GLTFLoader();
-
-        loader.load( 'https://threejs.org/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb', function ( gltf ) {
-
-          mesh = gltf.scene.children[ 0 ];
-          mesh.material = new THREE.MeshPhongMaterial( {
-            specular: 0x111111,
-            map: map,
-            specularMap: specularMap,
-            normalMap: normalMap,
-            shininess: 25
-          } );
-
-          scene.add( mesh );
-          mesh.scale.set( 10, 10, 10 );
-
-        } );
-
-      }
-
-      function shoot() {
-
-        position.copy( intersection.point );
-        orientation.copy( mouseHelper.rotation );
-
-        if ( params.rotate ) orientation.z = Math.random() * 2 * Math.PI;
-
-        const scale = params.minScale + Math.random() * ( params.maxScale - params.minScale );
-        size.set( scale, scale, scale );
-
-        const material = decalMaterial.clone();
-        material.color.setHex( Math.random() * 0xffffff );
-
-        const m = new THREE.Mesh( new DecalGeometry( mesh, position, orientation, size ), material );
-        m.renderOrder = decals.length; // give decals a fixed render order
-
-        decals.push( m );
-        scene.add( m );
-
-      }
-
-      function removeDecals() {
-
-        decals.forEach( function ( d ) {
-
-          scene.remove( d );
-
-        } );
-
-        decals.length = 0;
-
-      }
-
-      function onWindowResize() {
-
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize( window.innerWidth, window.innerHeight );
-
-      }
-
-      function animate() {
-
-        requestAnimationFrame( animate );
-
-        renderer.render( scene, camera );
-
+        // Update stats
         stats.update();
-
-      }
-
+      };
     </script>
 
-  </body>
+</body>
 </html>

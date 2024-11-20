@@ -32,7 +32,9 @@
       let controller1, controller1Grip, controller2, controller2Grip;
       let globalGroup = new THREE.Group();
       let FPS = 1/60;
-      let BALLS = []
+      let BALLS = [];
+      let PLATES = [];
+      let MAX_PLATES = 7;
       function MeshObjects(mesh) {
         this.object = mesh;
         this.PHYSICS = {
@@ -87,6 +89,7 @@
         scene.add(controller1);
 
         controller2Grip = renderer.xr.getControllerGrip(1);
+        controller2Grip.add( controllerModelFactory.createControllerModel( controller2Grip ) );
         scene.add(controller2Grip);
         controller2 = renderer.xr.getController(1);
         controller2.add(line.clone());
@@ -97,7 +100,7 @@
         // Controller Squeeze event
         controller1.addEventListener('selectstart', (event) => {
           let controller = event.target;
-          let geometry = new THREE.SphereGeometry(0.5, 32, 16);
+          let geometry = new THREE.SphereGeometry(0.2, 32, 16);
           let material = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: false});
           let ball = new THREE.Mesh(geometry, material);
           let object = new MeshObjects(ball);
@@ -121,9 +124,7 @@
               object.PHYSICS.xspeed = controller.linearVelocity.x;
               object.PHYSICS.zspeed = controller.linearVelocity.z;
               object.PHYSICS.yspeedint = controller.linearVelocity.y;
-              // object.PHYSICS.xspeed = 10;
-              // object.PHYSICS.zspeed = 10;
-              // object.PHYSICS.yspeedint = 10;
+              console.log(object.PHYSICS);
             }
             BALLS.push(object);
             console.log(object);
@@ -169,14 +170,27 @@
         controls.update();
         
       };
+      function createPlate() {
+        let geometry = new THREE.CircleGeometry(5, 32);
+        let material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});
+        let plate = new THREE.Mesh(geometry, material);
+        plate.translateZ(-50);
+        plate.translateY(20);
+        scene.add(plate);
+        let object = new MeshObjects(plate);
+        PLATES.push(object);
 
+      }
       function animate() {
+        if (PLATES.length < MAX_PLATES) {
+          createPlate();
+        }
         for (let i = 0; i < BALLS.length; i++) {
           let ball_mesh_object = BALLS[i];
           let ball = BALLS[i].object;
           let ball_physics = ball_mesh_object.PHYSICS;
           if (ball.position.y > -5) {
-            ball_physics.time += 1/60;
+            ball_physics.time += FPS;
             let ydisplacement = 0;
             ball_physics.yspeed = ball_physics.yspeedint - 9.81 * ball_physics.time;
             ydisplacement = ball_physics.yspeed*FPS + (0.5 * -9.81 * Math.pow(ball_physics.time, 2));

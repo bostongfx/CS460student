@@ -120,14 +120,16 @@
             sphere.position.x = positon.x;
             sphere.position.y = positon.y;
             sphere.position.z = positon.z;
-            const speed = controller.linearVelocity;
-            object.PHYSICS.xspeed = speed.x;
-            object.PHYSICS.zspeed = speed.z;
-            object.PHYSICS.yspeedint = speed.y;
-            console.log(speed);
+            const prevPos = controller.userData.prevPos;
+            const currPos = controller.position;
+            object.PHYSICS.xspeed = (currPos.x - currPos.x)/FPS;
+            object.PHYSICS.zspeed = (currPos.z - currPos.z)/FPS;
+            object.PHYSICS.yspeedint = (currPos.y - currPos.y)/FPS;
+            console.log(prevPos);
             BALLS.push(object);
             console.log(object);
             controller.userData.selected = undefined;
+            controller.userData.prevPos = undefined;
           }
         });
 
@@ -181,6 +183,7 @@
 
       }
       function animate() {
+        controller1.userData.prevPos = controller1.position;
         if (PLATES.length < MAX_PLATES) {
           createPlate();
         }

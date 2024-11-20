@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -34,9 +33,8 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
         import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
-        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
 
-        let scene, camera, renderer, controls, stats, anaglyphEffect;
+        let scene, camera, renderer, controls, stats;
 
         stats = new Stats();
         document.body.appendChild(stats.domElement);
@@ -49,7 +47,7 @@
             'original_target_angle': 0,
             'do_rotate_original': function () {
                 window['SCENE']['rotate_original'] = true;
-                window['SCENE']['original_target_angle'] += Math.PI; // Rotate 180 degrees
+                window['SCENE']['original_target_angle'] += Math.PI;
             },
 
             'snoopy': null,
@@ -57,7 +55,7 @@
             'snoopy_target_angle': 0,
             'do_rotate_snoopy': function () {
                 window['SCENE']['rotate_snoopy'] = true;
-                window['SCENE']['snoopy_target_angle'] += Math.PI; // Rotate 180 degrees
+                window['SCENE']['snoopy_target_angle'] += Math.PI;
             },
 
             'change_material': function (mesh) {
@@ -85,9 +83,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            anaglyphEffect = new AnaglyphEffect(renderer);
-            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
-
             controls = new OrbitControls(camera, renderer.domElement);
 
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -98,44 +93,43 @@
             scene.add(directionalLight);
 
             const pane = new Pane();
-            const sceneui = pane.addFolder({ title: 'Scene' });
-            sceneui.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
-            sceneui.addBinding(directionalLight.position, 'y', { min: -100, max: 100, label: 'Light Y' });
-            sceneui.addBinding(directionalLight.position, 'z', { min: -100, max: 100, label: 'Light Z' });
-            sceneui.addBinding(directionalLight, 'intensity', { min: 0, max: 2, label: 'Light Intensity' });
-            sceneui.addBinding(ambientLight, 'intensity', { min: 0, max: 2, label: 'Ambient Intensity' });
-            sceneui.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Color' });
-            sceneui.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph' });
+            const sceneUI = pane.addFolder({ title: 'Scene' });
+            sceneUI.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
+            sceneUI.addBinding(directionalLight.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+            sceneUI.addBinding(directionalLight.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+            sceneUI.addBinding(directionalLight, 'intensity', { min: 0, max: 2, label: 'Light Intensity' });
+            sceneUI.addBinding(ambientLight, 'intensity', { min: 0, max: 2, label: 'Ambient Intensity' });
+            sceneUI.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Color' });
 
-            const loader1 = new GLTFLoader();
-            loader1.load('original.glb', function (gltf) {
+            const loadpoly = new GLTFLoader();
+            loadpoly.load('original.glb', function (gltf) {
                 const original = gltf.scene.children[0];
                 window.SCENE.original = original;
 
-                original.scale.set(50, 50, 50);
+                original.scale.set(100, 100, 100);
                 original.rotation.set(0, 0, 0);
-                original.position.set(50, -25, 0);
+                original.position.set(-150, -25, 0);
 
                 scene.add(gltf.scene);
 
-                const originalUI = pane.addFolder({ title: 'Original Model' });
+                const originalUI = pane.addFolder({ title: 'PolyCam Mesh' });
                 originalUI.addBinding(window.SCENE.original.material, 'wireframe');
                 originalUI.addButton({ title: 'Rotate!' }).on('click', window.SCENE.do_rotate_original);
             });
 
-            const loader2 = new GLTFLoader();
-            loader2.load('snoopy.glb', function (gltf) {
+            const loadblend = new GLTFLoader();
+            loadblend.load('snoopy.glb', function (gltf) {
             const snoopy = gltf.scene.children[0];
             window.SCENE.snoopy = snoopy;
 
-            snoopy.scale.set(50, 50, 50);
+            snoopy.scale.set(100, 100, 100);
             snoopy.rotation.set(0, 0, 0);
-            snoopy.position.set(-50, -25, 0);
+            snoopy.position.set(50, -25, -75);
 
             scene.add(gltf.scene);
 
             // Create Snoopy UI
-            const snoopyUI = pane.addFolder({ title: 'Snoopy Model' });
+            const snoopyUI = pane.addFolder({ title: 'Blender Mesh' });
 
             // Add normals helper and bind to UI
             const helper = new VertexNormalsHelper(snoopy, 0.1, 'blue');
@@ -175,11 +169,7 @@
                 }
             }
 
-            if (window.SCENE.anaglyph) {
-                anaglyphEffect.render(scene, camera);
-            } else {
-                renderer.render(scene, camera);
-            }
+            renderer.render(scene, camera);
 
             controls.update();
         }
@@ -188,12 +178,8 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
         }
     </script>
 </head>
-
-<body>
-</body>
 
 </html>

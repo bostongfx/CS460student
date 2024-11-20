@@ -120,12 +120,11 @@
             sphere.position.x = positon.x;
             sphere.position.y = positon.y;
             sphere.position.z = positon.z;
-            if(controller.hasLinearVelocity) {
-              object.PHYSICS.xspeed = controller.linearVelocity.x;
-              object.PHYSICS.zspeed = controller.linearVelocity.z;
-              object.PHYSICS.yspeedint = controller.linearVelocity.y;
-              console.log(object.PHYSICS);
-            }
+            const speed = controller.linearVelocity;
+            object.PHYSICS.xspeed = speed.x;
+            object.PHYSICS.zspeed = speed.z;
+            object.PHYSICS.yspeedint = speed.y;
+            console.log(speed);
             BALLS.push(object);
             console.log(object);
             controller.userData.selected = undefined;

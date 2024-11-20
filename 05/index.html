@@ -32,7 +32,8 @@
     <script type="module">
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"; 
+      import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
       let renderer, controls, scene, camera;
 
@@ -71,6 +72,22 @@
           poly.scale.x = 10;
           poly.scale.y = 10;
           poly.scale.z = 10;
+          poly
+
+          // identiy matrix for poly 
+          poly.quaternion.w = Math.sin(Math.PI/2) * 1;
+          poly.quaternion.x = Math.sin(Math.PI/2) * 0;
+          poly.quaternion.y = Math.sin(Math.PI/2) * 0;
+          poly.quaternion.z = Math.sin(Math.PI/2) * 0;  
+          window.SCENE.poly = poly; 
+          // window.SCENE.anaglyph =  
+
+          // add wireframe
+          let polyui = pane.addFolder({title: 'PolyCam Mesh'});
+          polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+          polyui.addButton({title: 'rotate!'}).on('click', () => {
+            window.SCENE.do_rotate_poly();
+          });
         });
 
         loader.load("blender_stuff/project_5.glb", function (gltf) {
@@ -78,20 +95,57 @@
           editedPoly = gltf.scenes[0].children[0];
           editedPoly.scale.x = 10;
           editedPoly.scale.y = 10;
-          editedPoly.scale.z = 10;
+          editedPoly.scale.z = 10; 
 
-          editedPoly.position.set(5, 0, 0);
-        });
+          // identity matrix for polyEdited 
+          editedPoly.quaternion.w = Math.sin(Math.PI/2) * 1;
+          editedPoly.quaternion.x = Math.sin(Math.PI/2) * 0;
+          editedPoly.quaternion.y = Math.sin(Math.PI/2) * 0;
+          editedPoly.quaternion.z = Math.sin(Math.PI/2) * 0;
+          window.SCENE.editedPoly = editedPoly; 
+
+          editedPoly.translateX(5);
+        }); 
+
+        // adding pannel
+        let pane = new Pane();
+        let sceneui = pane.addFolder({title: 'Scene'}); 
+        sceneui.addBinding(light.position, 'x', {min: -100, max: 100, label: 'Light X'});
+        sceneui.addBinding(light.position, 'y', {min: -100, max: 100, label: 'Light Y'});
+        sceneui.addBinding(light.position, 'z', {min: -100, max: 100, label: 'Light Z'}); 
+        sceneui.addBinding(light, 'intensity', {min: 0, max: 10, step: 0.1, label: 'Intensity'});
+        sceneui.addBinding(ambientLight, 'intensity', {min: 0, max: 10, step: 0.1, label: 'Ambient Light'});
+
+        window['SCENE'] = {
+          'anaglyph': false, 
+          'poly': null, 
+          'editedPoly': null, 
+          'rotate_poly': false,
+          'do_rotate_poly': function() {
+            window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+          }, 
+          // other stuff
+        } 
+
+        sceneui.addBinding(window.SCENE, 'anaglyph'); 
+
       };
 
       // part of the setup
       function animate() {
+        
         requestAnimationFrame(animate);
         controls.update();
-        renderer.render(scene, camera);
+        renderer.render(scene, camera); 
+        if (window.SCENE.poly) {
+          if (window.SCENE.rotate_poly) {
+            // finish top of page 6
+          }
+        }
       }
 
-      console.log("Project 5 is working just fine.");
+      console.log("Project 5 is working just fine."); 
+      
     </script>
   </body>
 </html>

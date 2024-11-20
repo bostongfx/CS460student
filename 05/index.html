@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js GLTFLoader with Camera Adjustments</title>
+    <title>Three.js GLTFLoader with Quaternion Adjustments</title>
     <style>
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
-            background-color: white;
+            background-color: #F5F5F5; /* White Smoke background */
         }
 
         canvas {
@@ -40,14 +40,14 @@
             const fov = 75;
             const aspect = window.innerWidth / window.innerHeight;
             const near = 0.1;
-            const far = 10000;
+            const far = 100;
             camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
             camera.position.set(0, 10, 100); // Initial position for visualization
 
             // Setup Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0xF5F5F5, 1); // To see the 3D visualization better
+            renderer.setClearColor(0xF5F5F5, 1); // Set background to White Smoke
             document.body.appendChild(renderer.domElement);
 
             // Add Lights
@@ -61,34 +61,45 @@
             // Add OrbitControls
             const controls = new OrbitControls(camera, renderer.domElement);
 
-            // Load poly.glb and Adjust Visualization
+            // Load poly.glb and Apply Transformations
             const loader = new GLTFLoader();
             loader.load('./part1/camera.glb', function (gltf) {
                 const polyMesh = gltf.scene.children[0]; // Access the first child (the mesh)
+                
+                // Set identity quaternion (remove rotation)
+                polyMesh.quaternion.w = 1; // Identity quaternion
+                polyMesh.quaternion.x = 0;
+                polyMesh.quaternion.y = 0;
+                polyMesh.quaternion.z = 0;
+                
                 polyMesh.scale.set(10, 10, 10); // Scale the model
+                polyMesh.translateX(5); // Add a slight translation to avoid overlap
                 scene.add(polyMesh);
             });
 
-            // 7. Load edited croc.glb from part2 and fix transformations
+            // Load edited croc.glb and Apply Transformations
             loader.load('./part2/camera.glb', function (gltf) {
                 const crocMesh = gltf.scene.children[0]; // Access the first child (the mesh)
-
-                // Fix scaling, position, and rotation
-                crocMesh.scale.set(15, 15, 15); // Adjust scale to match the scene
-                crocMesh.position.set(50, 0, 0); // Move the mesh to avoid overlapping
-                crocMesh.rotation.set(0, Math.PI / 4, 0); // Rotate to fix orientation
-
+                
+                // Set identity quaternion (remove rotation)
+                crocMesh.quaternion.w = 1; // Identity quaternion
+                crocMesh.quaternion.x = 0;
+                crocMesh.quaternion.y = 0;
+                crocMesh.quaternion.z = 0;
+                
+                crocMesh.scale.set(10, 10, 10); // Scale the model
+                crocMesh.position.set(15, 0, -10); // Move the mesh to avoid overlapping
                 scene.add(crocMesh);
             });
 
-            // 7. Handle Window Resize
+            // Handle Window Resize
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
 
-            // 8. Animation Loop
+            // Animation Loop
             function animate() {
                 requestAnimationFrame(animate);
                 renderer.render(scene, camera);

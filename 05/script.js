@@ -81,7 +81,7 @@ window.onload = function () {
         polyui.addBinding(window.SCENE.poly1.material, 'wireframe');
 
         // Add normals helper
-        helper1 = new VertexNormalsHelper(poly, 0.1, 'blue');
+        helper1 = new VertexNormalsHelper(poly, 1, 'blue');
         helper1.visible = false;
         scene.add(helper1);
         polyui.addBinding(helper1, 'visible', { label: 'Show normals!' });
@@ -115,7 +115,7 @@ window.onload = function () {
         });
 
         // Add normals helper
-        helper2 = new VertexNormalsHelper(poly, 0.1, 'blue');
+        helper2 = new VertexNormalsHelper(poly, 1, 'blue');
         helper2.visible = false;
         scene.add(helper2);
         polyui.addBinding(helper2, 'visible', { label: 'Show normals!' });

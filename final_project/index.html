@@ -138,7 +138,8 @@
             y: 2 * deltaQuat.y / FPS,
             z: 2 * deltaQuat.z / FPS,
           }
-          let armLength = Math.abs(position.y + 2);
+          let inside = (position.x * position.x) + (position.y + position.y);
+          let armLength = Math.sqrt(inside) + 0.2;
           console.log(angularVelocity);
           let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(0, armLength, 0));
           object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) + crossProd.x;

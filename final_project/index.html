@@ -1,18 +1,20 @@
 <html>
-  <head>
-    <style>
-      html, body { 
-        background-color:#000000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important;  
-      }
-    </style>
-    
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
-    <script type="importmap">
+<head>
+  <style>
+    html,
+    body {
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden !important;
+    }
+  </style>
+
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+  <script type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three@latest/build/three.module.js",
@@ -21,200 +23,201 @@
     }
     </script>
 
-    <script type="module">
+  <script type="module">
 
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';     
-      import { VRButton } from 'three/addons/webxr/VRButton.js'; 
-      import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
+    import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
-      var renderer, controls, scene, camera;
-      let controller1, controller1Grip, controller2, controller2Grip;
-      let globalGroup = new THREE.Group();
-      let FPS = 1/60;
-      let GRAVITY = 9.81;
-      let BALLS = [];
-      let PLATES = [];
-      let MAX_PLATES = 7;
-      function MeshObjects(mesh) {
-        this.object = mesh;
-        this.PHYSICS = {
-          "yspeed": 0,
-          "yspeedint": 0,
-          "xspeed": 0,
-          "zspeed": 0,
-          "time": 0,
-        }
+    var renderer, controls, scene, camera;
+    let controller1, controller1Grip, controller2, controller2Grip;
+    let globalGroup = new THREE.Group();
+    let FPS = 1 / 60;
+    let GRAVITY = 9.81;
+    let BALLS = [];
+    let PLATES = [];
+    let MAX_PLATES = 7;
+    function MeshObjects(mesh) {
+      this.object = mesh;
+      this.PHYSICS = {
+        "yspeed": 0,
+        "yspeedint": 0,
+        "xspeed": 0,
+        "zspeed": 0,
+        "time": 0,
       }
-      
-
-      window.onload = function() {
-
-        // Three.js code goes here
-        scene = new THREE.Scene({antialias: true});
-        scene.add(globalGroup);
-
-        // setup the camera
-        var fov = 75;
-        var ratio = window.innerWidth/ window.innerHeight;
-        var zNear = 0.1;
-        var zFar = 10000;
-        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
-        camera.position.set(0, 0, 0);
-
-        // create renderer and add canvas to DOM
-        renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // Configure VR Support
-        document.body.appendChild( VRButton.createButton( renderer ) );
-        renderer.xr.enabled = true;
-        renderer.setAnimationLoop(animate);
-
-        const line = new THREE.Line(
-            new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
-            new THREE.LineBasicMaterial({ color: 0xff0000 })
-        );
-        line.scale.z = 5;
-
-        // VR controls 
-        const controllerModelFactory = new XRControllerModelFactory();
-
-        controller1Grip = renderer.xr.getControllerGrip(0);
-        controller1Grip.add( controllerModelFactory.createControllerModel( controller1Grip ) );
-        scene.add(controller1Grip);
-        controller1 = renderer.xr.getController(0);
-        controller1.add(line.clone());
-        scene.add(controller1);
-
-        controller2Grip = renderer.xr.getControllerGrip(1);
-        controller2Grip.add( controllerModelFactory.createControllerModel( controller2Grip ) );
-        scene.add(controller2Grip);
-        controller2 = renderer.xr.getController(1);
-        controller2.add(line.clone());
-        scene.add(controller2);
-
-        console.log(controller1Grip);
-
-        // Controller Squeeze event
-        controller1.addEventListener('selectstart', (event) => {
-          let controller = event.target;
-          let geometry = new THREE.SphereGeometry(0.2, 32, 16);
-          let material = new THREE.MeshStandardMaterial({color: 0xffffff, wireframe: false});
-          let ball = new THREE.Mesh(geometry, material);
-          let object = new MeshObjects(ball);
-          controller1.add(ball);
-          ball.position.set(0, 0, 0);
-          controller.userData.selected = object;
-        });
-
-        controller1.addEventListener('selectend', (event) => {
-          let controller = event.target;
-          let object = controller.userData.selected;
-          if (object !== undefined) {
-            let sphere = object.object;
-            let positon = new THREE.Vector3();
-            sphere.getWorldPosition(positon);
-            globalGroup.add(sphere);
-            sphere.position.x = positon.x;
-            sphere.position.y = positon.y;
-            sphere.position.z = positon.z;
-            const prevPos = controller.userData.prevPos;
-            const currPos = controller.position;
-            object.PHYSICS.xspeed = (currPos.x*10 - prevPos.x)/FPS;
-            object.PHYSICS.zspeed = (currPos.z*10 - prevPos.z)/FPS;
-            object.PHYSICS.yspeedint = (currPos.y*10 - prevPos.y)/FPS;
-            console.log(object.PHYSICS);
-            BALLS.push(object);
-            console.log(object);
-            controller.userData.selected = undefined;
-            controller.userData.prevPos = undefined;
-          }
-        });
-
-        //setup lights
-        var ambientLight = new THREE.AmbientLight();
-        scene.add(ambientLight);
-
-        var light = new THREE.DirectionalLight(0xffffff, 5.0);
-        light.position.set(10, 100, 100);
-        scene.add(light);
-
-        // Create floor
-
-        let floorGeometry = new THREE.PlaneGeometry(1000, 1000, 15, 15);
-        let floorMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00, wireframe: false});
-        floorMaterial.side = THREE.DoubleSide;
-        let floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.position.set(0, -10, 0);
-        floor.rotation.x = Math.PI / 2;
-
-        scene.add(floor);
+    }
 
 
-        //configure Sphere
-        var geometry = new THREE.SphereGeometry(5, 32, 16);
-        var material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});
+    window.onload = function () {
 
-        var sphere = new THREE.Mesh(geometry, material);
-        sphere.translateZ(-50);
-        sphere.translateY(20);
-        scene.add(sphere);
-        // Copy JSO
-        let object = new MeshObjects(sphere);
-        BALLS.push(object);
-        console.log(object);
-      
-        controls = new OrbitControls(camera, renderer.domElement);
-        controls.enable;
-        controls.update();
-        
-      };
-      function createPlate() {
-        let geometry = new THREE.CircleGeometry(5, 32);
-        let material = new THREE.MeshStandardMaterial({color: 0x7851A9, wireframe: false});
-        let plate = new THREE.Mesh(geometry, material);
-        plate.translateZ(-50);
-        plate.translateY(20);
-        scene.add(plate);
-        let object = new MeshObjects(plate);
-        PLATES.push(object);
+      // Three.js code goes here
+      scene = new THREE.Scene({ antialias: true });
+      scene.add(globalGroup);
 
-      }
-      function animate() {
-        controller1.userData.prevPos = controller1.position;
-        if (PLATES.length < MAX_PLATES) {
-          createPlate();
+      // setup the camera
+      var fov = 75;
+      var ratio = window.innerWidth / window.innerHeight;
+      var zNear = 0.1;
+      var zFar = 10000;
+      camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+      camera.position.set(0, 0, 0);
+
+      // create renderer and add canvas to DOM
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Configure VR Support
+      document.body.appendChild(VRButton.createButton(renderer));
+      renderer.xr.enabled = true;
+      renderer.setAnimationLoop(animate);
+
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
+        new THREE.LineBasicMaterial({ color: 0xff0000 })
+      );
+      line.scale.z = 5;
+
+      // VR controls 
+      const controllerModelFactory = new XRControllerModelFactory();
+
+      controller1Grip = renderer.xr.getControllerGrip(0);
+      controller1Grip.add(controllerModelFactory.createControllerModel(controller1Grip));
+      scene.add(controller1Grip);
+      controller1 = renderer.xr.getController(0);
+      controller1.add(line.clone());
+      scene.add(controller1);
+
+      controller2Grip = renderer.xr.getControllerGrip(1);
+      controller2Grip.add(controllerModelFactory.createControllerModel(controller2Grip));
+      scene.add(controller2Grip);
+      controller2 = renderer.xr.getController(1);
+      controller2.add(line.clone());
+      scene.add(controller2);
+
+      console.log(controller1Grip);
+
+      // Controller Squeeze event
+      controller1.addEventListener('selectstart', (event) => {
+        let controller = event.target;
+        let geometry = new THREE.SphereGeometry(0.2, 32, 16);
+        let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
+        let ball = new THREE.Mesh(geometry, material);
+        let object = new MeshObjects(ball);
+        controller1.add(ball);
+        ball.position.set(0, 0, 0);
+        controller.userData.selected = object;
+      });
+
+      controller1.addEventListener('selectend', (event) => {
+        let controller = event.target;
+        let object = controller.userData.selected;
+        if (object !== undefined) {
+          let sphere = object.object;
+          let positon = new THREE.Vector3();
+          sphere.getWorldPosition(positon);
+          globalGroup.add(sphere);
+          sphere.position.x = positon.x;
+          sphere.position.y = positon.y;
+          sphere.position.z = positon.z;
+          const prevPos = controller.userData.prevPos;
+          const currPos = controller.position;
+          object.PHYSICS.xspeed = (currPos.x + 0.5 - prevPos.x) / FPS;
+          object.PHYSICS.zspeed = (currPos.z + 0.5 - prevPos.z) / FPS;
+          object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / FPS;
+          console.log(object.PHYSICS);
+          BALLS.push(object);
+          console.log(object);
+          controller.userData.selected = undefined;
+          controller.userData.prevPos = undefined;
         }
-        for (let i = 0; i < BALLS.length; i++) {
-          let ball_mesh_object = BALLS[i];
-          let ball = BALLS[i].object;
-          let ball_physics = ball_mesh_object.PHYSICS;
-          if (ball.position.y > -5) {
-            ball_physics.time += FPS;
-            let ydisplacement = 0;
-            ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
-            ydisplacement = ball_physics.yspeed*FPS + (0.5 * - GRAVITY * Math.pow(ball_physics.time, 2));
-            if (ball.position.y - ydisplacement < -5) {
-              ball.position.y = -5;
-            } else {
-              ball.position.y += ydisplacement;
-            }
-            let xdisplacement = ball_physics.xspeed * FPS;
-            ball.position.x -= xdisplacement;
-            let zdisplacement = ball_physics.zspeed * FPS;
-            ball.position.z -= zdisplacement;
+      });
+
+      //setup lights
+      var ambientLight = new THREE.AmbientLight();
+      scene.add(ambientLight);
+
+      var light = new THREE.DirectionalLight(0xffffff, 5.0);
+      light.position.set(10, 100, 100);
+      scene.add(light);
+
+      // Create floor
+
+      let floorGeometry = new THREE.PlaneGeometry(1000, 1000, 15, 15);
+      let floorMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: false });
+      floorMaterial.side = THREE.DoubleSide;
+      let floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.position.set(0, -10, 0);
+      floor.rotation.x = Math.PI / 2;
+
+      scene.add(floor);
+
+
+      //configure Sphere
+      var geometry = new THREE.SphereGeometry(5, 32, 16);
+      var material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
+
+      var sphere = new THREE.Mesh(geometry, material);
+      sphere.translateZ(-50);
+      sphere.translateY(20);
+      scene.add(sphere);
+      // Copy JSO
+      let object = new MeshObjects(sphere);
+      BALLS.push(object);
+      console.log(object);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enable;
+      controls.update();
+
+    };
+    function createPlate() {
+      let geometry = new THREE.CircleGeometry(5, 32);
+      let material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
+      let plate = new THREE.Mesh(geometry, material);
+      plate.translateZ(-50);
+      plate.translateY(20);
+      scene.add(plate);
+      let object = new MeshObjects(plate);
+      PLATES.push(object);
+
+    }
+    function animate() {
+      controller1.userData.prevPos = controller1.position;
+      if (PLATES.length < MAX_PLATES) {
+        createPlate();
+      }
+      for (let i = 0; i < BALLS.length; i++) {
+        let ball_mesh_object = BALLS[i];
+        let ball = BALLS[i].object;
+        let ball_physics = ball_mesh_object.PHYSICS;
+        if (ball.position.y > -5) {
+          ball_physics.time += FPS;
+          let ydisplacement = 0;
+          ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
+          ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * Math.pow(ball_physics.time, 2));
+          if (ball.position.y - ydisplacement < -5) {
+            ball.position.y = -5;
           } else {
-            ball_physics.yspeed = 0;
-            ball_physics.time = 0;
+            ball.position.y += ydisplacement;
           }
+          let xdisplacement = ball_physics.xspeed * FPS;
+          ball.position.x -= xdisplacement;
+          let zdisplacement = ball_physics.zspeed * FPS;
+          ball.position.z -= zdisplacement;
+        } else {
+          ball_physics.yspeed = 0;
+          ball_physics.time = 0;
         }
-        renderer.render( scene, camera );
-      };
-    </script>
-  </head>
-  <body></body>
-</html>
+      }
+      renderer.render(scene, camera);
+    };
+  </script>
+</head>
 
+<body></body>
+
+</html>

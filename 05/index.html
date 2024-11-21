@@ -150,8 +150,8 @@
         function load3DModels() {
             loader = new GLTFLoader();
             
-            // blender model loader and controls setup
-            loader.load('blender-model.glb', (gltf) => {
+            // poly model loader and controls setup
+            loader.load('poly-model.glb', (gltf) => {
                 const polyMesh = gltf.scenes[0].children[0];
                 polyMesh.scale.set(10, 10, 10);
                 polyMesh.translateY(1);
@@ -161,8 +161,8 @@
                 scene.add(gltf.scene);
             }, undefined, (error) => console.error('Error loading model:', error));
             
-            // poly model loader and controls setup
-            loader.load('poly-model.glb', (gltf) => {
+            // blender model loader and controls setup
+            loader.load('blender-model.glb', (gltf) => {
                 const blenderMesh = gltf.scenes[0].children[0];
                 blenderMesh.scale.set(10, 10, 10);
                 blenderMesh.translateX(-1).translateY(1);

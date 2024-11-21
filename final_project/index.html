@@ -38,6 +38,8 @@
     let BALLS = [];
     let PLATES = [];
     let MAX_PLATES = 7;
+    let PLATE_CD = 120;
+    let CURR_PLATE_CD = 0;
     function MeshObjects(mesh) {
       this.object = mesh;
       this.PHYSICS = {
@@ -131,7 +133,7 @@
           const prevQuat = controller.userData.prevQuat;
           const currPos = controller.position;
           const currQuat = controller.quaternion;
-          // Change in Quaternion
+          // Change in Quaternion: From ChatGPT
           let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
           let angularVelocity = {
             x: 2 * deltaQuat.x / FPS,
@@ -156,8 +158,8 @@
       var ambientLight = new THREE.AmbientLight();
       scene.add(ambientLight);
 
-      var light = new THREE.DirectionalLight(0xffffff, 5.0);
-      light.position.set(10, 100, 100);
+      var light = new THREE.DirectionalLight(0xeeaf61, 5.0);
+      light.position.set(100, 20, 0);
       scene.add(light);
 
       // Create floor
@@ -197,14 +199,31 @@
       plate.translateY(20);
       scene.add(plate);
       let object = new MeshObjects(plate);
+      object.PHYSICS = {
+        "yspeed": 0,
+        "yspeedint": 0,
+        "xspeed": 5,
+        "zspeed": 0,
+        "time": 0,
+      }
       PLATES.push(object);
 
     }
     function animate() {
       controller1.userData.prevPos = controller1.position.clone();
       controller1.userData.prevQuat = controller1.quaternion.clone();
-      if (PLATES.length < MAX_PLATES) {
+      if (PLATES.length < MAX_PLATES && CURR_PLATE_CD <= 0) {
+        CURR_PLATE_CD = PLATE_CD;
         createPlate();
+      } else {
+        CURR_PLATE_CD -= 1;
+      }
+      for (let i = 0; i < PLATES.length; i++) {
+        let plate_mesh_object = PLATES[i];
+        let plate = plate_mesh_object.object;
+        let plate_physics = plate_mesh_object.PHYSICS;
+        let xdisplacement = plate_physics.xspeed * FPS;
+        plate.position.x += xdisplacement;
       }
       for (let i = 0; i < BALLS.length; i++) {
         let ball_mesh_object = BALLS[i];

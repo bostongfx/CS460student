@@ -132,7 +132,7 @@
           const currPos = controller.position;
           const currQuat = controller.quaternion;
           // Change in Quaternion
-          let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat, prevQuat.invert())
+          let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
           let angularVelocity = {
             x: 2 * deltaQuat.x / FPS,
             y: 2 * deltaQuat.y / FPS,

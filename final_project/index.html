@@ -91,6 +91,7 @@
       controller1.add(line.clone());
       scene.add(controller1);
       controller1.userData.prevPos = new THREE.Vector3();
+      controller1.userData.prevQuat = new THREE.Quaternion();
 
       controller2Grip = renderer.xr.getControllerGrip(1);
       controller2Grip.add(controllerModelFactory.createControllerModel(controller2Grip));
@@ -111,6 +112,7 @@
         controller1.add(ball);
         ball.position.set(0, 0, 0);
         controller1.userData.prevPos.copy(controller1.position);
+        controller1.userData.prevQuat.copy(controller1.quaternion);
         controller.userData.selected = object;
       });
 
@@ -126,15 +128,26 @@
           sphere.position.y = positon.y;
           sphere.position.z = positon.z;
           const prevPos = controller.userData.prevPos;
+          const prevQuat = controller.userData.prevQuat;
           const currPos = controller.position;
-          object.PHYSICS.xspeed = (currPos.x - prevPos.x) / FPS;
-          object.PHYSICS.zspeed = (currPos.z - prevPos.z) / FPS;
-          object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / FPS;
+          const currQuat = controller.quaternion;
+          // Change in Quaternion
+          let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat, prevQuat.invert())
+          let angularVelocity = {
+            x: 2 * deltaQuat.x / FPS,
+            y: 2 * deltaQuat.y / FPS,
+            z: 2 * deltaQuat.z / FPS,
+          }
+          console.log(angularVelocity);
+          object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) + angularVelocity.x * 0.2;
+          object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) + angularVelocity.z * 0.2;
+          object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS) + angularVelocity.y * 0.2;
           console.log(object.PHYSICS);
           BALLS.push(object);
           console.log(object);
           controller.userData.selected = undefined;
           controller.userData.prevPos = new THREE.Vector3();
+          controller1.userData.prevQuat = new THREE.Quaternion();
         }
       });
 
@@ -189,6 +202,7 @@
     }
     function animate() {
       controller1.userData.prevPos.copy(controller1.position);
+      controller1.userData.prevQuat.copy(controller1.quaternion);
       if (PLATES.length < MAX_PLATES) {
         createPlate();
       }

@@ -32,6 +32,7 @@
       let controller1, controller1Grip, controller2, controller2Grip;
       let globalGroup = new THREE.Group();
       let FPS = 1/60;
+      let GRAVITY = 9.81;
       let BALLS = [];
       let PLATES = [];
       let MAX_PLATES = 7;
@@ -122,10 +123,10 @@
             sphere.position.z = positon.z;
             const prevPos = controller.userData.prevPos;
             const currPos = controller.position;
-            object.PHYSICS.xspeed = (currPos.x - currPos.x)/FPS;
-            object.PHYSICS.zspeed = (currPos.z - currPos.z)/FPS;
-            object.PHYSICS.yspeedint = (currPos.y - currPos.y)/FPS;
-            console.log(prevPos);
+            object.PHYSICS.xspeed = (currPos.x - prevPos.x)/FPS;
+            object.PHYSICS.zspeed = (currPos.z - prevPos.z)/FPS;
+            object.PHYSICS.yspeedint = (currPos.y - prevPos.y)/FPS;
+            console.log(object.PHYSICS);
             BALLS.push(object);
             console.log(object);
             controller.userData.selected = undefined;
@@ -194,8 +195,8 @@
           if (ball.position.y > -5) {
             ball_physics.time += FPS;
             let ydisplacement = 0;
-            ball_physics.yspeed = ball_physics.yspeedint - 9.81 * ball_physics.time;
-            ydisplacement = ball_physics.yspeed*FPS + (0.5 * -9.81 * Math.pow(ball_physics.time, 2));
+            ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
+            ydisplacement = ball_physics.yspeed*FPS + (0.5 * - GRAVITY * Math.pow(ball_physics.time, 2));
             if (ball.position.y - ydisplacement < -5) {
               ball.position.y = -5;
             } else {

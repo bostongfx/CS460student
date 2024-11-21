@@ -123,9 +123,9 @@
             sphere.position.z = positon.z;
             const prevPos = controller.userData.prevPos;
             const currPos = controller.position;
-            object.PHYSICS.xspeed = (currPos.x - prevPos.x)/FPS;
-            object.PHYSICS.zspeed = (currPos.z - prevPos.z)/FPS;
-            object.PHYSICS.yspeedint = (currPos.y - prevPos.y)/FPS;
+            object.PHYSICS.xspeed = (currPos.x*10 - prevPos.x)/FPS;
+            object.PHYSICS.zspeed = (currPos.z*10 - prevPos.z)/FPS;
+            object.PHYSICS.yspeedint = (currPos.y*10 - prevPos.y)/FPS;
             console.log(object.PHYSICS);
             BALLS.push(object);
             console.log(object);

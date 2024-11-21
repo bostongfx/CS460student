@@ -125,9 +125,9 @@
           sphere.position.z = positon.z;
           const prevPos = controller.userData.prevPos;
           const currPos = controller.position;
-          object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) * 10;
-          object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) * 10;
-          object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS) * 10;
+          object.PHYSICS.xspeed = (currPos.x - prevPos.x) / FPS;
+          object.PHYSICS.zspeed = (currPos.z - prevPos.z) / FPS;
+          object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / FPS;
           console.log(object.PHYSICS);
           BALLS.push(object);
           console.log(object);
@@ -186,7 +186,7 @@
 
     }
     function animate() {
-      controller1.userData.prevPos = controller1.position;
+      controller1.userData.prevPos.copy(controller1.position);
       if (PLATES.length < MAX_PLATES) {
         createPlate();
       }

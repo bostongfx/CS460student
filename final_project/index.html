@@ -111,8 +111,8 @@
         let object = new MeshObjects(ball);
         controller1.add(ball);
         ball.position.set(0, 0, 0);
-        controller1.userData.prevPos.copy(controller1.position);
-        controller1.userData.prevQuat.copy(controller1.quaternion);
+        controller1.userData.prevPos = controller1.position.clone();
+        controller1.userData.prevQuat = controller1.quaternion.clone();
         controller.userData.selected = object;
       });
 
@@ -143,7 +143,7 @@
           object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) + crossProd.x;
           object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) + crossProd.z;
           object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS) + crossProd.y;
-          console.log(object.PHYSICS);
+          console.log(currPos, prevPos);
           BALLS.push(object);
           console.log(object);
           controller.userData.selected = undefined;
@@ -180,7 +180,6 @@
       sphere.translateZ(-50);
       sphere.translateY(20);
       scene.add(sphere);
-      // Copy JSO
       let object = new MeshObjects(sphere);
       BALLS.push(object);
       console.log(object);
@@ -202,8 +201,8 @@
 
     }
     function animate() {
-      controller1.userData.prevPos.copy(controller1.position);
-      controller1.userData.prevQuat.copy(controller1.quaternion);
+      controller1.userData.prevPos = controller1.position.clone();
+      controller1.userData.prevQuat = controller1.quaternion.clone();
       if (PLATES.length < MAX_PLATES) {
         createPlate();
       }
@@ -227,6 +226,7 @@
           ball.position.z += zdisplacement;
         } else {
           ball_physics.yspeed = 0;
+          ball_physics.yspeedint = 0;
           ball_physics.time = 0;
         }
       }

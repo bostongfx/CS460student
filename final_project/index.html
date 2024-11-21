@@ -139,7 +139,7 @@
             z: 2 * deltaQuat.z / FPS,
           }
           console.log(angularVelocity);
-          object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) + angularVelocity.x * 2;
+          object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) - angularVelocity.x * 2;
           object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) + angularVelocity.z * 2;
           object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS) + angularVelocity.y * 2;
           console.log(object.PHYSICS);

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>three.js webgl - decal splatter</title>
+    <title>three.js webgl - Krusty Krab 3D</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link type="text/css" rel="stylesheet" href="https://threejs.org/examples/main.css">
@@ -10,8 +10,7 @@
 
     <div id="container"></div>
     <div id="info">
-      <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - decal splatter<br/>
-      click to shoot
+      <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - Krusty Krab 3D
     </div>
 
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -38,18 +37,25 @@
       import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
       import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+      import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+
+      
 
       const container = document.getElementById( 'container' );
 
       let renderer, scene, camera, stats, effect;
       let controls;
       let mesh;
+      const meshes = {};
       let raycaster;
       let line;
+
+      const loader = new GLTFLoader();
 
       var wireframeMode = false;
 
       var sceneui;
+      var helper;
 
       const intersection = {
         intersects: false,
@@ -101,6 +107,7 @@
 
       function init() {
 
+        
         renderer = new THREE.WebGLRenderer( { antialias: true } );
         effect = new AnaglyphEffect( renderer );
         effect.setSize( window.innerWidth, window.innerHeight );
@@ -111,10 +118,26 @@
         window['SCENE'] = {
           'anaglyph': false,
           'poly': null,
+          'blender' : null,
           'rotate_poly': false,
+          'rotate_blender': false,
           'do_rotate_poly': function() {
-          window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+            window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
           },
+          'do_rotate_blender': function() {
+            window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+          },
+          'blender_helper' : null,
+          'blender_old_material': null,
+          'change_material': function() {
+            if (!window['SCENE']['blender_old_material']) {
+              window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+              window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+            } else {
+              window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+              window['SCENE']['blender_old_material'] = null;
+            }
+          }
         };
 
         stats = new Stats();
@@ -145,9 +168,33 @@
         line = new THREE.Line( geometry, new THREE.LineBasicMaterial() );
         scene.add( line );
 
+        
+
         // loadLeePerrySmith();
-        KrustyKrab();
-        KrustyKrab_edit();
+        // KrustyKrab();
+        // KrustyKrab_edit();
+        loadModel('../krustykrab_unedit.glb', {
+            name: 'krustyKrabUnedit',
+            translate: { x: -30 },
+            scale: { x: 20, y: 20, z: 20 },
+            quaternion: { w: 1, x: 0, y: 0, z: 0 },
+            normal: false,
+        });
+
+        loadModel('../krustykrab.glb', {
+            name: 'krustyKrabEdit',
+            translate: { x: -8, y: -25, z: -30 },
+            scale: { x: 20, y: 20, z: 20 },
+            quaternion: { w: 1, x: 0, y: 0, z: 0 },
+            normal: true,
+        });
+
+        
+
+        // var helper = new VertexNormalsHelper( blender, 0.1, 'blue' );
+        // helper.visible = false;
+
+
 
         raycaster = new THREE.Raycaster();
 
@@ -369,11 +416,18 @@
           }
         )
 
+
         sceneui2.addButton({title:'rotate!'}).on('click', () => {
           window.SCENE.do_rotate_poly();
         });
 
+        // const sceneui3 = pane.addFolder({title: 'Blender Mesh'});
+
+        
+
         // scene.material.wireframe = true
+
+        
         
         function toggleAnaglyphMode(anaglyph) {
           // wireframeMode = !wireframeMode
@@ -393,6 +447,8 @@
           });
         }
 
+        
+
         window.addEventListener('keydown', function(e) {
         });
 
@@ -402,59 +458,146 @@
         
       };
 
-      function KrustyKrab() {
-        const loader = new GLTFLoader();
-        loader.load( '../krustykrab_unedit.glb', function ( gltf ) {
+      function loadModel(filePath, transformOptions = {}) {
+          loader.load(filePath, function (gltf) {
+              mesh = gltf.scenes[0].children[0];
 
-          mesh = gltf.scene.children[ 0 ];
-          // mesh.material = new THREE.MeshPhongMaterial( {
-          //   specular: 0x111111,
-          //   map: map,
-          //   specularMap: specularMap,
-          //   normalMap: normalMap,
-          //   shininess: 25
-          // } );
-          mesh.quaternion.w = 1
-          mesh.quaternion.x = 0
-          mesh.quaternion.y = 0
-          mesh.quaternion.z = 0
+              
+              
 
-          mesh.translateX(-30)
+              
 
-          scene.add( mesh );
-          mesh.scale.set( 20, 20, 20 );
+              // Apply transformations
+              if (transformOptions.quaternion) {
+                  mesh.quaternion.set(
+                      transformOptions.quaternion.x || 0,
+                      transformOptions.quaternion.y || 0,
+                      transformOptions.quaternion.z || 0,
+                      transformOptions.quaternion.w || 1
+                  );
+              }
+              if (transformOptions.translate) {
+                  mesh.translateX(transformOptions.translate.x || 0);
+                  mesh.translateY(transformOptions.translate.y || 0);
+                  mesh.translateZ(transformOptions.translate.z || 0);
+              }
+              if (transformOptions.scale) {
+                  mesh.scale.set(
+                      transformOptions.scale.x || 1,
+                      transformOptions.scale.y || 1,
+                      transformOptions.scale.z || 1
+                  );
+              }
 
-        });
+              if (transformOptions.name) {
+                  meshes[transformOptions.name] = mesh;
+              }
+
+              if (transformOptions.normal === true){
+                helper = new VertexNormalsHelper( mesh, 0.1, 'blue' );
+                window.SCENE.blender_helper = helper;
+                helper.visible = false;
+                window.SCENE.blender = mesh;
+                scene.add(helper);
+
+                var blenderui = pane.addFolder({title : 'Blender Mesh'});
+                blenderui.addBinding(helper, 'visible', {label:"Show normals!"});
+                blenderui.on('change', (newValue) => {
+                    console.log("Normal checkbox state changed to:", newValue);
+                    toggleNormalMode(newValue);
+                  }
+                )
+                blenderui.addButton({title: "Change Material"}).on('click', (newValue) =>
+                {
+                  // window.SCENE.change_material();
+                  console.log("Material change button clicked:", newValue);
+                  // toggleMaterialChangeMode(newValue);
+                  window.SCENE.change_material();
+                });
+
+                blenderui.addButton({title:'rotate!'}).on('click', () => {
+                  window.SCENE.do_rotate_blender();
+                });
+              }
+
+              scene.add(mesh);
+          });
       }
 
-      function KrustyKrab_edit() {
-        const loader = new GLTFLoader();
-        loader.load( '../krustykrab.glb', function ( gltf ) {
+      function toggleNormalMode(normal) {
+          // wireframeMode = !wireframeMode
+          console.log("Normal toggle pressed")
+          // window.SCENE.normal = normal.value
+          helper.visible = normal.value;
+        }
 
-          mesh = gltf.scene.children[ 0 ];
-          // mesh.material = new THREE.MeshPhongMaterial( {
-          //   specular: 0x111111,
-          //   map: map,
-          //   specularMap: specularMap,
-          //   normalMap: normalMap,
-          //   shininess: 25
-          // } );
-
-          mesh.quaternion.w = 1
-          mesh.quaternion.x = 0
-          mesh.quaternion.y = 0
-          mesh.quaternion.z = 0
-
-          mesh.translateX(-8)
-          mesh.translateY(-25)
-          mesh.translateZ(-30)
-
-
-          scene.add( mesh );
-          mesh.scale.set( 20, 20, 20 );
-
-        });
+      function toggleMaterialChangeMode(material) {
+        // wireframeMode = !wireframeMode
+        console.log("Mateirla change toggle pressed:", window.SCENE.change_material)
+        window.SCENE.change_material = !window.SCENE.change_material;
+        // scene.traverse((object) => {
+        //   if (object.isMesh && object.material) {
+        //     // object.material.wireframe = material.value;
+        //     // object.material.needsUpdate = true;
+            
+        //   }
+        // });
       }
+
+
+      // function KrustyKrab() {
+      //   const loader = new GLTFLoader();
+      //   loader.load( '../krustykrab_unedit.glb', function ( gltf ) {
+
+      //     mesh = gltf.scene.children[ 0 ];
+      //     // mesh.material = new THREE.MeshPhongMaterial( {
+      //     //   specular: 0x111111,
+      //     //   map: map,
+      //     //   specularMap: specularMap,
+      //     //   normalMap: normalMap,
+      //     //   shininess: 25
+      //     // } );
+      //     mesh.quaternion.w = 1
+      //     mesh.quaternion.x = 0
+      //     mesh.quaternion.y = 0
+      //     mesh.quaternion.z = 0
+
+      //     mesh.translateX(-30)
+
+      //     scene.add( mesh );
+      //     mesh.scale.set( 20, 20, 20 );
+
+      //   });
+      // }
+
+      // function KrustyKrab_edit() {
+      //   const loader = new GLTFLoader();
+      //   loader.load( '../krustykrab.glb', function ( gltf ) {
+
+      //     mesh = gltf.scene.children[ 0 ];
+      //     // mesh.material = new THREE.MeshPhongMaterial( {
+      //     //   specular: 0x111111,
+      //     //   map: map,
+      //     //   specularMap: specularMap,
+      //     //   normalMap: normalMap,
+      //     //   shininess: 25
+      //     // } );
+
+      //     mesh.quaternion.w = 1
+      //     mesh.quaternion.x = 0
+      //     mesh.quaternion.y = 0
+      //     mesh.quaternion.z = 0
+
+      //     mesh.translateX(-8)
+      //     mesh.translateY(-25)
+      //     mesh.translateZ(-30)
+
+
+      //     scene.add( mesh );
+      //     mesh.scale.set( 20, 20, 20 );
+
+      //   });
+      // }
 
       function loadLeePerrySmith() {
 
@@ -529,31 +672,121 @@
       function animate() {
         
         if(mesh){
-          if (window.SCENE.rotate_poly) {
-            if (window.SCENE.rotate_poly){
-              var T = Math.PI;
-              var q = new THREE.Quaternion( 0 ,
-                                            Math.sin( T / 2 ) * 1 ,
-                                            0 ,
-                                            Math.cos( T / 2) );
-              mesh.quaternion.slerp( q, 0.01 );
-            } else {
-              var T = 2*Math.PI;
-              var q = new THREE.Quaternion( 0 ,
-                                            Math.sin( T / 2 ) * 1 ,
-                                            0 ,
-                                            Math.cos( T / 2) );
-              mesh.quaternion.slerp( q, 0.01 );
-            }
+          if (window.SCENE.rotate_poly === true){
+            var T = Math.PI;
+            // var q = new THREE.Quaternion( 0 ,
+            //                               Math.sin( T / 2 ) * 1 ,
+            //                               0 ,
+            //                               Math.cos( T / 2) );
+            var q = new THREE.Quaternion(Math.sin(T/2)*1,
+                                          Math.sin(T/2)*0,
+                                          Math.sin(T/2)*0,
+                                          Math.cos(T/2))
+            // mesh.quaternion.slerp( q, 0.01 );
+            scene.children.forEach((child) => {
+              // Only update meshes (ignore lights, cameras, etc.)
+              if (child.isMesh && (child.position.x == -30 && child.position.y == 0 && child.position.z == 0)) {
+                  child.quaternion.slerp(q, 0.03);
+              }
+            });
+          } else {
+            // var T = 2*Math.PI;
+            var q = new THREE.Quaternion( 0 ,
+                                          0 ,
+                                          0 ,
+                                          1 );
+            // mesh.quaternion.slerp( q, 0.01 );
+            scene.children.forEach((child) => {
+              // Only update meshes (ignore lights, cameras, etc.)
+              if (child.isMesh && (child.position.x == -30 && child.position.y == 0 && child.position.z == 0)) {
+                  child.quaternion.slerp(q, 0.03);
+              }
+            });
           }
+
+          if (window.SCENE.rotate_blender === true){
+            var T = Math.PI;
+            // var q = new THREE.Quaternion( 0 ,
+            //                               Math.sin( T / 2 ) * 1 ,
+            //                               0 ,
+            //                               Math.cos( T / 2) );
+            var q = new THREE.Quaternion(Math.sin(T/2)*1,
+                                          Math.sin(T/2)*0,
+                                          Math.sin(T/2)*0,
+                                          Math.cos(T/2))
+            // mesh.quaternion.slerp( q, 0.01 );
+            scene.children.forEach((child) => {
+              // Only update meshes (ignore lights, cameras, etc.)
+              if (child.isMesh && (child.position.x == -8 && child.position.y == -25 && child.position.z == -30)) {
+                  child.quaternion.slerp(q, 0.03);
+              }
+            });
+          } else {
+            // var T = 2*Math.PI;
+            var q = new THREE.Quaternion( 0 ,
+                                          0 ,
+                                          0 ,
+                                          1 );
+            // mesh.quaternion.slerp( q, 0.01 );
+            scene.children.forEach((child) => {
+              // Only update meshes (ignore lights, cameras, etc.)
+              if (child.isMesh && (child.position.x == -8 && child.position.y == -25 && child.position.z == -30)) {
+                  child.quaternion.slerp(q, 0.03);
+              }
+            });
+          }
+          
+
+          // if (window.SCENE.change_material ){
+          //   if (!window['SCENE']['blender_old_material']) {
+
+          //       scene.children.forEach((child) => {
+          //         // Only update meshes (ignore lights, cameras, etc.)
+          //         if (child.isMesh && child.material) {
+          //           window['SCENE']['blender_old_material'] = child.material.clone();
+          //           child.material = new THREE.MeshNormalMaterial();
+          //         }
+          //       });
+          //       // window['SCENE']['blender'].material.clone();
+                
+          //     } else {
+          //       scene.children.forEach((child) => {
+          //         // Only update meshes (ignore lights, cameras, etc.)
+          //         if (child.isMesh && child.material && window['SCENE']['blender_old_material']) {
+                    
+          //           child.material = window['SCENE']['blender_old_material'].clone();
+          //           window['SCENE']['blender_old_material'] = null;
+          //         }
+          //       });
+                
+          //     }
+          // }
+          // else {
+          //   scene.children.forEach((child) => {
+          //         // Only update meshes (ignore lights, cameras, etc.)
+          //         if (child.isMesh && child.material && window['SCENE']['blender_old_material']) {
+                    
+          //           child.material = window['SCENE']['blender_old_material'].clone();
+          //           window['SCENE']['blender_old_material'] = null;
+          //         }
+          //       });
+
+          // }
+          
         }
 
         requestAnimationFrame( animate );
 
-          renderer.render( scene, camera );
-          if (window.SCENE.anaglyph === true){
-            effect.render(scene, camera);
-          }
+        renderer.render( scene, camera );
+        if (window.SCENE.anaglyph === true){
+          effect.render(scene, camera);
+        }
+
+        if (window.SCENE.blender_helper){
+          window.SCENE.blender_helper.update()
+        }
+
+        
         
           
         

@@ -106,52 +106,18 @@
 
       // Controller Squeeze event
       controller1.addEventListener('selectstart', (event) => {
-        let controller = event.target;
-        let geometry = new THREE.SphereGeometry(0.2, 32, 16);
-        let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
-        let ball = new THREE.Mesh(geometry, material);
-        let object = new MeshObjects(ball);
-        controller1.add(ball);
-        ball.position.set(0, 0, 0);
-        controller1.userData.prevPos = controller1.position.clone();
-        controller1.userData.prevQuat = controller1.quaternion.clone();
-        controller.userData.selected = object;
+        onSelectStart(event);
+      });
+      controller2.addEventListener('selectstart', (event) => {
+        onSelectStart(event);
       });
 
       controller1.addEventListener('selectend', (event) => {
-        let controller = event.target;
-        let object = controller.userData.selected;
-        if (object !== undefined) {
-          let sphere = object.object;
-          let position = new THREE.Vector3();
-          sphere.getWorldPosition(position);
-          globalGroup.add(sphere);
-          sphere.position.x = position.x;
-          sphere.position.y = position.y;
-          sphere.position.z = position.z;
-          const prevPos = controller.userData.prevPos;
-          const prevQuat = controller.userData.prevQuat;
-          const currPos = controller.position;
-          const currQuat = controller.quaternion;
-          // Change in Quaternion: From ChatGPT
-          let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
-          let angularVelocity = {
-            x: 2 * deltaQuat.x / FPS,
-            y: 2 * deltaQuat.y / FPS,
-            z: 2 * deltaQuat.z / FPS,
-          }
-          console.log(angularVelocity);
-          let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-          object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) + crossProd.x;
-          object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) + crossProd.z;
-          object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS) + crossProd.y;
-          console.log(currPos, prevPos);
-          BALLS.push(object);
-          console.log(object);
-          controller.userData.selected = undefined;
-          controller.userData.prevPos = new THREE.Vector3();
-          controller1.userData.prevQuat = new THREE.Quaternion();
-        }
+        onSelectEnd(event);
+      });
+
+      controller2.addEventListener('selectend', (event) => {
+        onSelectEnd(event);
       });
 
       //setup lights
@@ -168,7 +134,7 @@
       let floorMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: false });
       floorMaterial.side = THREE.DoubleSide;
       let floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.position.set(0, -10, 0);
+      floor.position.set(0, -1, 0);
       floor.rotation.x = Math.PI / 2;
 
       scene.add(floor);
@@ -191,12 +157,61 @@
       controls.update();
 
     };
+    function onSelectStart(event) {
+      let controller = event.target;
+      let geometry = new THREE.SphereGeometry(0.2, 32, 16);
+      let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
+      let ball = new THREE.Mesh(geometry, material);
+      let object = new MeshObjects(ball);
+      controller.add(ball);
+      ball.position.set(0, 0, 0);
+      controller.userData.prevPos = controller.position.clone();
+      controller.userData.prevQuat = controller.quaternion.clone();
+      controller.userData.selected = object;
+    };
+
+    function onSelectEnd(event) {
+      let controller = event.target;
+      let object = controller.userData.selected;
+      if (object !== undefined) {
+        let sphere = object.object;
+        let position = new THREE.Vector3();
+        sphere.getWorldPosition(position);
+        globalGroup.add(sphere);
+        sphere.position.x = position.x;
+        sphere.position.y = position.y;
+        sphere.position.z = position.z;
+        const prevPos = controller.userData.prevPos;
+        const prevQuat = controller.userData.prevQuat;
+        const currPos = controller.position;
+        const currQuat = controller.quaternion;
+        // Change in Quaternion: From ChatGPT
+        // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
+        // let angularVelocity = {
+        //   x: 2 * deltaQuat.x / FPS,
+        //   y: 2 * deltaQuat.y / FPS,
+        //   z: 2 * deltaQuat.z / FPS,
+        // }
+        // console.log(angularVelocity);
+        // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
+        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
+        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
+        object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS);
+        console.log(currPos, prevPos);
+        BALLS.push(object);
+        console.log(object);
+        controller.userData.selected = undefined;
+        controller.userData.prevPos = new THREE.Vector3();
+        controller.userData.prevQuat = new THREE.Quaternion();
+      }
+    };
+
     function createPlate() {
       let geometry = new THREE.CircleGeometry(5, 32);
       let material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
       let plate = new THREE.Mesh(geometry, material);
       plate.translateZ(-50);
-      plate.translateY(20);
+      plate.translateY(25);
       scene.add(plate);
       let object = new MeshObjects(plate);
       object.PHYSICS = {
@@ -229,13 +244,13 @@
         let ball_mesh_object = BALLS[i];
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
-        if (ball.position.y > -5) {
+        if (ball.position.y > 0) {
           ball_physics.time += FPS;
           let ydisplacement = 0;
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
           ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * Math.pow(ball_physics.time, 2));
-          if (ball.position.y - ydisplacement < -5) {
-            ball.position.y = -5;
+          if (ball.position.y - ydisplacement < -1) {
+            ball.position.y = 10;
           } else {
             ball.position.y += ydisplacement;
           }

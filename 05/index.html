@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -40,8 +41,6 @@
         document.body.appendChild(stats.domElement);
 
         window['SCENE'] = {
-            'anaglyph': false,
-
             'original': null,
             'rotate_original': false,
             'original_target_angle': 0,
@@ -108,7 +107,7 @@
 
                 original.scale.set(100, 100, 100);
                 original.rotation.set(0, 0, 0);
-                original.position.set(-150, -25, 0);
+                original.position.set(100, 0, -70);
 
                 scene.add(gltf.scene);
 
@@ -119,31 +118,30 @@
 
             const loadblend = new GLTFLoader();
             loadblend.load('snoopy.glb', function (gltf) {
-            const snoopy = gltf.scene.children[0];
-            window.SCENE.snoopy = snoopy;
+                const snoopy = gltf.scene.children[0];
+                window.SCENE.snoopy = snoopy;
 
-            snoopy.scale.set(100, 100, 100);
-            snoopy.rotation.set(0, 0, 0);
-            snoopy.position.set(50, -25, -75);
+                snoopy.scale.set(100, 100, 100);
+                snoopy.rotation.set(0, 0, 0);
+                snoopy.position.set(-150, 0, 0);
 
-            scene.add(gltf.scene);
+                scene.add(gltf.scene);
 
-            // Create Snoopy UI
-            const snoopyUI = pane.addFolder({ title: 'Blender Mesh' });
+                const helper = new VertexNormalsHelper(snoopy, 0.2, 'blue'); 
+                helper.visible = false;
+                scene.add(helper);
 
-            // Add normals helper and bind to UI
-            const helper = new VertexNormalsHelper(snoopy, 0.1, 'blue');
-            helper.visible = false;
-            scene.add(helper);
-            snoopyUI.addBinding(helper, 'visible', { label: 'Show Normals!' });
+                // Link helper to Snoopy in SCENE object
+                window.SCENE.snoopy.helper = helper;
 
-            // Add Rotate and Change Material buttons
-            snoopyUI.addButton({ title: 'Rotate!' }).on('click', window.SCENE.do_rotate_snoopy);
-            snoopyUI.addButton({ title: 'Change Material!' }).on('click', () => {
-                window.SCENE.change_material(snoopy);
+                // Create Snoopy UI
+                const snoopyUI = pane.addFolder({ title: 'Blender Mesh' });
+                snoopyUI.addBinding(helper, 'visible', { label: 'Show Normals!' });
+                snoopyUI.addButton({ title: 'Rotate!' }).on('click', window.SCENE.do_rotate_snoopy);
+                snoopyUI.addButton({ title: 'Change Material!' }).on('click', () => {
+                    window.SCENE.change_material(snoopy);
+                });
             });
-        });
-
 
             window.addEventListener('resize', onWindowResize, false);
             animate();
@@ -167,10 +165,14 @@
                 if (window.SCENE.snoopy.quaternion.angleTo(targetQuaternion) < 0.01) {
                     window.SCENE.rotate_snoopy = false;
                 }
+
+                // Update the normals helper for Snoopy
+                if (window.SCENE.snoopy.helper) {
+                    window.SCENE.snoopy.helper.update();
+                }
             }
 
             renderer.render(scene, camera);
-
             controls.update();
         }
 

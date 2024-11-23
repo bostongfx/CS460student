@@ -34,13 +34,16 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
         import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
 
-        let scene, camera, renderer, controls, stats;
+        let scene, camera, renderer, controls, stats, anaglyphEffect;
 
         stats = new Stats();
         document.body.appendChild(stats.domElement);
 
+        // Scene settings
         window['SCENE'] = {
+            'anaglyph': false, // Default state for anaglyph rendering
             'original': null,
             'rotate_original': false,
             'original_target_angle': 0,
@@ -69,8 +72,10 @@
         };
 
         window.onload = function () {
+            // Initialize the Scene
             scene = new THREE.Scene();
 
+            // Camera
             const fov = 75;
             const aspect = window.innerWidth / window.innerHeight;
             const near = 0.1;
@@ -78,12 +83,19 @@
             camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
             camera.position.set(75, 75, 150);
 
+            // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
+            // Anaglyph Effect
+            anaglyphEffect = new AnaglyphEffect(renderer);
+            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
+
+            // Controls
             controls = new OrbitControls(camera, renderer.domElement);
 
+            // Lighting
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
@@ -91,6 +103,7 @@
             directionalLight.position.set(10, 10, 10);
             scene.add(directionalLight);
 
+            // Tweakpane UI
             const pane = new Pane();
             const sceneUI = pane.addFolder({ title: 'Scene' });
             sceneUI.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
@@ -100,6 +113,10 @@
             sceneUI.addBinding(ambientLight, 'intensity', { min: 0, max: 2, label: 'Ambient Intensity' });
             sceneUI.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Color' });
 
+            // Anaglyph Toggle
+            sceneUI.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph' });
+
+            // Load GLTF Models
             const loadpoly = new GLTFLoader();
             loadpoly.load('original.glb', function (gltf) {
                 const original = gltf.scene.children[0];
@@ -127,14 +144,12 @@
 
                 scene.add(gltf.scene);
 
-                const helper = new VertexNormalsHelper(snoopy, 0.2, 'blue'); 
+                const helper = new VertexNormalsHelper(snoopy, 0.2, 'blue');
                 helper.visible = false;
                 scene.add(helper);
 
-                // Link helper to Snoopy in SCENE object
                 window.SCENE.snoopy.helper = helper;
 
-                // Create Snoopy UI
                 const snoopyUI = pane.addFolder({ title: 'Blender Mesh' });
                 snoopyUI.addBinding(helper, 'visible', { label: 'Show Normals!' });
                 snoopyUI.addButton({ title: 'Rotate!' }).on('click', window.SCENE.do_rotate_snoopy);
@@ -151,6 +166,7 @@
             requestAnimationFrame(animate);
             stats.update();
 
+            // Rotate Models
             if (window.SCENE.original && window.SCENE.rotate_original) {
                 const targetQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), window.SCENE.original_target_angle);
                 window.SCENE.original.quaternion.slerp(targetQuaternion, 0.01);
@@ -166,13 +182,17 @@
                     window.SCENE.rotate_snoopy = false;
                 }
 
-                // Update the normals helper for Snoopy
                 if (window.SCENE.snoopy.helper) {
                     window.SCENE.snoopy.helper.update();
                 }
             }
 
-            renderer.render(scene, camera);
+            if (window.SCENE.anaglyph) {
+                anaglyphEffect.render(scene, camera);
+            } else {
+                renderer.render(scene, camera);
+            }
+
             controls.update();
         }
 
@@ -180,8 +200,13 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
         }
     </script>
 </head>
 
+<body>
+</body>
+
 </html>
+

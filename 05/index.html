@@ -38,6 +38,7 @@
       import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
       import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+      import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
       var renderer, controls, scene, camera, effect;
 
@@ -83,6 +84,31 @@
         light.position.set( 10, 100, 10 );
         scene.add( light );
 
+        window.SCENE = {
+          anaglyph: false,
+          poly: null,
+          rotatePoly: false,
+          doRotatePoly: () => {
+            window.SCENE.rotatePoly = !window.SCENE.rotatePoly;
+          },
+          blender: null,
+          rotateBlender: false,
+          doRotateBlender: () => {
+            window.SCENE.rotateBlender = !window.SCENE.rotateBlender;
+          },
+          blenderHelper: null,
+          blenderOldMaterial: null,
+          changeBlenderMaterial: () => {
+            if (!window.SCENE.blenderOldMaterial) {
+              window.SCENE.blenderOldMaterial = window.SCENE.blender.material.clone();
+              window.SCENE.blender.material = new THREE.MeshNormalMaterial();
+            } else {
+              window.SCENE.blender.material = window.SCENE.blenderOldMaterial.clone();
+              window.SCENE.blenderOldMaterial = null;
+            }
+          }
+        };
+
         const loader = new GLTFLoader();
         loader.load('shoe_raw.glb', function (gltf) {
             scene.add(gltf.scene);
@@ -90,17 +116,32 @@
             poly.scale.x = 20;
             poly.scale.y = 20;
             poly.scale.z = 20;
+            window.SCENE.poly = poly;
         });
 
         loader.load('shoe.glb', function (gltf) {
             scene.add(gltf.scene);
-            var poly = gltf.scenes[0].children[0];
-            // TODO: scale and translate with quaternion
-            poly.scale.x = 20;
-            poly.scale.y = 20;
-            poly.scale.z = 20;
+            var blender = gltf.scenes[0].children[0];
+            blender.scale.x = 20;
+            blender.scale.y = 20;
+            blender.scale.z = 20;
+            blender.translateZ(-15);
 
-            poly.translateZ(-15);
+            // used https://threejs.org/docs/#examples/en/helpers/VertexNormalsHelper to debug
+            var helper = new VertexNormalsHelper(blender, .1, 'blue');
+            window.SCENE.blenderHelper = helper;
+            scene.add(helper);
+            helper.visible = false;
+            window.SCENE.blender = blender;
+            window.SCENE.helper = helper;
+            var blenderui = pane.addFolder({title: 'Blender Mesh'});
+            blenderui.addBinding(window.SCENE.helper, 'visible', {label: "Show Normals!"});
+            blenderui.addButton({title: "Rotate blender!"}).on('click', () => {
+              window.SCENE.doRotateBlender();
+            });
+            blenderui.addButton({title: "Change Material!"}).on('click', () => {
+              window.SCENE.changeBlenderMaterial();
+            })
         });
 
         // setup interaction
@@ -108,15 +149,6 @@
 
         var pane = new Pane();
         var sceneui = pane.addFolder({title: 'Scene'});
-
-        window.SCENE = {
-          anaglyph: false,
-          poly: null,
-          rotatePoly: false,
-          doRotatePoly: () => {
-            this.rotatePoly = !this.rotatePoly;
-          }
-        };
 
         sceneui.addBinding(light.position, 'x', {min:-100, max:100, label:'Light X'});
         sceneui.addBinding(light.position, 'y', {min:-100, max:100, label:'Light Y'});
@@ -146,18 +178,30 @@
         }
 
         if (window.SCENE.poly) {
+          // https://threejs.org/docs/#api/en/math/Quaternion
+          const q = new THREE.Quaternion();
           if (window.SCENE.rotatePoly) {
-          console.log(1)
-            window.SCENE.poly.quaternion.slerp({
-              w: 0, x: 0, y: 0, z: 0
-            }, 0.01);
+            q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+            window.SCENE.poly.quaternion.slerp(q, 0.01);
           } else {
-          console.log(2)
-            window.SCENE.poly.quaternion.slerp({
-              w: 1, x: 0, y: 0, z: 0
-            }, 0.01);
+            q.identity();
+            window.SCENE.poly.quaternion.slerp(q, 0.01);
           }
         }
+
+        if (window.SCENE.blender && window.SCENE.blenderHelper) {
+          // https://threejs.org/docs/#api/en/math/Quaternion
+          const q = new THREE.Quaternion();
+          if (window.SCENE.rotateBlender) {
+            q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+            window.SCENE.blender.quaternion.slerp(q, 0.01);
+          } else {
+            q.identity();
+            window.SCENE.blender.quaternion.slerp(q, 0.01);
+          }
+          window.SCENE.blenderHelper.update();
+        }
+
 
       };
     </script>

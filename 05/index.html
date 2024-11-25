@@ -35,10 +35,11 @@
 
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+      import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
       import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
-      var renderer, controls, scene, camera;
+      var renderer, controls, scene, camera, effect;
 
       window.onload = function() {
 
@@ -61,11 +62,17 @@
         // create renderer and add canvas
         renderer = new THREE.WebGLRenderer({antialias:true});
         renderer.setSize( window.innerWidth, window.innerHeight );
+
+        // based on https://editor.p5js.org/setapolo/sketches/EjZJO54wo
+        effect = new AnaglyphEffect(renderer, 100);
+        effect.setSize(window.innerWidth, window.innerHeight);
+
         document.body.appendChild( renderer.domElement );
         window.onresize = () => {
           renderer.setSize(window.innerWidth, window.innerHeight);
           camera.aspect = window.innerWidth / window.innerHeight;
           camera.updateProjectionMatrix();
+          effect.setSize(window.innerWidth || 2, window.innerHeight || 2);
         }
         
         //.. setup lights
@@ -87,18 +94,13 @@
 
         loader.load('shoe.glb', function (gltf) {
             scene.add(gltf.scene);
-            var duck = gltf.scenes[0].children[0];
+            var poly = gltf.scenes[0].children[0];
             // TODO: scale and translate with quaternion
-            duck.scale.x = 20;
-            duck.scale.y = 20;
-            duck.scale.z = 20;
+            poly.scale.x = 20;
+            poly.scale.y = 20;
+            poly.scale.z = 20;
 
-            // duck.quaternion.w = .2;
-            // duck.quaternion.x = .2;
-            // duck.quaternion.y = .2;
-            // duck.quaternion.z = 0;
-
-            duck.translateZ(-15);
+            poly.translateZ(-15);
         });
 
         // setup interaction
@@ -108,7 +110,12 @@
         var sceneui = pane.addFolder({title: 'Scene'});
 
         window.SCENE = {
-          anaglyph: false
+          anaglyph: false,
+          poly: null,
+          rotatePoly: false,
+          doRotatePoly: () => {
+            this.rotatePoly = !this.rotatePoly;
+          }
         };
 
         sceneui.addBinding(light.position, 'x', {min:-100, max:100, label:'Light X'});
@@ -116,6 +123,10 @@
         sceneui.addBinding(light.position, 'z', {min:-100, max:100, label:'Light Z'});
         sceneui.addBinding(window.SCENE, 'anaglyph');
 
+        var polyui = pane.addFolder({title: 'PolyCam Mesh'});
+        polyui.addButton({title: 'rotate!'}).on('click', () => {
+          window.SCENE.doRotatePoly();
+        });
  
         // call animation/rendering loop
         animate();
@@ -127,7 +138,26 @@
         requestAnimationFrame( animate );
 
         controls.update();
-        renderer.render( scene, camera );
+
+        if (window.SCENE.anaglyph) {
+          effect.render( scene, camera );
+        } else {
+          renderer.render( scene, camera );
+        }
+
+        if (window.SCENE.poly) {
+          if (window.SCENE.rotatePoly) {
+          console.log(1)
+            window.SCENE.poly.quaternion.slerp({
+              w: 0, x: 0, y: 0, z: 0
+            }, 0.01);
+          } else {
+          console.log(2)
+            window.SCENE.poly.quaternion.slerp({
+              w: 1, x: 0, y: 0, z: 0
+            }, 0.01);
+          }
+        }
 
       };
     </script>

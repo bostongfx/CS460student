@@ -21,6 +21,7 @@
     </style>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
 
     <script type="importmap">
     {
@@ -40,13 +41,17 @@
       import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
       import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
-      var renderer, controls, scene, camera, effect;
+      var renderer, controls, scene, camera, effect, stats;
 
       window.onload = function() {
 
         // remove loading text
         const loadingText = document.getElementById("loading-text");
         loadingText.remove();
+
+        // stats.js widget
+        stats = new Stats();
+        document.body.appendChild(stats.domElement);
 
         // create scene
         scene = new THREE.Scene();
@@ -168,8 +173,8 @@
       function animate() {
 
         requestAnimationFrame( animate );
-
         controls.update();
+        stats.update();
 
         if (window.SCENE.anaglyph) {
           effect.render( scene, camera );

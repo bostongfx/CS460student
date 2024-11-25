@@ -41,12 +41,18 @@
         var zNear = 1;
         var zFar = 10000;
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
-        camera.position.set(0, 0, 100);
+        camera.position.set(9.169998139359794, 9.08793637369809, 7.778155808615913);
+        camera.quaternion.set(-0.25015274932131615, 0.6561298429853336, 0.24560548240557592, 0.6682777702148656);
 
         // create renderer and add canvas
         renderer = new THREE.WebGLRenderer({antialias:true});
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
+        window.onresize = () => {
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+        }
         
         //.. setup lights
         var ambientLight = new THREE.AmbientLight();
@@ -56,24 +62,29 @@
         light.position.set( 10, 100, 10 );
         scene.add( light );
 
-        // configure cube
         const loader = new GLTFLoader();
-        loader.load('poly.glb', function (gltf) {
+        loader.load('shoe_raw.glb', function (gltf) {
             scene.add(gltf.scene);
             var poly = gltf.scenes[0].children[0];
-            poly.scale.x = .2;
-            poly.scale.y = .2;
-            poly.scale.z = .2;
+            poly.scale.x = 20;
+            poly.scale.y = 20;
+            poly.scale.z = 20;
         });
 
-        // configure cube
-        loader.load('duck.glb', function (gltf) {
+        loader.load('shoe.glb', function (gltf) {
             scene.add(gltf.scene);
             var duck = gltf.scenes[0].children[0];
-            duck.scale.x = .2;
-            duck.scale.y = .2;
-            duck.scale.z = .2;
-            duck.translateZ(-30);
+            // TODO: scale and translate with quaternion
+            duck.scale.x = 20;
+            duck.scale.y = 20;
+            duck.scale.z = 20;
+
+            // duck.quaternion.w = .2;
+            // duck.quaternion.x = .2;
+            // duck.quaternion.y = .2;
+            // duck.quaternion.z = 0;
+
+            duck.translateZ(-15);
         });
 
         // setup interaction

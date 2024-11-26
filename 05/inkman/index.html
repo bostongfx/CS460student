@@ -36,12 +36,16 @@
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
       import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
+      import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+
       const container = document.getElementById( 'container' );
 
       let renderer, scene, camera, stats;
       let mesh;
       let raycaster;
       let line;
+
+      let effect;
 
       const intersection = {
         intersects: false,
@@ -96,6 +100,9 @@
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
+
+        effect = new AnaglyphEffect( renderer );
+        effect.setSize(window.innerWidth, window.innerHeight);
 
         stats = new Stats();
         container.appendChild( stats.dom );
@@ -216,8 +223,8 @@
 
         const gui = new GUI();
 
-        gui.add( params, 'minScale', 1, 30 );
-        gui.add( params, 'maxScale', 1, 30 );
+        gui.add( params, 'minScale', 1, 100 );
+        gui.add( params, 'maxScale', 1, 100 );
         gui.add( params, 'rotate' );
         gui.add( params, 'clear' );
         gui.open();
@@ -297,7 +304,7 @@
 
         requestAnimationFrame( animate );
 
-        renderer.render( scene, camera );
+        effect.render( scene, camera );
 
         stats.update();
 

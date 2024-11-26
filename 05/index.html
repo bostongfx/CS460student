@@ -23,10 +23,7 @@
     <script type="module">
 
       import * as THREE from 'three';
-
       import Stats from 'three/addons/libs/stats.module.js';
-      import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
       import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
@@ -35,10 +32,7 @@
 
       const container = document.getElementById( 'container' );
 
-      let renderer, scene, camera, stats, anaglyphOn, effect;
-      let mesh;
-      let raycaster;
-      let line;
+      var renderer, scene, camera, stats, anaglyphOn, effect;
 
       
 
@@ -65,8 +59,8 @@
         controls.minDistance = 10;
         controls.maxDistance = 200;
 
+        // Setup lights
         scene.add( new THREE.AmbientLight( 0x666666 ) );
-
         const light = new THREE.DirectionalLight( 0xffddcc, 3 );
         light.position.set( 1, 0.75, 0.5 );
         scene.add( light );
@@ -97,9 +91,10 @@
         };
 
         let pane = new Pane();
-        let blenderui = pane.addFolder({title: 'Blender Mesh'})
         let sceneui = pane.addFolder({title: 'Scene'});
         let polyui = pane.addFolder({title: 'PolyCam Mesh'});
+        let blenderui = pane.addFolder({title: 'Blender Mesh'})
+        
 
         const loader = new GLTFLoader();
         loader.load('canon_model_polycam.glb', (gltf) => {
@@ -166,7 +161,6 @@
 
         if (window.SCENE.poly) {
             if (window.SCENE.rotate_poly) {
-                // TODO .. setup 180 degree quaternion
                 var T = Math.PI;
                 var q = new THREE.Quaternion( 0 ,
                                           Math.sin( T / 2 ) * 1 ,
@@ -174,15 +168,12 @@
                                           Math.cos( T / 2) );
                 window.SCENE.poly.quaternion.slerp( q, 0.01 );
             } else {
-                // TODO reset quaternion to identity!
                 var T = 2*Math.PI;
                 var q = new THREE.Quaternion( 0 ,
                                           Math.sin( T / 2 ) * 1 ,
                                           0 ,
                                           Math.cos( T / 2) );
                 window.SCENE.poly.quaternion.slerp( q, 0.01 );
-                
-                //window.SCENE.
             }
 
             if (window.SCENE.blender && window.SCENE.blender_helper){

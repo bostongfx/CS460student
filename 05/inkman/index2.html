@@ -35,10 +35,9 @@
       window['SCENE'] = {
       'anaglyph': false
       
+      
       };
-      window['SCENE'] = {
-      'poly': null
-      }
+      
 
       window.onload = function() {
        
@@ -51,9 +50,6 @@
           poly.scale.y = 10;
           poly.scale.z = 10;
           scene.add( gltf.scene );
-          window.SCENE.poly = poly;
-          var polyUI = pane.addFolder({ title: 'PolyCam Mesh' });
-          polyUI.addBinding(window.SCENE.poly.material, 'wireframe');
           pane = new Pane();
           var sceneui = pane.addFolder({ title: 'Scene' });
     
@@ -61,9 +57,10 @@
           sceneui.addBinding(light.position, 'y', {min:-100, max:100, label:'Light Y'})
           sceneui.addBinding(light.position, 'z', {min:-100, max:100, label:'Light Z'})
           sceneui.addBinding(window.SCENE, 'anaglyph')
-          sceneui.addBinding(window.SCENE, 'poly')
           var polyui = pane.addFolder({title: 'PolyCam Mesh'});
           polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+          
+          
           
         }   );
         loader = new GLTFLoader();

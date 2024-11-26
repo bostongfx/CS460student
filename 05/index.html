@@ -95,6 +95,7 @@
         let polyui = pane.addFolder({title: 'PolyCam Mesh'});
         let blenderui = pane.addFolder({title: 'Blender Mesh'})
         
+        
 
         const loader = new GLTFLoader();
         loader.load('canon_model_polycam.glb', (gltf) => {
@@ -104,6 +105,7 @@
             poly.scale.z = 10;
             window['SCENE'].poly = poly;
             scene.add(gltf.scene);
+            polyui.addBinding(window.SCENE.poly.material, 'wireframe');
         });
 
         loader.load('canon_model.glb', (gltf) => {

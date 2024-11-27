@@ -242,7 +242,7 @@
       if (PLATES.length < MAX_PLATES && CURR_PLATE_CD <= 0) {
         CURR_PLATE_CD = PLATE_CD;
         createPlate();
-      } else {
+      } else if (CURR_PLATE_CD > 0) {
         CURR_PLATE_CD -= 1;
       }
       for (let i = 0; i < PLATES.length; i++) {
@@ -256,7 +256,7 @@
         let ball_mesh_object = BALLS[i];
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
-        if (ball.position.y > -1) {
+        if (ball.position.y > -10) {
           ball_physics.time += FPS;
           let ydisplacement = 0;
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;

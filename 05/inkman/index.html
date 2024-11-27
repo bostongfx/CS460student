@@ -35,7 +35,8 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         // tweakpane import
         import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
-
+        // Vertex Normals
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
 // Setup a Three.js boilerplate scene like we did in Assignment 3. You will need to setup the Three.js imports and include
 // addons as well because we will use the OrbitControls and AnaglyphEffect again but also others :) Please don’t forget
@@ -45,20 +46,35 @@
 
 // canvas?
 
-var renderer, controls, scene, camera, loader, loadertwo, pane; //stats;
-
-// // stats.js widget
-// stats = new Stats();
-// document.body.appendChild( stats.domElement );
-
+var renderer, controls, scene, camera, loader, loadertwo, pane, stats;
 
   //
   // SETTINGS and HELPER for TWEAKPANE
   //
   window['SCENE'] = {
-  'anaglyph': false
+    'anaglyph': false
+    
+    'poly': null
+    
+    'rotate_poly': false,
+    'do_rotate_poly': function() {
+      window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+    },
+    
+    'blender_old_material': null,
+    'change_material': function() {
+    
+      if (!window['SCENE']['blender_old_material']) {
+        window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+        window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+      } 
+      else {
+        window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+        window['SCENE']['blender_old_material'] = null;
+      }
+    }
   };
-      
+
 window.onload = function() {
 
   // Three.js code goes here
@@ -76,6 +92,10 @@ window.onload = function() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
+
+  // stats.js widget
+  stats = new Stats();
+  document.body.appendChild( stats.domElement );
 
 // Next, please configure one directional light and one ambient light (again, like assignment 3). 
 // Still nothing shows up..
@@ -97,6 +117,22 @@ window.onload = function() {
   sceneui.addBinding(light.position, 'z', {min:-100, max:100, label:'Light Z'}); // Z light
 
   sceneui.addBinding(window.SCENE, 'anaglyph'); // anaglyph
+
+  // wireframe flag
+  var polyui = pane.addFolder({title: 'PolyCam Mesh'});
+  polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+
+  // rotate
+  polyui.addButton({title:'rotate!'}).on('click', () => {
+  window.SCENE.do_rotate_poly();
+  });
+
+  // vertex normals helper
+  var helper = new VertexNormalsHelper( blender, 0.1, 'blue' );
+  helper.visible = false;
+
+  blenderui.addBinding(helper, 'visible', {label:'Show normals!'});
+
 
   // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import... ...we can use the following snippet to load a binary glTF file and add it to the scene:
 
@@ -153,9 +189,26 @@ function animate() {
   controls.update();
   renderer.render( scene, camera );
   
+  // if (window.SCENE.poly) {
+  //   if (window.SCENE.rotate_poly) {
+  //       // TODO .. setup 180 degree quaternion
+  //       window.SCENE.poly.quaternion.slerp( q, 0.01 );
+  //   } 
+    
+  //   else {
+  //     // TODO reset quaternion to identity!
+  //     window.SCENE.poly.quaternion.slerp( q, 0.01 );
+  //   } 
+  // }
+
+  // // other stuff...
+
+  stats.update();
+  
 };
         </script>
     </head>
 <body></body>
 </html>
+
 

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Three.js Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+  </style>
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+    import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // OrbitControls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    camera.position.set(0, 10, 30);
+    controls.update();
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(10, 10, 10);
+    scene.add(directionalLight);
+
+    // Helper function to traverse and assign materials
+    function traverseAndAssignMaterials(object, material) {
+      object.traverse((child) => {
+        if (child.isMesh) {
+          child.material = material || child.material.clone();
+        }
+      });
+    }
+
+    // GLTFLoader for models
+    const loader = new GLTFLoader();
+    loader.load('poly.glb', (gltf) => {
+      const poly = gltf.scene;
+      poly.scale.set(10, 10, 10);
+      poly.translateX(-5); // Avoid overlap
+      scene.add(poly);
+      window['SCENE'].poly = poly;
+    }, undefined, (error) => {
+      console.error('Error loading poly.glb:', error);
+    });
+
+    loader.load('tiki.glb', (gltf) => {
+      const blender = gltf.scene;
+      blender.scale.set(10, 10, 10);
+      blender.translateX(5); // Avoid overlap
+      traverseAndAssignMaterials(blender); // Assign materials to child meshes
+      scene.add(blender);
+      window['SCENE'].blender = blender;
+
+      // Add VertexNormalsHelper only for valid mesh geometries
+      blender.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          const helper = new VertexNormalsHelper(child, 0.1, 'blue');
+          helper.visible = false; // Initially hidden
+          child.add(helper); // Add helper directly to the child
+          if (!window['SCENE'].blender_helpers) window['SCENE'].blender_helpers = [];
+          window['SCENE'].blender_helpers.push(helper); // Reference for toggling visibility
+        }
+      });
+    }, undefined, (error) => {
+      console.error('Error loading tiki.glb:', error);
+    });
+
+    // Helper object for scene state
+    window['SCENE'] = {
+      poly: null,
+      blender: null,
+      blender_helpers: [],
+      rotate_poly: false,
+      do_rotate_poly: function () {
+        window['SCENE'].rotate_poly = !window['SCENE'].rotate_poly;
+      },
+      blender_old_material: null,
+      change_material: function () {
+        const blender = window['SCENE'].blender;
+        if (!blender) {
+          console.error('Blender object is not loaded yet!');
+          return;
+        }
+
+        if (!window['SCENE'].blender_old_material) {
+          // Store and replace materials for all child meshes
+          window['SCENE'].blender_old_material = [];
+          blender.traverse((child) => {
+            if (child.isMesh) {
+              window['SCENE'].blender_old_material.push(child.material.clone());
+              child.material = new THREE.MeshNormalMaterial();
+            }
+          });
+        } else {
+          // Restore materials for all child meshes
+          let index = 0;
+          blender.traverse((child) => {
+            if (child.isMesh) {
+              child.material = window['SCENE'].blender_old_material[index++];
+            }
+          });
+          window['SCENE'].blender_old_material = null;
+        }
+      },
+      toggle_normals: function () {
+        if (window['SCENE'].blender_helpers.length > 0) {
+          window['SCENE'].blender_helpers.forEach(helper => {
+            helper.visible = !helper.visible;
+          });
+        }
+      }
+    };
+
+    // UI with Tweakpane
+    const pane = new Pane();
+    const sceneFolder = pane.addFolder({ title: 'Scene' });
+
+    // Ambient light controls
+    sceneFolder.addBinding(ambientLight, 'intensity', { min: 0, max: 2 });
+    sceneFolder.addBinding(ambientLight.color, 'r', { label: 'Ambient Red', min: 0, max: 1 });
+    sceneFolder.addBinding(ambientLight.color, 'g', { label: 'Ambient Green', min: 0, max: 1 });
+    sceneFolder.addBinding(ambientLight.color, 'b', { label: 'Ambient Blue', min: 0, max: 1 });
+
+    const polyFolder = pane.addFolder({ title: 'PolyCam Mesh' });
+    polyFolder.addButton({ title: 'Rotate!' }).on('click', () => {
+      window['SCENE'].do_rotate_poly();
+    });
+    polyFolder.addButton({ title: 'Wireframe' }).on('click', () => {
+      const poly = window['SCENE'].poly;
+      if (poly) {
+        poly.traverse((child) => {
+          if (child.isMesh) {
+            child.material.wireframe = !child.material.wireframe;
+          }
+        });
+      }
+    });
+
+    const blenderFolder = pane.addFolder({ title: 'Blender Mesh' });
+    blenderFolder.addButton({ title: 'Change Material' }).on('click', () => {
+      window['SCENE'].change_material();
+    });
+    blenderFolder.addButton({ title: 'Show Normals!' }).on('click', () => {
+      window['SCENE'].toggle_normals();
+    });
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotate PolyCam mesh
+      if (window['SCENE'].poly) {
+        if (window['SCENE'].rotate_poly) {
+          const q = new THREE.Quaternion();
+          q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees
+          window['SCENE'].poly.quaternion.slerp(q, 0.01);
+        } else {
+          window['SCENE'].poly.quaternion.slerp(new THREE.Quaternion(), 0.01); // Reset to identity
+        }
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

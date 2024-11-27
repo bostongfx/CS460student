@@ -10,7 +10,101 @@
         overflow: hidden !important; 
       }
     </style>
+    <script type="text/javascript" src="https://get.goxtk.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+
   </head>
   <body>
+    <script>
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 0;
+      
+      const colors = {
+        'Digit1': [1, 1, 1], // White
+        'Digit2': [1, 0, 0], // Red
+        'Digit3': [0, 1, 0], // Green
+        'Digit4': [0, 0, 1], // Blue
+        'Digit5': [1, 1, 0], // Yellow
+        'Digit6': [1, 0.75, 0.8], // Pink
+        'Digit7': [0, 1, 1], // Cyan
+        'Digit0': [0, 0, 0]  // Black
+    };
+
+      var renderer;
+      var c;
+      var r;
+      var rotateCamera = false;
+
+      window.onload = function() {
+          renderer = new X.renderer3D();
+          renderer.container = document.body;
+          renderer.init();
+          
+          r = renderer;
+  
+          c = new X.cube();
+          renderer.add(c);
+  
+          renderer.render();
+
+          r.onRender = function() {
+          if (rotateCamera) {
+              r.camera.rotate([1, 0]);
+          }
+      };
+
+      };
+      
+      window.onkeypress = function(e) {
+        if (!c) return;
+
+        // Movement handling based on key pressed
+        if (e.code == 'KeyD') {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP); //right
+        } else if (e.code == 'KeyA') {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP); //left
+        } else if (e.code == 'KeyW') {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP); //up
+        } else if (e.code == 'KeyS') {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP); //down
+        } else if (e.code == 'KeyQ') {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP); //forward
+        } else if (e.code == 'KeyE') {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP); //backward
+        } else if (e.code == 'Space') {
+            var new_cube = new X.cube();
+            new_cube.color = c.color; 
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix); 
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH; 
+            renderer.add(new_cube);
+        } 
+
+        if (e.code == 'KeyO') {
+          if (typeof download === 'function') {
+            download(); //download function
+        } else {
+            console.error('Download function is not available');
+        }
+      } else if (e.code == 'KeyL') {
+        if (typeof upload === 'function') {
+            upload("scene.json"); //upload function
+        } else {
+            console.error('Upload function is not available');
+        }
+      }  
+        if (e.code == 'KeyB') {
+          rotateCamera = !rotateCamera; //rotate
+          console.log('Camera rotation', rotateCamera ? 'enabled' : 'disabled');
+      }
+
+        if (colors[e.code]) {
+            console.log('Changing color to:', colors[e.code]); 
+            c.color = colors[e.code]; //cube color
+        }
+
+        
+        renderer.render();
+    };
+  </script>
   </body>
 </html>

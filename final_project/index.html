@@ -183,8 +183,8 @@
         sphere.position.z = position.z;
         const prevPos = controller.userData.prevPos;
         const prevQuat = controller.userData.prevQuat;
-        const currPos = controller.position;
-        const currQuat = controller.quaternion;
+        const currPos = controller.position.clone();
+        const currQuat = controller.quaternion.clone();
         // Change in Quaternion: From ChatGPT
         // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
         // let angularVelocity = {
@@ -194,8 +194,8 @@
         // }
         // console.log(angularVelocity);
         // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-        object.PHYSICS.xspeed = ((currPos.x + 0.1 - prevPos.x) / FPS);
-        object.PHYSICS.zspeed = ((currPos.z + 0.1 - prevPos.z) / FPS);
+        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
+        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
         object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS);
         console.log(currPos, prevPos);
         BALLS.push(object);

@@ -39,6 +39,15 @@
         let ambientLight, directionalLight;
 
         window['SCENE'] = {
+            scene: scene,
+            camera: camera,
+            renderer: renderer,
+            controls: controls,
+            effect: effect,
+            loader: loader,
+            pane: pane,
+            ambientLight: ambientLight,
+            directionalLight: directionalLight,
             anaglyph: false,
             ambientColor: '#f5f5f5',
             poly: null, // PolyCam model
@@ -120,16 +129,18 @@
             // Anaglyph Toggle
             sceneFolder.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph Effect' });
 
-            // PolyCam Mesh Folder
             const polyFolder = pane.addFolder({ title: 'PolyCam Mesh' });
 
-            // Add Rotation Button
+            // Wireframe Checkbox
+            polyFolder.addBinding(window.SCENE, 'poly', {
+                label: 'Wireframe',
+                property: 'material.wireframe',
+            });
+
+            // Rotation Button
             polyFolder.addButton({ title: 'Rotate!' }).on('click', () => {
                 window.SCENE.do_rotate_poly();
             });
-
-            // Save polyFolder reference for later
-            window.SCENE.polyFolder = polyFolder;
 
             // Ambient Light Intensity
             sceneFolder.addBinding(SCENE_PARAMS, 'ambientIntensity', {
@@ -183,7 +194,6 @@
             });
         }
 
-
         function loadModels() {
             loader = new GLTFLoader();
 
@@ -195,10 +205,6 @@
                     poly.scale.set(10, 10, 10); // Scale mesh
                     poly.position.set(-10, 0, 0); // Offset to the left
                     scene.add(gltf.scene); // Add PolyCam mesh
-
-                    if (window.SCENE.polyFolder) {
-                        window.SCENE.polyFolder.addBinding(window.SCENE.poly.material, 'wireframe', { label: 'Wireframe' });
-                    }
                 },
                 undefined,
                 function (error) {
@@ -215,9 +221,6 @@
                     croc.position.set(0, 3, -13); // Offset to the right
                     croc.rotation.set(0.3, 0, 0); // Rotate slightly for better view
                     scene.add(gltf.scene); // Add Blender mesh
-                    if (window.SCENE.polyFolder) {
-                        window.SCENE.polyFolder.addBinding(window.SCENE.poly.material, 'wireframe', { label: 'Wireframe' });
-                    }
                 },
                 undefined,
                 function (error) {

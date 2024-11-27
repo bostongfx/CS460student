@@ -70,21 +70,6 @@ window.onload = function() {
   light.position.set( 10, 100, 10 );
   scene.add( light );
 
-  // //
-  // // The invisible plane
-  // //
-  // geometry = new THREE.PlaneGeometry( 10000, 10000 );
-  // material = new THREE.MeshBasicMaterial( {
-  //   visible: false
-  // });
-
-  // var invisible_plane = new THREE.Mesh( geometry, material );
-
-  // scene.add( invisible_plane );
-  // //
-  // //
-  // // unnecessay??? ^^^^
-
 // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import... ...we can use the following snippet to load a binary glTF file and add it to the scene:
 
 // But.. you might not see it yet. Please play around with the camera position and the scaling of the mesh in the loader
@@ -110,7 +95,7 @@ loader.load( 'shadowsquishmallow.glb ', function ( gltf ) {
 
 loadertwo = new GLTFLoader();
 
-loadertwo.load( ' shadowsquish4.glb ', function ( gltf ) {
+loadertwo.load( ' shadowsquishfixed.glb ', function ( gltf ) {
   var poly = gltf.scenes[0].children[0];
   
   poly.quaternion.w = 10;

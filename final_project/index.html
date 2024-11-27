@@ -245,22 +245,22 @@
       } else if (CURR_PLATE_CD > 0) {
         CURR_PLATE_CD -= 1;
       }
-      for (let i = 0; i < PLATES.length; i++) {
-        let plate_mesh_object = PLATES[i];
-        let plate = plate_mesh_object.object;
-        let plate_physics = plate_mesh_object.PHYSICS;
-        let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
-        plate.quaternion.slerp(qEnd, 0.1);
-      }
+      // for (let i = 0; i < PLATES.length; i++) {
+      //   let plate_mesh_object = PLATES[i];
+      //   let plate = plate_mesh_object.object;
+      //   let plate_physics = plate_mesh_object.PHYSICS;
+      //   let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
+      //   plate.quaternion.slerp(qEnd, 0.1);
+      // }
       for (let i = 0; i < BALLS.length; i++) {
         let ball_mesh_object = BALLS[i];
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
-        let xdisplacement = ball_physics.xspeed * FPS;
-        ball.position.x += xdisplacement;
-        let zdisplacement = ball_physics.zspeed * FPS;
         if (ball.position.y > -1) {
           document.getElementById("myInfo").innerHTML = JSON.stringify(ball_physics);
+          let xdisplacement = ball_physics.xspeed * FPS;
+          ball.position.x += xdisplacement;
+          let zdisplacement = ball_physics.zspeed * FPS;
           ball_physics.time += FPS;
           let ydisplacement = 0;
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
@@ -273,8 +273,6 @@
           }
         } else {
           ball_physics.yspeed = 0;
-          ball_physics.xspeed = 0;
-          ball_physics.zspeed = 0;
           ball_physics.yspeedint = 0;
           ball_physics.time = 0;
         }

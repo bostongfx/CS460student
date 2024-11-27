@@ -246,11 +246,11 @@
         let ball_mesh_object = BALLS[i];
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
-        if (ball.position.y > 0) {
+        if (ball.position.y > -1) {
           ball_physics.time += FPS;
           let ydisplacement = 0;
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
-          ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * Math.pow(ball_physics.time, 2));
+          ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * (ball_physics.time * ball_physics.time));
           if (ball.position.y - ydisplacement < -1) {
             ball.position.y = 10;
           } else {

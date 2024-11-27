@@ -122,6 +122,7 @@
       });
 
       controller2.addEventListener('selectend', (event) => {
+        let controller = event.target;
         const prevPos = controller.userData.prevPos;
         const prevQuat = controller.userData.prevQuat;
         const currPos = controller.position.clone();

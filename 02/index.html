@@ -1,16 +1,149 @@
 <html>
-  <head>
-    <title>CS460.org Assignment 2</title>
-    <style>
-      body {
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important; 
-      }
-    </style>
-  </head>
-  <body>
-  </body>
+    <head>
+        <title>CS460.org Assignment 2</title>
+        <style>
+            body {
+                background-color: #000;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden !important;
+            }
+        </style>
+        <script
+            type="text/javascript"
+            src="https://get.goXTK.com/xtk_edge.js"
+        ></script>
+        <script type="text/javascript" src="loader.js"></script>
+        <script>
+            // Constants
+            const CUBE_SIDELENGTH = 20; // store cude side length
+            const GAP = 2; // store gap between cubes
+
+            let isRotating = false; // boolean to track camera rotation
+            var CAMERAS = []; // CAMERAS list to store camera views
+            let isCycling = false; // boolean to track camera rotation
+            let interval = null; // interval check for camera rotation
+            window.onload = () => {
+                // create a new 3d renderer
+                r = new X.renderer3D();
+                r.init();
+
+                // create a mesh from a .vtk file
+                c = new X.cube();
+                
+                c.color = [1, 1, 1];
+                // add the object
+                r.add(c);
+
+                // .. and render it
+                r.render();
+
+                window.onkeypress = function(e) {
+                    switch (e.code) {
+                        case "Digit1":
+                            c.color = [1, 1, 1]; // white
+                            break;
+                        case "Digit2":
+                            c.color = [1, 0, 0]; // red
+                            break;
+                        case "Digit3":
+                            c.color = [0, 1, 0]; // green
+                            break;
+                        case "Digit4":
+                            c.color = [0, 0, 1]; // blue
+                            break;
+                        case "Digit5":
+                            c.color = [0, 1, 1]; // yellow
+                            break;
+                        case "Digit6":
+                            c.color = [1, 0, 1]; // pink
+                            break;
+                        case "Digit7":
+                            c.color = [0, 0, .5]; // cyan
+                            break;
+                        // Commands to modify cube on keypress
+                        case "KeyD":
+                            c.transform.translateX(-CUBE_SIDELENGTH - GAP); // move right
+                            break;
+                        case "KeyA":
+                            c.transform.translateX(CUBE_SIDELENGTH + GAP); // move left
+                            break;
+                        case "KeyQ":
+                            c.transform.translateY(CUBE_SIDELENGTH + GAP); // move forward
+                            break;
+                        case "KeyE":
+                            c.transform.translateY(-CUBE_SIDELENGTH - GAP); // move backward
+                            break;
+                        case "KeyW":
+                            c.transform.translateZ(CUBE_SIDELENGTH + GAP); // move up
+                            break;
+                        case "KeyS":
+                            c.transform.translateZ(-CUBE_SIDELENGTH - GAP); // move down
+                            break;
+                        case "Space":
+                            new_cube = new X.cube();
+                            new_cube.color = c.color;
+                            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+                            new_cube.lengthX =
+                            new_cube.lengthY =
+                            new_cube.lengthZ =
+                                CUBE_SIDELENGTH;
+                            r.add(new_cube);
+                            break;
+                        case "KeyO":
+                            download();
+                            break;
+                        case "KeyL":
+                            upload("scene.json");
+                            break;
+                        // rotate camera view with the B key
+                        case "KeyB":
+                            if (!isRotating) {
+                                r.onRender = function () {
+                                    r.camera.rotate([1, 0]);
+                                };
+                            isRotating = true;
+                            } else {
+                            r.onRender = r.camera.rotate([0, 0]);
+                            isRotating = false;
+                            }
+                            break;
+                        // Stores current camera view into the CAMERAS list
+                        case "KeyC":
+                            CAMERAS[CAMERAS.length] = new Float32Array(r.camera.view);
+                            console.log("Stored camera view successfully!");
+                            break;
+                        // cycles through camera views stored in CAMERAS array
+                        case "KeyV":
+                            if (CAMERAS.length > 0) {
+                                // prevent repeated cycling
+                                if (isCycling) {
+                                    clearInterval(interval);
+                                    interval = null;
+                                    isCycling = false;
+                                    console.log("Cycling stopped");
+                                }
+                                // only starts cycling if not cycling already
+                                else {
+                                    console.log("Cycling through camera views");
+                                    var time = 0;
+                                    interval = setInterval(function () {
+                                    r.camera.view = new Float32Array(
+                                        CAMERAS[time % CAMERAS.length]
+                                    );
+                                    time++;
+                                    }, 1000);
+                                    isCycling = true;
+                                }
+                            }
+                            break;
+                    }
+                    
+                }
+  
+            };
+        </script>
+    </head>
+    <body></body>
 </html>

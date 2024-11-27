@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Multiple Models</title>
+    <title>Three.js GLTFLoader 3D Models</title>
     <style>
         html,
         body {
@@ -16,6 +16,7 @@
         }
     </style>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
     <script type="importmap">
     {
         "imports": {
@@ -33,18 +34,36 @@
         import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+        
 
 
-        let scene, camera, renderer, controls, effect, loader, pane;
+        let scene, camera, renderer, controls, effect, stats, loader, pane;
         let ambientLight, directionalLight;
 
         window['SCENE'] = {
             anaglyph: false,
             ambientColor: '#f5f5f5',
-            poly: null, // PolyCam model
-            rotate_poly: false, // Flag for ongoing rotation
+            poly: null,
+            blender: null,
+            blender_helper: null,
+            blender_old_material: null,
+            rotate_poly: false,
+            rotate_blender: false,
             do_rotate_poly: function () {
                 window.SCENE.rotate_poly = !window.SCENE.rotate_poly;
+            },
+            do_rotate_blender: function () {
+                window.SCENE.rotate_blender = !window.SCENE.rotate_blender;
+            },
+            change_material: function () {
+                if (!window.SCENE.blender_old_material) {
+                    window.SCENE.blender_old_material = window.SCENE.blender.material.clone();
+                    window.SCENE.blender.material = new THREE.MeshNormalMaterial();
+                } else {
+                    window.SCENE.blender.material = window.SCENE.blender_old_material.clone();
+                    window.SCENE.blender_old_material = null;
+                }
             },
         };
 
@@ -54,13 +73,6 @@
             directionalX: 10,
             directionalY: 10,
             directionalZ: 10,
-        };
-
-        const MODEL_PARAMS = {
-            polyScale: 10,
-            polyPositionX: -10,
-            crocScale: 10,
-            crocPositionX: 0,
         };
 
         window.onload = () => {
@@ -73,6 +85,9 @@
 
         function initScene() {
             scene = new THREE.Scene();
+
+            stats = new Stats();
+            document.body.appendChild(stats.domElement);
 
             // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -116,20 +131,25 @@
 
             // Scene Folder
             const sceneFolder = pane.addFolder({ title: 'Scene' });
-
-            // Anaglyph Toggle
             sceneFolder.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph Effect' });
 
             // PolyCam Mesh Folder
             const polyFolder = pane.addFolder({ title: 'PolyCam Mesh' });
-
-            // Add Rotation Button
             polyFolder.addButton({ title: 'Rotate!' }).on('click', () => {
                 window.SCENE.do_rotate_poly();
             });
-
-            // Save polyFolder reference for later
             window.SCENE.polyFolder = polyFolder;
+
+
+            const blenderFolder = pane.addFolder({ title: 'Blender Mesh' });
+            blenderFolder.addButton({ title: 'Rotate!' }).on('click', () => {
+                window.SCENE.do_rotate_blender();
+            });
+            blenderFolder.addButton({ title: 'Change Material!' }).on('click', () => {
+                window.SCENE.change_material();
+            });
+            window.SCENE.blenderFolder = blenderFolder;
+
 
             // Ambient Light Intensity
             sceneFolder.addBinding(SCENE_PARAMS, 'ambientIntensity', {
@@ -210,11 +230,34 @@
             loader.load(
                 './part2/camera.glb', 
                 function (gltf) {
-                    const croc = gltf.scene.children[0];
-                    croc.scale.set(10, 10, 10); // Scale appropriately
-                    croc.position.set(0, 3, -13); // Offset to the right
-                    croc.rotation.set(0.3, 0, 0); // Rotate slightly for better view
-                    scene.add(gltf.scene); // Add Blender mesh
+                    let croc = null;
+
+                    // Traverse the scene to find the mesh
+                    gltf.scene.traverse((child) => {
+                        if (child.isMesh) {
+                            croc = child;
+                        }
+                    });
+
+                    if (croc) {
+                        croc.scale.set(10, 10, 10); // Scale appropriately
+                        croc.position.set(0, 3, -13); // Offset to the right
+                        croc.rotation.set(0.3, 0, 0); // Rotate slightly for better view
+
+                        // Correct helper creation
+                        const helper = new VertexNormalsHelper(croc, 0.5, 'blue');
+                        helper.visible = false;
+
+                        // Assign croc and helper to SCENE
+                        window.SCENE.blender = croc;
+                        window.SCENE.blender_helper = helper;
+
+                        // Add objects to the scene
+                        scene.add(croc);
+                        scene.add(helper);
+                    } else {
+                        console.error('No mesh found in croc.glb');
+                    }
                 },
                 undefined,
                 function (error) {
@@ -244,9 +287,19 @@
                     window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.01); // Interpolate
                 }
             }
+            if (window.SCENE.blender) {
+                const targetQuaternion = new THREE.Quaternion();
+                if (window.SCENE.rotate_blender) {
+                    targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                }
+                window.SCENE.blender.quaternion.slerp(targetQuaternion, 0.01);
+                window.SCENE.blender_helper.update();
+            }
 
             // Update controls
             controls.update();
+
+            stats.update();
 
             // Render scene
             renderer.render(scene, camera);

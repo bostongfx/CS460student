@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>DORITOS</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://threejs.org/examples/main.css"
+    />
+  </head>
+  <body>
+    <div id="container"></div>
+    <div id="info">
+      <a href="https://threejs.org" target="_blank" rel="noopener">DORITOS YUMMMMMMY</a>
+    </div>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"
+    ></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@latest/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+    <script type="module">
+      import * as THREE from "three";
+
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
+      import { Pane } from "https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js";
+      import { AnaglyphEffect } from "three/addons/effects/AnaglyphEffect.js";
+      import { VertexNormalsHelper } from "three/addons/helpers/VertexNormalsHelper.js";
+
+      const container = document.getElementById("container");
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer();
+      const effect = new AnaglyphEffect(renderer);
+      effect.setSize(window.innerWidth, window.innerHeight);
+      const controls = new OrbitControls(camera, renderer.domElement);
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // stats.js widget
+      const stats = new Stats();
+        document.body.appendChild(stats.domElement);
+
+      //
+      // SETTINGS and HELPER for TWEAKPANE
+      //
+      window["SCENE"] = {
+        poly: null,
+        blender: null,
+        anaglyph: false,
+        rotate_poly: false,
+        do_rotate_poly: function () {
+          window["SCENE"]["rotate_poly"] = !window["SCENE"]["rotate_poly"];
+        },
+        rotate_blender: false,
+        do_rotate_blender: function () {
+          window["SCENE"]["rotate_blender"] =
+            !window["SCENE"]["rotate_blender"];
+        },
+        blender_old_material: null,
+        change_material: function () {
+          if (!window["SCENE"]["blender_old_material"]) {
+            window["SCENE"]["blender_old_material"] =
+              window["SCENE"]["blender"].material.clone();
+            window["SCENE"]["blender"].material =
+              new THREE.MeshNormalMaterial();
+          } else {
+            window["SCENE"]["blender"].material =
+              window["SCENE"]["blender_old_material"].clone();
+            window["SCENE"]["blender_old_material"] = null;
+          }
+        },
+      };
+      console.log(window["SCENE"]);
+
+      window.onload = function () {
+        // // Position the camera
+        // camera.position.z = 5;
+        camera.position.set(0, 4, 1);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Color, Intensity
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // Color, Intensity
+        directionalLight.position.set(5, 10, 7.5); // x, y, z position
+        scene.add(directionalLight);
+
+        // // Optionally, add a helper to visualize the light's direction
+        // const helper = new THREE.DirectionalLightHelper(directionalLight, 5);
+        // scene.add(helper);
+
+        // PANE CONTROLS
+        const pane = new Pane();
+        var sceneui = pane.addFolder({ title: "Scene" });
+
+        // light x
+        sceneui.addBinding(directionalLight.position, "x", {
+          min: -100,
+          max: 100,
+          label: "Light X",
+        });
+
+        // light y
+        sceneui.addBinding(directionalLight.position, "y", {
+          min: -100,
+          max: 100,
+          label: "Light Y",
+        });
+
+        // light z
+        sceneui.addBinding(directionalLight.position, "z", {
+          min: -100,
+          max: 100,
+          label: "Light Z",
+        });
+
+        // light intensity
+        sceneui.addBinding(directionalLight, "intensity", {
+          min: 0,
+          max: 10,
+          label: "Intensity",
+        });
+
+        // light color
+        sceneui.addBinding(directionalLight, "color");
+
+        const loader = new GLTFLoader();
+
+        // PolyCam mesh
+        loader.load("poly.glb", function (gltf) {
+          var poly = gltf.scenes[0].children[0];
+          poly.scale.x = 10;
+          poly.scale.y = 10;
+          poly.scale.z = 10;
+          poly.translateX(-1.25);
+          window.SCENE.poly = poly;
+
+          // PolyCam mesh folder
+          var polyui = pane.addFolder({ title: "PolyCam Mesh" });
+
+          polyui.addBinding(window.SCENE.poly.material, "wireframe");
+
+          polyui.addButton({ title: "rotate!" }).on("click", () => {
+            window.SCENE.do_rotate_poly();
+          });
+
+          scene.add(gltf.scene);
+        });
+
+        // Blender Mesh
+        loader.load("Doritos.glb", function (gltf) {
+          scene.add(gltf.scene);
+          var blender = gltf.scenes[0].children[0];
+          blender.scale.x = 10;
+          blender.scale.y = 10;
+          blender.scale.z = 10;
+          blender.quaternion.w = 0;
+          blender.quaternion.x = 0;
+          blender.quaternion.y = 0;
+          blender.quaternion.z = 0;
+          blender.translateX(1.25);
+          window.SCENE.blender = blender;
+
+          // PolyCam mesh folder
+          var blenderui = pane.addFolder({ title: "Blender Mesh" });
+
+          var helper = new VertexNormalsHelper(blender, 0.1, "blue");
+          helper.visible = false;
+          scene.add(helper);
+
+          blenderui.addBinding(helper, "visible", { label: "Show normals!" });
+
+          blenderui.addButton({ title: "Change Material!" }).on("click", () => {
+            window.SCENE.change_material();
+          });
+
+          blenderui.addButton({ title: "rotate!" }).on("click", () => {
+            window.SCENE.do_rotate_blender();
+          });
+        });
+
+        animate();
+      };
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+
+        controls.update();
+
+        renderer.render(scene, camera);
+
+        // Poly rotation!
+        if (window.SCENE.poly) {
+          if (window.SCENE.rotate_poly) {
+            // quaternion for the rotation
+            const quaternion180Poly = new THREE.Quaternion().setFromAxisAngle(
+              new THREE.Vector3(0, 1, 0), // about the y axis
+              Math.PI
+            );
+
+            window.SCENE.poly.quaternion.slerp(quaternion180Poly, 0.01);
+          } else {
+            // Reset to the start
+            const OGQuaternionPoly = new THREE.Quaternion();
+            window.SCENE.poly.quaternion.slerp(OGQuaternionPoly, 0.01);
+          }
+        }
+
+        // Blender rotation!
+        if (window.SCENE.blender) {
+          if (window.SCENE.rotate_blender) {
+            // quaternion for the rotation
+            const quaternion180Blender =
+              new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 1, 0), // about the y axis
+                Math.PI
+              );
+
+            window.SCENE.blender.quaternion.slerp(quaternion180Blender, 0.01);
+          } else {
+            // Reset to the start
+            const OGQuaternionBlender = new THREE.Quaternion();
+            window.SCENE.blender.quaternion.slerp(OGQuaternionBlender, 0.01);
+          }
+        }
+
+        stats.update();
+      }
+    </script>
+  </body>
+</html>

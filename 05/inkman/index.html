@@ -51,6 +51,14 @@ var renderer, controls, scene, camera, loader, loadertwo, pane; //stats;
 // stats = new Stats();
 // document.body.appendChild( stats.domElement );
 
+
+  //
+  // SETTINGS and HELPER for TWEAKPANE
+  //
+  window['SCENE'] = {
+  'anaglyph': false
+  };
+      
 window.onload = function() {
 
   // Three.js code goes here
@@ -87,13 +95,6 @@ window.onload = function() {
   sceneui.addBinding(light.position, 'x', {min:-100, max:100, label:'Light X'}); // X light
   sceneui.addBinding(light.position, 'y', {min:-100, max:100, label:'Light Y'}); // Y light
   sceneui.addBinding(light.position, 'z', {min:-100, max:100, label:'Light Z'}); // Z light
-
-  //
-  // SETTINGS and HELPER for TWEAKPANE
-  //
-  window['SCENE'] = {
-  'anaglyph': false
-  };
 
   sceneui.addBinding(window.SCENE, 'anaglyph'); // anaglyph
 
@@ -157,3 +158,4 @@ function animate() {
     </head>
 <body></body>
 </html>
+

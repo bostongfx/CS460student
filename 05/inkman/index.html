@@ -94,14 +94,14 @@ window.onload = function() {
   loader.load( 'shadowsquishmallow.glb ', function ( gltf ) {    
       var poly = gltf.scenes[0].children[0];
     
-      poly.translateX(5);
       poly.scale.x = 10;
       poly.scale.y = 10;
       poly.scale.z = 10;
-      poly.quaternion.w = 10;
-      poly.quaternion.x = 10;
-      poly.quaternion.y = 10;
-      poly.quaternion.z = 10;
+      poly.translateX(5);
+      poly.quaternion.w = 1;
+      poly.quaternion.x = 0;
+      poly.quaternion.y = 0;
+      poly.quaternion.z = 0;
       
       scene.add( gltf.scene );
   } );
@@ -110,14 +110,14 @@ window.onload = function() {
 
   loadertwo.load( ' shadowsquishfixed.glb ', function ( gltf ) {
     var poly = gltf.scenes[0].children[0];
-
+    
     poly.scale.x = 10;
     poly.scale.y = 10;
     poly.scale.z = 10;
-    poly.quaternion.w = 10;
-    poly.quaternion.x = 10;
-    poly.quaternion.y = 10;
-    poly.quaternion.z = 10;
+    poly.quaternion.w = 1;
+    poly.quaternion.x = 0;
+    poly.quaternion.y = 0;
+    poly.quaternion.z = 0;
 
     scene.add( gltf.scene );
   } );

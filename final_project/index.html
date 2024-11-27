@@ -10,6 +10,16 @@
       height: 100%;
       overflow: hidden !important;
     }
+
+    #info {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      text-align: center;
+      z-index: 100;
+      display:block;
+      background-color: wheat;
+    }
   </style>
 
   <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -113,21 +123,11 @@
       });
 
       controller1.addEventListener('selectend', (event) => {
-        let controller = event.target;
-        const prevPos = controller.userData.prevPos.clone();
-        const prevQuat = controller.userData.prevQuat.clone();
-        const currPos = controller.position.clone();
-        const currQuat = controller.quaternion.clone();
-        onSelectEnd(event, prevPos, currPos);
+        onSelectEnd(event);
       });
 
       controller2.addEventListener('selectend', (event) => {
-        let controller = event.target;
-        const prevPos = controller.userData.prevPos.clone();
-        const prevQuat = controller.userData.prevQuat.clone();
-        const currPos = controller.position.clone();
-        const currQuat = controller.quaternion.clone();
-        onSelectEnd(event, prevPos, currPos);
+        onSelectEnd(event);
       });
 
       //setup lights
@@ -180,7 +180,7 @@
       controller.userData.selected = object;
     };
 
-    function onSelectEnd(event, prevPos, currPos) {
+    function onSelectEnd(event) {
       let controller = event.target;
       let object = controller.userData.selected;
       if (object !== undefined) {
@@ -191,10 +191,10 @@
         sphere.position.x = position.x;
         sphere.position.y = position.y;
         sphere.position.z = position.z;
-        // const prevPos = controller.userData.prevPos;
-        // const prevQuat = controller.userData.prevQuat;
-        // const currPos = controller.position.clone();
-        // const currQuat = controller.quaternion.clone();
+        const prevPos = controller.userData.prevPos;
+        const prevQuat = controller.userData.prevQuat;
+        const currPos = controller.position.clone();
+        const currQuat = controller.quaternion.clone();
         // Change in Quaternion: From ChatGPT
         // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
         // let angularVelocity = {
@@ -204,9 +204,10 @@
         // }
         // console.log(angularVelocity);
         // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
-        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
-        object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS);
+        object.PHYSICS.xspeed = (currPos.x - prevPos.x) / FPS;
+        object.PHYSICS.zspeed = (currPos.z - prevPos.z) / FPS;
+        object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / FPS;
+        document.getElementById("myInfo").innerHTML = JSON.stringify(object.PHYSICS);
         console.log(currPos, prevPos);
         BALLS.push(object);
         console.log(object);
@@ -281,6 +282,8 @@
   </script>
 </head>
 
-<body></body>
+<body>
+  <div id="info">"The value for number is: " <span id="myInfo"></span></div>
+</body>
 
 </html>

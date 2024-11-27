@@ -266,11 +266,11 @@
           ball.position.x += xdisplacement;
           let zdisplacement = ball_physics.zspeed * FPS;
           ball.position.z += zdisplacement;
-          // if (ball.position.y - ydisplacement < -1) {
-          //   ball.position.y = -1;
-          // } else {
-          //   ball.position.y += ydisplacement;
-          // }
+          if (ball.position.y - ydisplacement < -1) {
+            ball.position.y = -1;
+          } else {
+            ball.position.y += ydisplacement;
+          }
         } else {
           ball_physics.yspeed = 0;
           ball_physics.yspeedint = 0;

@@ -144,7 +144,7 @@
       let floorMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: false });
       floorMaterial.side = THREE.BackSide;
       let floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.position.set(0, -1, 0);
+      floor.position.set(0, -10, 0);
       floor.rotation.x = Math.PI / 2;
 
       scene.add(floor);
@@ -222,7 +222,7 @@
       let material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
       let plate = new THREE.Mesh(geometry, material);
       plate.translateZ(-2);
-      plate.translateY(0);
+      plate.translateY(20);
       scene.add(plate);
       let object = new MeshObjects(plate);
       object.PHYSICS = {
@@ -261,7 +261,7 @@
           let ydisplacement = 0;
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
           ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * (ball_physics.time * ball_physics.time));
-          if (ball.position.y - ydisplacement < -1) {
+          if (ball.position.y - ydisplacement < -10) {
             ball.position.y = 10;
           } else {
             ball.position.y += ydisplacement;

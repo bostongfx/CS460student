@@ -34,7 +34,7 @@
         // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import...
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         // tweakpane import
-        //import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
 
 // Setup a Three.js boilerplate scene like we did in Assignment 3. You will need to setup the Three.js imports and include
@@ -79,9 +79,9 @@ window.onload = function() {
   light.position.set( 10, 100, 10 );
   scene.add( light );
 
-  // // Tweakpane setup...
-  // pane = new Pane();
-  // var sceneui = pane.addFolder({title: 'Scene'});
+  // Tweakpane setup...
+  pane = new Pane();
+  var sceneui = pane.addFolder({title: 'Scene'});
 
   // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import... ...we can use the following snippet to load a binary glTF file and add it to the scene:
 

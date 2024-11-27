@@ -87,14 +87,20 @@
 
       uniform mat4 transform;
 
+      uniform vec3 offset;
+
       void main(void) {
 
         vec4 final_position = transform * vec4( position, 1.);
 
         gl_Position = final_position;
+        final_position.x += offset.x;
+        final_position.y += offset.y;
+        final_position.z += offset.z;
 
         // TODO Part 2
 
+        gl_PointSize = 8.0;
 
       }
     </script>
@@ -173,7 +179,7 @@
             animate();
         };
 
-        function createRectangle(color, offset) {
+        function createPaddle(color, offset) {
 
 
 
@@ -186,10 +192,10 @@
             // TODO Part 1
             //
             vertices = new Float32Array([
-                -0.5, 0.5, 0.0, // V0      // 0
-                -0.5, -0.5, 0.0, // V1, V4  // 1
-                0.5, 0.5, 0.0, // V2, V3  // 2
-                0.5, -0.5, 0.0  // V5      // 3
+                -0.1, 0.05, 0.0,    // V0      // 0
+                -0.1, -0.05, 0.0,   // V1, V4  // 1
+                0.1, 0.05, 0.0,     // V2, V3  // 2
+                0.1, -0.05, 0.0     // V5      // 3
             ]);
 
             indices = new Uint8Array([0, 1, 2,     // Triangle 1 
@@ -208,7 +214,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES];
 
         }
 
@@ -218,7 +224,24 @@
             //
             // TODO Part 2
             //
+            const vertices = new Float32Array([
+                0.0, 0.0, 0.0 // Point at (0, 0, 0)
+            ]);
 
+            const indices = new Uint8Array([0]);
+
+            v_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ARRAY_BUFFER, v_buffer); // bind
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind
+
+
+            i_buffer = gl.createBuffer(); // create
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, i_buffer); // bind
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW); // put data in
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
+
+            return [v_buffer, i_buffer, color, offset, 1, gl.POINTS];
         }
 
         function createBrick(color, offset, score) {
@@ -262,16 +285,16 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null); // unbind
 
             // TODO Part 2
-            return [v_buffer, i_buffer, color, offset, 6, score];
+            return [v_buffer, i_buffer, color, offset, 6, gl.TRIANGLES, score];
         }
 
         function createBricks() {
             offset_x = -0.8
             offset_y = 0.9
             color = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
-                [1, 1, 1, 1],
+                [1, 0, 1, 1],
+                [1, 1, 0, 1],
+                [0, 1, 1, 1],
                 [1, 1, 1, 1],
             ]
             for (let i = 0; i < 4; i++) {
@@ -294,6 +317,7 @@
             // CLEAR NOW BEFORE ANY DRAWING
             gl.clearColor(0, 0, 0, 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
+            updateBall();
 
             // TODO Part 4
 
@@ -305,6 +329,8 @@
                 var COLOR = current[2];
                 var OFFSET = current[3];
                 var VERTEXCOUNT = current[4];
+                var PRIMITIVE = current[5];
+
 
                 //************************************************************//
                 //
@@ -345,7 +371,7 @@
                 // gl.drawArrays( gl.LINES, 0, 6 );
 
                 // TODO Part 2
-                gl.drawElements(gl.TRIANGLES, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
+                gl.drawElements(PRIMITIVE, VERTEXCOUNT, gl.UNSIGNED_BYTE, 0);
             }
         }
 
@@ -372,6 +398,8 @@
                 STOPPED = true;
                 document.getElementById("overlay").style.display = "block";
                 document.getElementById("game_over").style.display = "block";
+                document.getElementById("lose").style.display = "block";
+
             }
         }
 
@@ -435,8 +463,21 @@
             if (STOPPED) {
                 // restart the game
                 window.location.reload();
+            } if (e.code == 'ArrowLeft') {
+                if (OBJECTS[0][3][0] <= (-0.95 + 0.15)) {
+                    // LEFT WALL
+                    null;
+                } else {
+                    OBJECTS[0][3][0] -= 0.2;
+                }
+            } if (e.code == 'ArrowRight') {
+                if (OBJECTS[0][3][0] >= (0.95 - 0.15)) {
+                    // RIGHT WALL
+                    null;
+                } else {
+                    OBJECTS[0][3][0] += 0.2;
+                }
             }
-            // TODO Part 3
         };
     </script>
 </head>
@@ -450,6 +491,9 @@
         <span id="lives" class="top_bar">3</span>
         <div id="overlay">
             <img id="game_over" class="result" src="game_over.jpg" />
+            <audio lose>
+                <source src="lose.mp3" type="audio/mp3">
+            </audio>
         </div>
         <canvas id="c"></canvas>
 
@@ -457,4 +501,3 @@
 </body>
 
 </html>
-

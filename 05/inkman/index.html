@@ -31,6 +31,8 @@
         //import { AnagylphEffect } from 'three/addons/controls/AnagylphEffect.js';
         // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import...
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        // tweakpane import
+        import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
 // Setup a Three.js boilerplate scene like we did in Assignment 3. You will need to setup the Three.js imports and include
 // addons as well because we will use the OrbitControls and AnaglyphEffect again but also others :) Please don’t forget
@@ -76,6 +78,10 @@ window.onload = function() {
 // callback to visualize it properly. For me, a zNear of 0.1, zFar of 10000 and a camera.position.set(0,10,0); helped
 // but only adding code to the loader callback did the trick:
 
+// Tweakpane setup...
+pane = new Pane();
+var sceneui = pane.addFolder({title: 'Scene'});
+  
 loader = new GLTFLoader();
 
 loader.load( 'shadowsquishmallow.glb ', function ( gltf ) {    

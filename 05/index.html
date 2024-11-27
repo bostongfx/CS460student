@@ -194,8 +194,8 @@
                     const poly = gltf.scene.children[0];
                     poly.scale.set(10, 10, 10); // Scale mesh
                     poly.position.set(-10, 0, 0); // Offset to the left
-                    scene.add(gltf.scene); // Add PolyCam mesh
-
+                    window.SCENE.poly = poly; // Assign to SCENE.poly
+                    scene.add(gltf.scene);  
                     if (window.SCENE.polyFolder) {
                         window.SCENE.polyFolder.addBinding(window.SCENE.poly.material, 'wireframe', { label: 'Wireframe' });
                     }
@@ -215,9 +215,6 @@
                     croc.position.set(0, 3, -13); // Offset to the right
                     croc.rotation.set(0.3, 0, 0); // Rotate slightly for better view
                     scene.add(gltf.scene); // Add Blender mesh
-                    if (window.SCENE.polyFolder) {
-                        window.SCENE.polyFolder.addBinding(window.SCENE.poly.material, 'wireframe', { label: 'Wireframe' });
-                    }
                 },
                 undefined,
                 function (error) {

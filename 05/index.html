@@ -32,9 +32,7 @@
         let pane;
         let stats;
 
-        //
-        // SETTINGS and HELPER for TWEAKPANE
-        //
+        
         window['SCENE'] = {
             'anaglyph': false,
             'poly': null,
@@ -66,20 +64,20 @@
         rotationQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees around Y axis
 
         window.onload = function() {
-            // Scene setup
+            // Scene
             scene = new THREE.Scene();
             
-            // Setup Tweakpane
+            // tweakpane
             pane = new Pane();
             var sceneui = pane.addFolder({
                 title: 'Scene',
                 expanded: true
             });
 
-            // Add scene controls
+            // scene controls
             sceneui.addBinding(window.SCENE, 'anaglyph');
             
-            // Lights setup
+            // lights
             const ambientLight = new THREE.AmbientLight(0x404040, 1.0); // soft white light
             scene.add(ambientLight);
 
@@ -87,7 +85,7 @@
             directionalLight.position.set(5, 5, 5);
             scene.add(directionalLight);
             
-            // Add light controls
+            // light controls
             sceneui.addBinding(directionalLight.position, 'x', {min:-100, max:100, label:'Light X'});
             sceneui.addBinding(directionalLight.position, 'y', {min:-100, max:100, label:'Light Y'});
             sceneui.addBinding(directionalLight.position, 'z', {min:-100, max:100, label:'Light Z'});
@@ -96,28 +94,27 @@
             sceneui.addBinding(ambientLight.color, 'g', {min:0, max:1, label:'Ambient G'});
             sceneui.addBinding(ambientLight.color, 'b', {min:0, max:1, label:'Ambient B'});
             
-            // Camera setup
+            // camera 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
             camera.position.set(0, 10, 20);
             camera.lookAt(0, 0, 0);
             
-            // Renderer setup
+            // renderer
             renderer = new THREE.WebGLRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
             
-            // Setup controls
+            // controls
             controls = new OrbitControls(camera, renderer.domElement);
             
-            // Anaglyph effect setup
+            // anaglyph
             effect = new AnaglyphEffect(renderer);
             effect.setSize(window.innerWidth, window.innerHeight);
 
-            // Setup Stats.js widget
             stats = new Stats();
             document.body.appendChild(stats.domElement);
 
-            // Load unedited PolyCam model
+            // unedited PolyCam model
             loader = new GLTFLoader();
             loader.load('poly.glb', function(gltf) {
                 scene.add(gltf.scene);
@@ -127,31 +124,26 @@
                 poly.scale.y = 10;
                 poly.scale.z = 10;
                 
-                // Reset rotation with identity quaternion
                 poly.quaternion.w = 1;
                 poly.quaternion.x = 0;
                 poly.quaternion.y = 0;
                 poly.quaternion.z = 0;
                 
-                // Store the poly mesh in our helper
                 window.SCENE.poly = poly;
 
-                // Add PolyCam Mesh controls
                 var polyui = pane.addFolder({
                     title: 'PolyCam Mesh',
                     expanded: true
                 });
                 
-                // Add wireframe toggle
                 polyui.addBinding(window.SCENE.poly.material, 'wireframe');
                 
-                // Add rotation button
                 polyui.addButton({title:'rotate!'}).on('click', () => {
                     window.SCENE.do_rotate_poly();
                 });
             });
 
-            // Load edited Blender model
+            // edited Blender model
             loader.load('carAssignment5.glb', function(gltf) {
                 scene.add(gltf.scene);
                 
@@ -160,48 +152,38 @@
                 blender.scale.y = 10;
                 blender.scale.z = 10;
                 
-                // Reset rotation with identity quaternion
                 blender.quaternion.w = 1;
                 blender.quaternion.x = 0;
                 blender.quaternion.y = 0;
                 blender.quaternion.z = 0;
                 
-                // Store the blender mesh in our helper
                 window.SCENE.blender = blender;
 
-                // Create and setup normal helper
                 var helper = new VertexNormalsHelper(blender, 0.1, 'blue');
                 helper.visible = false;
                 scene.add(helper);
                 window.SCENE.blender_helper = helper;
 
-                // Add Blender Mesh controls
                 var blenderui = pane.addFolder({
                     title: 'Blender Mesh',
                     expanded: true
                 });
-                
-                // Add normal helper toggle
+
                 blenderui.addBinding(helper, 'visible', {label:'Show normals!'});
-                
-                // Add material change button
+
                 blenderui.addButton({title:'Change Material!'}).on('click', () => {
                     window.SCENE.change_material();
                 });
 
-                // Add rotation button
                 blenderui.addButton({title:'rotate!'}).on('click', () => {
                     window.SCENE.do_rotate_blender();
                 });
 
-                // Move it to the right
                 blender.translateX(10);
             });
-            
-            // Handle window resizing
+
             window.addEventListener('resize', onWindowResize, false);
-            
-            // Start animation loop
+
             animate();
         };
 
@@ -215,11 +197,9 @@
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-            
-            // Update stats
+
             stats.update();
-            
-            // Handle poly mesh rotation
+
             if (window.SCENE.poly) {
                 if (window.SCENE.rotate_poly) {
                     window.SCENE.poly.quaternion.slerp(rotationQuaternion, 0.01);
@@ -228,14 +208,12 @@
                 }
             }
 
-            // Handle blender mesh rotation
             if (window.SCENE.blender) {
                 if (window.SCENE.rotate_blender) {
                     window.SCENE.blender.quaternion.slerp(rotationQuaternion, 0.01);
                 } else {
                     window.SCENE.blender.quaternion.slerp(identityQuaternion, 0.01);
                 }
-                // Update normal helper if it exists
                 if (window.SCENE.blender_helper) {
                     window.SCENE.blender_helper.update();
                 }

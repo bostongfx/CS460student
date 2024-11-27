@@ -84,7 +84,9 @@ window.onload = function() {
   var sceneui = pane.addFolder({title: 'Scene'});
 
   // toggles
-  sceneui.addBinding(light.position, 'x', {min:-100, max:100, label:'Light X'});
+  sceneui.addBinding(light.position, 'x', {min:-100, max:100, label:'Light X'}); // X light
+  sceneui.addBinding(light.position, 'y', {min:-100, max:100, label:'Light Y'}); // Y light
+  sceneui.addBinding(light.position, 'z', {min:-100, max:100, label:'Light Z'}); // Z light
 
   // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import... ...we can use the following snippet to load a binary glTF file and add it to the scene:
 

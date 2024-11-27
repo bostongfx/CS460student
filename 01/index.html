@@ -12,11 +12,11 @@
 
       .demo {
         margin: auto;
-        width:50%;
+        width: 50%;
       }
 
       #screenshot {
-        float:left;
+        float: left;
         margin-right: 20px;
         margin-bottom: 20px;
         max-width: 300px;
@@ -32,40 +32,128 @@
       #comparison {
         text-align: justify;
       }
-
-      #bonus {
-        width: 100%;
+      #comparison a {
+        text-decoration: none;
+        color: purple;
       }
 
+      #bonus {
+        display: inline-block;
+        position: relative;
+        width: 800px;
+      }
+      #advert {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        width: 100%;
+        height: 460px;
+        background-color: black;
+        font-size: 60px;
+        animation: fade 7s infinite alternate-reverse;
+      }
+      .text {
+        animation: xSlide 7s infinite alternate;
+      }
+      #text1 {
+        position: absolute;
+        top: 100;
+        left: 100;
+      }
+      #text2 {
+        position: absolute;
+        top: 200;
+        right: 100;
+      }
+      #models {
+        position: relative;
+      }
+      .viewer {
+        width: 250px;
+        height: 450px;
+      }
+
+      #credits {
+        font-size: 1rem;
+        margin-top: 25px;
+      }
+
+      @keyframes fade {
+        0% {
+          opacity: 70%;
+        }
+        60% {
+          opacity: 0;
+        }
+      }
+
+      @keyframes xSlide {
+        0% {
+          transform: translateX(-50%);
+        }
+      }
     </style>
   </head>
   <body>
-
-    <img id='cube' src='https://cs460.org/gfx/cube.png'>
+    <img id="cube" src="https://cs460.org/gfx/cube.png" />
 
     <h1>RO.ME "3 DREAMS OF BLACK"</h1>
 
-    <div class='demo'>
-
+    <div class="demo">
       <!-- TODO: REPLACE WITH A SCREENSHOT OF RO.ME -->
-      <img id='screenshot' src='https://placehold.co/300x300'>
-      <p id='description'>
-      <!-- TODO: FILL IN YOUR DESCRIPTION -->
-      RO.ME is a very cool webgl demo!
+      <img id="screenshot" src="screenshot.png" />
+      <p id="description">
+        <!-- TODO: FILL IN YOUR DESCRIPTION -->
+        RO.ME released in 2011 and is an awesome WebGL demo accompanied by some
+        good music. RO.ME showcased the potential of WebGL for interactive
+        storytellying and helped popularize the three.js library for 3D on web.
       </p>
-      <p id='technology'>
-      Technology: TODO! <!-- TODO: FILL IN THE TECHNOLOGIES USED -->
+      <p id="technology">Technology: WebGL, THREE.js, and Google App Engine</p>
+      <p id="comparison">
+        Comparison:
+        <a href="https://egghunt.merci-michel.com/" target="_blank"
+          >MSI EGG HUNT</a
+        >
+        is another cool WebGL powered experience. Unlike RO.ME, Egg Hunt is a
+        more straightforward gameplay loop driven experience, with a highscore
+        system to keep players coming back.
+        <!-- TODO: FILL IN THE COMPARISON -->
       </p>
-      <p id='comparison'>
-      Comparison: TODO! <!-- TODO: FILL IN THE COMPARISON -->
-      </p>
-
-
-      <div id='bonus'>
-        <!-- TODO: BONUS TASK GOES HERE -->
-      </div>
-
     </div>
-
+    <h2>Introducing New Fragrance: <em>Canidae</em></h2>
+    <div id="bonus">
+      <!-- TODO: BONUS TASK GOES HERE -->
+      <!-- Code adapted from the rome-gltf repository -->
+      <!-- https://github.com/mrdoob/rome-gltf/ -->
+      <!-- Author: mrdoob -->
+      <div id="models">
+        <iframe
+          class="viewer"
+          src="viewer.html?files/models/quadruped_wolf.gltf"
+        ></iframe>
+        <iframe
+          class="viewer"
+          src="viewer.html?files/models/quadruped_fox.gltf"
+        ></iframe>
+        <iframe
+          class="viewer"
+          src="viewer.html?files/models/quadruped_chow.gltf"
+        ></iframe>
+      </div>
+      <div id="advert">
+        <p class="text" id="text1"><em>Run Wild...</em></p>
+        <p class="text" id="text2">Smell Free</p>
+      </div>
+    </div>
   </body>
+  <footer>
+    <p id="credits">
+      *This project uses code from
+      <a href="https://github.com/mrdoob/rome-gltf/">rome-gltf</a> repository,
+      created by <a href="https://github.com/mrdoob">mrdoob</a>. Full credit to
+      the original author for the development of this project.
+    </p>
+  </footer>
 </html>

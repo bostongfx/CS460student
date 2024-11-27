@@ -256,6 +256,11 @@
         let ball_mesh_object = BALLS[i];
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
+        let xdisplacement = ball_physics.xspeed * FPS;
+        ball.position.x += xdisplacement;
+
+        let zdisplacement = ball_physics.zspeed * FPS;
+        ball.position.z += zdisplacement;
         if (ball.position.y > -1) {
           document.getElementById("myInfo").innerHTML = JSON.stringify(ball_physics);
           ball_physics.time += FPS;
@@ -267,11 +272,6 @@
           } else {
             ball.position.y += ydisplacement;
           }
-          let xdisplacement = ball_physics.xspeed * FPS;
-          ball.position.x += xdisplacement;
-
-          let zdisplacement = ball_physics.zspeed * FPS;
-          ball.position.z += zdisplacement;
         } else {
           ball_physics.yspeed = 0;
           ball_physics.yspeedint = 0;

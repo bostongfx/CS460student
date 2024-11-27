@@ -1,178 +1,106 @@
 <html>
   <head>
     <style>
-      html, body { 
-        background-color:#000;
+      html, body {
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important;  
+        overflow: hidden;
+        background-color: #000;
       }
     </style>
-    
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
- 
     <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@latest/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
       }
-    }
     </script>
- 
     <script type="module">
- 
       import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
- 
-      var renderer, controls, scene, camera;
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+      import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
+      let scene, camera, renderer, controls, invisible_plane;
+      window['SCENE'] = {
+        'anaglyph' : false,
+        'poly' : null
+      };
+
+      const LASTOBJECT = { current: null };
 
       window.onload = function() {
- 
-        // Three.js code goes here
+        
+        // Initialize scene, camera, and renderer
         scene = new THREE.Scene();
- 
-        // setup the camera
+
         var fov = 75;
         var ratio = window.innerWidth / window.innerHeight;
         var zNear = 1;
         var zFar = 10000;
         camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
-        camera.position.set(0, 0, 100);
- 
-        // create renderer and setup the canvas
+        camera.position.set(10, 10, 10);
+
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( renderer.domElement );
- 
- 
- 
-        renderer.domElement.onmousedown = function( e ){
-          
-  
- 
-            var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
- 
- 
-            var vp_coords = new THREE.Vector2( 
-                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
-                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
- 
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
- 
-            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
- 
-            var raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(vp_coords_near, camera);
-            var intersects = raycaster.intersectObject(invisible_plane);
+        // Add lights
+        const ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
 
+        const light = new THREE.DirectionalLight(0xffffff, 1.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
 
-            if (e.shiftKey) {
-              controls.enable = false;
-              var newGeometry = new THREE.TorusKnotGeometry(7, 2, 64, 10);
-              var newMaterial = new THREE.MeshStandardMaterial({ color: 0xFF69B4, wireframe: false });
-              var newTorus = new THREE.Mesh( newGeometry, newMaterial );
-              scene.add ( newTorus );
-              window.LASTOBJECT = newTorus;
-              newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-              
-              var isScaling = true;
-
-                renderer.domElement.onmousemove = function( a ){
-                  
-                  if (isScaling) {
-                    if (a.movementY > 0) {
-                      LASTOBJECT.scale.set(LASTOBJECT.scale.x + 0.1,
-                                            LASTOBJECT.scale.y + 0.1,
-                                            LASTOBJECT.scale.z + 0.1);
-                    }
-                    if (a.movementY < 0) {
-                      LASTOBJECT.scale.set(LASTOBJECT.scale.x - 0.1,
-                                            LASTOBJECT.scale.y - 0.1,
-                                            LASTOBJECT.scale.z - 0.1);
-                    }
-                    if (LASTOBJECT.scale.x < 0) {
-                      LASTOBJECT.material.color.set(0x7CFC00);
-                    }
-                    if (LASTOBJECT.scale.x > 0) {
-                      LASTOBJECT.material.color.set(0xFF69B4);
-                    }
-                  }
-                  
-                };
-            }
-              renderer.domElement.onmouseup = function( d ){
-                  controls.enable = true;
-                  isScaling = false;
-                };
-
-          };
-        
-          
-          window.onkeypress = function(wire) {
-              if (wire.code == "KeyW") {
-                console.log("W was pressed.")
-                Torus.material.wireframe = true;
-                newTorus.material.wireframe = true;
-                LASTOBJECT.material.wireframe = true;
-              }
-            }
-        
- 
-        // setup lights
-        var ambientLight = new THREE.AmbientLight();
-        scene.add( ambientLight );
- 
-        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
-        light.position.set( 10, 100, 10 );
-        scene.add( light );
- 
-        // configure cube
-        var geometry = new THREE.TorusKnotGeometry(7, 2, 64, 10);
-        var material = new THREE.MeshStandardMaterial({ color: 0x00f0ff, wireframe: false });
- 
-        var Torus = new THREE.Mesh( geometry, material );
- 
-        scene.add( Torus );
- 
- 
-        //
-        // The invisible plane
-        //
-        geometry = new THREE.PlaneGeometry( 10000, 10000 );
-        material = new THREE.MeshBasicMaterial( {
-          visible: false
+        // Load GLTF model
+        var loader_poly = new GLTFLoader();
+        loader_poly.load( 'poly.glb', function ( gltf ) {
+          var poly_original = gltf.scenes[0].children[0];
+          poly_original.scale.set(10, 10, 10);
+          scene.add(gltf.scene);
         });
- 
-        var invisible_plane = new THREE.Mesh( geometry, material );
- 
-        scene.add( invisible_plane );
-        //
-        //
-        //
 
- 
-        // interaction
-        controls = new OrbitControls( camera, renderer.domElement );
- 
-        // call animation/rendering loop
+        var loader_blender = new GLTFLoader();
+        loader_blender.load( 'bag.glb', function ( gltf_bag ) {
+          var poly_blender = gltf_bag.scene.children[0];
+          poly_blender.translateX(5.5);
+          poly_blender.scale.set(10, 10, 10);
+          scene.add(gltf_bag.scene);
+        });
+
+        // Add invisible plane
+        const geometry = new THREE.PlaneGeometry(10000, 10000);
+        const material = new THREE.MeshBasicMaterial({ visible: false });
+        invisible_plane = new THREE.Mesh(geometry, material);
+        scene.add(invisible_plane);
+
+        var pane = new Pane();
+        var sceneui = pane.addFolder({title: 'Scene'});
+        sceneui.addBinding(window.SCENE, 'anaglyph');
+        sceneui.addBinding(light.position, 'x', {min:-100, max:100, label:'Light X'});
+        sceneui.addBinding(light.position, 'y', {min:-100, max:100, label:'Light Y'});
+        sceneui.addBinding(light.position, 'z', {min:-100, max:100, label:'Light Z'});
+        sceneui.addBinding(ambientLight, 'color', { view: 'color', label: 'AmbientLight Color' });
+
+        var polyui = pane.addFolder({title: 'PolyCam Mesh'});
+
+        // OrbitControls
+        controls = new OrbitControls(camera, renderer.domElement);
+
         animate();
-        
       };
- 
+
+
       function animate() {
- 
-        requestAnimationFrame( animate );
- 
-        // and here..
+        requestAnimationFrame(animate);
         controls.update();
-        renderer.render( scene, camera );
-        
-      };
+        renderer.render(scene, camera);
+      }
     </script>
   </head>
   <body></body>
 </html>
-

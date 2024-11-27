@@ -207,11 +207,11 @@
     };
 
     function createPlate() {
-      let geometry = new THREE.CircleGeometry(5, 32);
+      let geometry = new THREE.CircleGeometry(0.5, 32);
       let material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
       let plate = new THREE.Mesh(geometry, material);
-      plate.translateZ(-50);
-      plate.translateY(25);
+      plate.translateZ(-2);
+      plate.translateY(0);
       scene.add(plate);
       let object = new MeshObjects(plate);
       object.PHYSICS = {
@@ -239,8 +239,8 @@
         let plate_mesh_object = PLATES[i];
         let plate = plate_mesh_object.object;
         let plate_physics = plate_mesh_object.PHYSICS;
-        let xdisplacement = plate_physics.xspeed * FPS;
-        plate.position.x += xdisplacement;
+        let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
+        plate.quaternion.slerp(qEnd, 0.1);
       }
       for (let i = 0; i < BALLS.length; i++) {
         let ball_mesh_object = BALLS[i];

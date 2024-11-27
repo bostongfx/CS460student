@@ -13,6 +13,8 @@
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
     <script type="importmap">
     {
       "imports": {
@@ -32,7 +34,8 @@
         // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import...
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         // tweakpane import
-        import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        //import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+
 
 // Setup a Three.js boilerplate scene like we did in Assignment 3. You will need to setup the Three.js imports and include
 // addons as well because we will use the OrbitControls and AnaglyphEffect again but also others :) Please don’t forget
@@ -42,7 +45,11 @@
 
 // canvas?
 
-var renderer, controls, scene, camera, loader, loadertwo;
+var renderer, controls, scene, camera, loader, loadertwo; //stats;
+
+// // stats.js widget
+// stats = new Stats();
+// document.body.appendChild( stats.domElement );
 
 window.onload = function() {
 
@@ -72,46 +79,46 @@ window.onload = function() {
   light.position.set( 10, 100, 10 );
   scene.add( light );
 
-// Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import... ...we can use the following snippet to load a binary glTF file and add it to the scene:
+  // // Tweakpane setup...
+  // pane = new Pane();
+  // var sceneui = pane.addFolder({title: 'Scene'});
 
-// But.. you might not see it yet. Please play around with the camera position and the scaling of the mesh in the loader
-// callback to visualize it properly. For me, a zNear of 0.1, zFar of 10000 and a camera.position.set(0,10,0); helped
-// but only adding code to the loader callback did the trick:
+  // Now, we will use the GLTFLoader to load the poly.glb file. After adding a new import... ...we can use the following snippet to load a binary glTF file and add it to the scene:
 
-// Tweakpane setup...
-pane = new Pane();
-var sceneui = pane.addFolder({title: 'Scene'});
-  
-loader = new GLTFLoader();
+  // But.. you might not see it yet. Please play around with the camera position and the scaling of the mesh in the loader
+  // callback to visualize it properly. For me, a zNear of 0.1, zFar of 10000 and a camera.position.set(0,10,0); helped
+  // but only adding code to the loader callback did the trick:
 
-loader.load( 'shadowsquishmallow.glb ', function ( gltf ) {    
-    var poly = gltf.scenes[0].children[0];
-  
-    poly.translateX(5);
-    // poly.quaternion.w = 10;
-    // poly.quaternion.x = 10;
-    // poly.quaternion.y = 10;
-    // poly.quaternion.z = 10;
-    poly.scale.x = 10;
-    poly.scale.y = 10;
-    poly.scale.z = 10;
+  loader = new GLTFLoader();
+
+  loader.load( 'shadowsquishmallow.glb ', function ( gltf ) {    
+      var poly = gltf.scenes[0].children[0];
     
+      poly.translateX(5);
+      // poly.quaternion.w = 10;
+      // poly.quaternion.x = 10;
+      // poly.quaternion.y = 10;
+      // poly.quaternion.z = 10;
+      poly.scale.x = 10;
+      poly.scale.y = 10;
+      poly.scale.z = 10;
+      
+      scene.add( gltf.scene );
+  } );
+
+  loadertwo = new GLTFLoader();
+
+  loadertwo.load( ' shadowsquishfixed.glb ', function ( gltf ) {
+    var poly = gltf.scenes[0].children[0];
+    
+    poly.quaternion.w = 10;
+    poly.quaternion.x = 10;
+    poly.quaternion.y = 10;
+    poly.quaternion.z = 10;
+
     scene.add( gltf.scene );
-} );
+  } );
 
-loadertwo = new GLTFLoader();
-
-loadertwo.load( ' shadowsquishfixed.glb ', function ( gltf ) {
-  var poly = gltf.scenes[0].children[0];
-  
-  poly.quaternion.w = 10;
-  poly.quaternion.x = 10;
-  poly.quaternion.y = 10;
-  poly.quaternion.z = 10;
-
-  scene.add( gltf.scene );
-} );
-  
   // interaction 
   controls = new OrbitControls( camera, renderer.domElement );
 
@@ -133,4 +140,3 @@ function animate() {
     </head>
 <body></body>
 </html>
-

@@ -114,8 +114,8 @@
 
       controller1.addEventListener('selectend', (event) => {
         let controller = event.target;
-        const prevPos = controller.userData.prevPos;
-        const prevQuat = controller.userData.prevQuat;
+        const prevPos = controller.userData.prevPos.clone();
+        const prevQuat = controller.userData.prevQuat.clone();
         const currPos = controller.position.clone();
         const currQuat = controller.quaternion.clone();
         onSelectEnd(event, prevPos, currPos);
@@ -123,8 +123,8 @@
 
       controller2.addEventListener('selectend', (event) => {
         let controller = event.target;
-        const prevPos = controller.userData.prevPos;
-        const prevQuat = controller.userData.prevQuat;
+        const prevPos = controller.userData.prevPos.clone();
+        const prevQuat = controller.userData.prevQuat.clone();
         const currPos = controller.position.clone();
         const currQuat = controller.quaternion.clone();
         onSelectEnd(event, prevPos, currPos);

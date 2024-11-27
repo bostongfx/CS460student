@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,8 +35,10 @@
         import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
         import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
         
-
-
+        // Help:
+        // ChatGPT
+        // Lorenzo gave me an adivce to use function calls for each task.
+        // Doing so, I was able to debug much easier.
         let scene, camera, renderer, controls, effect, stats, loader, pane;
         let ambientLight, directionalLight;
 
@@ -207,7 +208,7 @@
         function loadModels() {
             loader = new GLTFLoader();
 
-            // Load PolyCam Model
+            // Load camera1 Model
             loader.load(
                 './part1/camera.glb', 
                 function (gltf) {
@@ -226,7 +227,7 @@
                 }
             );
 
-            // Load Crocodile Model
+            // Load camera2 Model
             loader.load(
                 './part2/camera.glb', 
                 function (gltf) {

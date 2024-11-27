@@ -113,11 +113,20 @@
       });
 
       controller1.addEventListener('selectend', (event) => {
-        onSelectEnd(event);
+        let controller = event.target;
+        const prevPos = controller.userData.prevPos;
+        const prevQuat = controller.userData.prevQuat;
+        const currPos = controller.position.clone();
+        const currQuat = controller.quaternion.clone();
+        onSelectEnd(event, prevPos, currPos);
       });
 
       controller2.addEventListener('selectend', (event) => {
-        onSelectEnd(event);
+        const prevPos = controller.userData.prevPos;
+        const prevQuat = controller.userData.prevQuat;
+        const currPos = controller.position.clone();
+        const currQuat = controller.quaternion.clone();
+        onSelectEnd(event, prevPos, currPos);
       });
 
       //setup lights
@@ -170,7 +179,7 @@
       controller.userData.selected = object;
     };
 
-    function onSelectEnd(event) {
+    function onSelectEnd(event, prevPos, currPos) {
       let controller = event.target;
       let object = controller.userData.selected;
       if (object !== undefined) {
@@ -181,10 +190,10 @@
         sphere.position.x = position.x;
         sphere.position.y = position.y;
         sphere.position.z = position.z;
-        const prevPos = controller.userData.prevPos;
-        const prevQuat = controller.userData.prevQuat;
-        const currPos = controller.position.clone();
-        const currQuat = controller.quaternion.clone();
+        // const prevPos = controller.userData.prevPos;
+        // const prevQuat = controller.userData.prevQuat;
+        // const currPos = controller.position.clone();
+        // const currQuat = controller.quaternion.clone();
         // Change in Quaternion: From ChatGPT
         // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
         // let angularVelocity = {

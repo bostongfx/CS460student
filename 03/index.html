@@ -1,173 +1,191 @@
-<!-- 
-Project: Pink (and Green) Torus World using Three.js
-Description: This project creates an interactive 3D scene using Three.js where users can place, scale, and color-switch toruses.
-- Toruses are placed at the mouse click position when the SHIFT key is pressed.
-- After placement, users can drag the mouse up or down to scale the torus dynamically.
-- The torus color flips between hot pink (#ff69b4) and grass green (#7CFC00) when the scale crosses zero.
-- The project includes camera controls using OrbitControls, but these are disabled while interacting with the scene.
+<!DOCTYPE html>
+<html lang="en">
 
-- Jongsoo Ha
-- CS460 Fall 2024
--->
-<html>
-  <head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Model Adjustments with Tweakpane</title>
     <style>
-      html, body { 
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important;  
-      }
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #F5F5F5; /* White Smoke background */
+        }
     </style>
-    
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
     <script type="importmap">
     {
-      "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
-      }
+        "imports": {
+            "three": "https://unpkg.com/three@latest/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
     }
     </script>
+</head>
 
+<body>
     <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
-
-      let renderer, controls, scene, camera, isShiftPressed = false, LASTOBJECT = null, isDragging = false;
-      let currentColor = 0xff69b4;  // Start with hotpink
-      let lastScaleSign = 1;  // Keep track of scale direction
-      let torusObjects = [];  // Store all placed toruses
-      let wireframeMode = false;  // Initialize wireframe mode flag
-
-      window.onload = function() {
-
-        // Part 1: Initialize scene
-        scene = new THREE.Scene();
-
-        // Setup the camera
-        const fov = 75;
-        const ratio = window.innerWidth / window.innerHeight;
-        const zNear = 1;
-        const zFar = 10000;
-        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
-        camera.position.set(0, 0, 100);
-
-        // Create renderer and setup the canvas 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // Setup lights for the scene
-        const ambientLight = new THREE.AmbientLight();
-        scene.add(ambientLight);
-        const light = new THREE.DirectionalLight(0xffffff, 5.0);
-        light.position.set(10, 100, 10);
-        scene.add(light);
-
-        // Part 2: Invisible plane for raycasting
-        const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
-        const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
-        const invisiblePlane = new THREE.Mesh(planeGeometry, planeMaterial);
-        scene.add(invisiblePlane);
-
-        // Initialize OrbitControls for camera movement
-        controls = new OrbitControls(camera, renderer.domElement);
-
-        // Part 3: Shift key and wireframe toggle handling
-        window.addEventListener('keydown', function(event) {
-          if (event.key === 'Shift') {
-            isShiftPressed = true;
-            controls.enabled = false;  // Disable camera movement
-          } else if (event.key === 'w') {
-            toggleWireframe();
-          }
-        });
-
-        window.addEventListener('keyup', function(event) {
-          if (event.key === 'Shift') {
-            isShiftPressed = false;
-            controls.enabled = true;  // Enable camera movement
-          }
-        });
-
-        // Part 4: Mouse down event to add a torus
-        renderer.domElement.onmousedown = function(e) {
-          if (isShiftPressed) {
-            const pixelCoords = new THREE.Vector2(e.clientX, e.clientY);
-            const vpCoords = new THREE.Vector2(
-              (pixelCoords.x / window.innerWidth) * 2 - 1,
-              -(pixelCoords.y / window.innerHeight) * 2 + 1
-            );
-            const vpCoordsNear = new THREE.Vector3(vpCoords.x, vpCoords.y, 0);
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(vpCoordsNear, camera);
-            const intersects = raycaster.intersectObject(invisiblePlane);
-
-            if (intersects.length > 0) {
-              const torusKnotGeometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-              const torusMaterial = new THREE.MeshStandardMaterial({ color: currentColor });
-              const torusKnot = new THREE.Mesh(torusKnotGeometry, torusMaterial);
-
-              torusKnot.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-              scene.add(torusKnot);
-
-              LASTOBJECT = torusKnot;  // Store the reference to the last placed object
-              isDragging = true;
-              lastScaleSign = 1;  // Reset scale sign
-              torusObjects.push(torusKnot);  // Add to the list of toruses
-            }
-          }
+        let scene, camera, renderer, controls, stats, effect, loader, pane;
+        let ambientLight, directionalLight;
+        const SCENE_PARAMS = {
+            ambientIntensity: 1,
+            directionalIntensity: 1,
+            directionalX: 10,
+            directionalY: 10,
+            directionalZ: 10,
         };
 
-        // Mouse move event to scale the last placed torus while dragging
-        renderer.domElement.onmousemove = function(e) {
-          if (isDragging && LASTOBJECT) {
-            const deltaY = e.movementY;
-            const scaleDelta = deltaY * -0.01; // Negative for intuitive scaling
-
-            LASTOBJECT.scale.set(
-              LASTOBJECT.scale.x + scaleDelta,
-              LASTOBJECT.scale.y + scaleDelta,
-              LASTOBJECT.scale.z + scaleDelta
-            );
-
-            // Part 6: Add some green
-            const currentScaleSign = Math.sign(LASTOBJECT.scale.x);
-            if (currentScaleSign !== lastScaleSign) {
-              currentColor = (currentColor === 0xff69b4) ? 0x7CFC00 : 0xff69b4;  // Switch color
-              LASTOBJECT.material.color.set(currentColor);
-              lastScaleSign = currentScaleSign;
-            }
-          }
+        window.onload = () => {
+            initScene();
+            setupLights();
+            setupUI();
+            loadModels();
+            animate();
         };
 
-        function toggleWireframe() {
-          torusObjects.forEach((torus) => {
-            // Toggle the wireframe mode directly on the torus material
-            torus.material.wireframe = !torus.material.wireframe;
-          });
+        function initScene() {
+            scene = new THREE.Scene();
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(0, 10, 20);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Orbit Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            // Anaglyph Effect
+            effect = new AnaglyphEffect(renderer);
+            effect.setSize(window.innerWidth, window.innerHeight);
+
+            // Stats
+            stats = new Stats();
+            document.body.appendChild(stats.domElement);
+
+            // Handle Resize
+            window.addEventListener('resize', onWindowResize, false);
         }
 
+        function setupLights() {
+            // Ambient Light
+            ambientLight = new THREE.AmbientLight(0xF5F5F5, SCENE_PARAMS.ambientIntensity);
+            scene.add(ambientLight);
 
-        // Mouse up event to stop dragging
-        renderer.domElement.onmouseup = function() {
-          isDragging = false;
-        };
+            // Directional Light
+            directionalLight = new THREE.DirectionalLight(0xF5F5F5, SCENE_PARAMS.directionalIntensity);
+            directionalLight.position.set(
+                SCENE_PARAMS.directionalX,
+                SCENE_PARAMS.directionalY,
+                SCENE_PARAMS.directionalZ
+            );
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+        }
 
-        // Animation/rendering loop
+        function setupUI() {
+            pane = new Pane();
+            const sceneFolder = pane.addFolder({ title: 'Scene' });
+
+            // Ambient Light Intensity
+            sceneFolder.addInput(SCENE_PARAMS, 'ambientIntensity', { min: 0, max: 5, label: 'Ambient Light' })
+                .on('change', (value) => {
+                    ambientLight.intensity = value;
+                });
+
+            // Directional Light Intensity
+            sceneFolder.addInput(SCENE_PARAMS, 'directionalIntensity', { min: 0, max: 5, label: 'Dir. Light Intensity' })
+                .on('change', (value) => {
+                    directionalLight.intensity = value;
+                });
+
+            // Directional Light Position
+            sceneFolder.addInput(SCENE_PARAMS, 'directionalX', { min: -50, max: 50, label: 'Dir. Light X' })
+                .on('change', (value) => {
+                    directionalLight.position.x = value;
+                });
+
+            sceneFolder.addInput(SCENE_PARAMS, 'directionalY', { min: -50, max: 50, label: 'Dir. Light Y' })
+                .on('change', (value) => {
+                    directionalLight.position.y = value;
+                });
+
+            sceneFolder.addInput(SCENE_PARAMS, 'directionalZ', { min: -50, max: 50, label: 'Dir. Light Z' })
+                .on('change', (value) => {
+                    directionalLight.position.z = value;
+                });
+        }
+
+        function loadModels() {
+            loader = new GLTFLoader();
+
+            // Load PolyCam Model
+            loader.load(
+                './part1/poly.glb',
+                function (gltf) {
+                    const poly = gltf.scene.children[0];
+                    poly.scale.set(10, 10, 10); // Scale factor 10
+                    poly.quaternion.set(0, 0, 0, 1); // Identity quaternion
+                    poly.translateX(5); // Offset to avoid overlap
+                    scene.add(gltf.scene); // Add PolyCam mesh
+                },
+                undefined,
+                function (error) {
+                    console.error('An error occurred while loading poly.glb:', error);
+                }
+            );
+
+            // Load Crocodile Model
+            loader.load(
+                './part1/croc.glb',
+                function (gltf) {
+                    const croc = gltf.scene.children[0];
+                    croc.scale.set(10, 10, 10); // Scale factor 10
+                    croc.quaternion.set(0, 0, 0, 1); // Identity quaternion
+                    croc.translateX(-5); // Offset to avoid overlap
+                    scene.add(gltf.scene); // Add Blender mesh
+                },
+                undefined,
+                function (error) {
+                    console.error('An error occurred while loading croc.glb:', error);
+                }
+            );
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            effect.setSize(window.innerWidth, window.innerHeight);
+        }
+
         function animate() {
-          requestAnimationFrame(animate);
-          controls.update();
-          renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+
+            // Update controls
+            controls.update();
+
+            // Render scene
+            renderer.render(scene, camera);
+
+            // Update stats
+            stats.update();
         }
-        animate();
-      };
     </script>
-  </head>
-  <body></body>
+</body>
+
 </html>

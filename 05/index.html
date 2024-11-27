@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project 5</title>
+    <style>
+      html,
+      body {
+        background-color: #000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;
+      }
+    </style>
+
+  
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@latest/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { AnaglyphEffect } from "three/addons/effects/AnaglyphEffect.js";
+      import { VertexNormalsHelper } from "three/addons/helpers/VertexNormalsHelper.js";
+      import { Pane } from "https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js";
+
+      let renderer, controls, scene, camera, effect, stats;
+      const windowSize = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+
+      
+      window.SCENE = {
+        anaglyph: false,
+        rotate_poly: false,
+        rotate_blender: false,
+        poly: null,
+        blender: null,
+        blender_helper: null,
+        poly_target_quaternion: null,
+        blender_target_quaternion: null,
+        blender_old_material: null,
+      };
+      // Create Scene and Camera
+      window.onload = function () {
+        scene = new THREE.Scene();
+        const fov = 75;
+        const aspectRatio = windowSize.width / windowSize.height;
+        const zNear = .01;
+        const zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, aspectRatio, zNear, zFar);
+        camera.position.set(0, 5, 5);
+
+        // Create Renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(windowSize.width, windowSize.height);
+        document.body.appendChild(renderer.domElement);
+
+        // Anaglyph Effect
+        effect = new AnaglyphEffect(renderer);
+        effect.setSize(windowSize.width, windowSize.height);
+
+        // Stats.js widget
+        stats = new Stats();
+        document.body.appendChild(stats.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(10, 10, 10).normalize();
+        scene.add(directionalLight);
+
+        // GLTF Loaders
+        const loader = new GLTFLoader();
+
+        // Orbit Controls
+        controls = new OrbitControls(camera, renderer.domElement);
+
+        // Tweakpane UI
+        const pane = new Pane();
+
+        // Scene UI
+        const sceneui = pane.addFolder({ title: "Scene" });
+        sceneui.addBinding(window.SCENE, "anaglyph");
+        sceneui.addBinding(directionalLight.position, "x", {
+          min: -10,
+          max: 10,
+          label: "Light X",
+        });
+        sceneui.addBinding(directionalLight.position, "y", {
+          min: -10,
+          max: 10,
+          label: "Light Y",
+        });
+        sceneui.addBinding(directionalLight.position, "z", {
+          min: -10,
+          max: 10,
+          label: "Light Z",
+        });
+        sceneui.addBinding(directionalLight, "intensity", {
+          min: 0,
+          max: 2,
+          label: "Light Intensity",
+        });
+        sceneui.addBinding(ambientLight, "color", {
+          label: "Ambient Light Color",
+          view: "color",
+        });
+
+        // Load PolyCam Mesh
+        loader.load(
+          "polystudiosneaker.glb",
+          function (gltf) {
+            const poly = gltf.scene.children[0];
+
+            //Set scaling to 10 and reset quaternion to identity
+            poly.scale.set(10, 10, 10);
+            poly.quaternion.w = 1;
+            poly.quaternion.x = 0;
+            poly.quaternion.y = 0;
+            poly.quaternion.z = 0;
+
+            // Adjust translation
+            poly.translateX(3);
+            scene.add(poly);
+            window.SCENE.poly = poly;
+
+            // Initialize smooth rotation target quaternion for PolyCam
+            window.SCENE.poly_target_quaternion = poly.quaternion.clone();
+
+            // PolyCam Mesh UI
+            const polyui = pane.addFolder({ title: "PolyCam Mesh" });
+
+            // Add wireframe toggle
+            polyui.addBinding(window.SCENE.poly.material, "wireframe");
+
+            // Add rotation button
+            polyui.addButton({ title: "Rotate Poly!" }).on("click", () => {
+              const q = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 1, 0),
+                Math.PI
+              );
+              window.SCENE.poly_target_quaternion.multiplyQuaternions(
+                window.SCENE.poly_target_quaternion,
+                q
+              );
+              window.SCENE.rotate_poly = true;
+            });
+          },
+          undefined,
+          function (error) {
+            console.error("Error loading PolyCam mesh:", error);
+          }
+        );
+
+        // Load Blender Mesh
+        loader.load(
+          "blend_shoe.glb",
+          function (gltf) {
+            const blender = gltf.scene.children[0];
+
+            // Set scaling to 10 and reset quaternion to identity
+            blender.scale.set(10, 10, 10);
+            blender.quaternion.w = 1;
+            blender.quaternion.x = 0;
+            blender.quaternion.y = 0;
+            blender.quaternion.z = 0;
+
+            // Adjust translation
+            blender.translateX(-5);
+            scene.add(blender);
+
+            // Add VertexNormalsHelper
+            const helper = new VertexNormalsHelper(blender, 0.1, "blue");
+            helper.visible = false;
+            scene.add(helper);
+
+            window.SCENE.blender = blender;
+            window.SCENE.blender_helper = helper;
+
+            // Initialize smooth rotation target quaternion for Blender
+            window.SCENE.blender_target_quaternion = blender.quaternion.clone();
+
+            // Blender Mesh UI
+            const blenderui = pane.addFolder({ title: "Blender Mesh" });
+
+            //  Add normals visualization toggle
+            blenderui.addBinding(helper, "visible", { label: "Show normals!" });
+
+            //  Add material change button
+            blenderui.addButton({ title: "Change Material!" }).on("click", () => {
+              if (!window.SCENE.blender_old_material) {
+                window.SCENE.blender_old_material =
+                  window.SCENE.blender.material.clone();
+                window.SCENE.blender.material = new THREE.MeshNormalMaterial();
+              } else {
+                window.SCENE.blender.material =
+                  window.SCENE.blender_old_material.clone();
+                window.SCENE.blender_old_material = null;
+              }
+            });
+
+            // Add rotation button
+            blenderui.addButton({ title: "Rotate Blender!" }).on("click", () => {
+              const q = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 1, 0),
+                Math.PI
+              );
+              window.SCENE.blender_target_quaternion.multiplyQuaternions(
+                window.SCENE.blender_target_quaternion,
+                q
+              );
+              window.SCENE.rotate_blender = true;
+            });
+          },
+          undefined,
+          function (error) {
+            console.error("Error loading Blender mesh:", error);
+          }
+        );
+
+        // Animation Loop
+        animate();
+      };
+
+      function animate() {
+        stats.begin(); // Start stats measurement
+
+        requestAnimationFrame(animate);
+
+        // Smoothly rotate PolyCam mesh
+        if (window.SCENE.rotate_poly && window.SCENE.poly) {
+          window.SCENE.poly.quaternion.slerp(
+            window.SCENE.poly_target_quaternion,
+            0.05
+          );
+          if (
+            window.SCENE.poly.quaternion.angleTo(
+              window.SCENE.poly_target_quaternion
+            ) < 0.01
+          ) {
+            window.SCENE.rotate_poly = false;
+          }
+        }
+
+        // Smoothly rotate Blender mesh
+        if (window.SCENE.rotate_blender && window.SCENE.blender) {
+          window.SCENE.blender.quaternion.slerp(
+            window.SCENE.blender_target_quaternion,
+            0.05
+          );
+          if (
+            window.SCENE.blender.quaternion.angleTo(
+              window.SCENE.blender_target_quaternion
+            ) < 0.01
+          ) {
+            window.SCENE.rotate_blender = false;
+          }
+
+          // Update blender helper
+          if (window.SCENE.blender_helper) {
+            window.SCENE.blender_helper.update();
+          }
+        }
+
+        controls.update();
+
+        // Render with or without Anaglyph effect
+        if (window.SCENE.anaglyph) {
+          effect.render(scene, camera);
+        } else {
+          renderer.render(scene, camera);
+        }
+
+        stats.end();
+      }
+    </script>
+  </head>
+  <body></body>
+</html>

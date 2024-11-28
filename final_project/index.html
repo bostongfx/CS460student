@@ -235,13 +235,13 @@
         "time": 0,
       }
       PLATES.push(object);
-      for (let i = 1; i < 10; i++) {
-        let geometry = new THREE.CircleGeometry(0.01, 16);
+      for (let i = 1; i < 100; i++) {
+        let geometry = new THREE.CircleGeometry(0.1, 16);
         let material = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: false });
         let marker = new THREE.Mesh(geometry, material);
         marker.translateY(0);
         marker.translateX(-1);
-        marker.translateZ(-i * 0.1);
+        marker.translateZ(-i);
         scene.add(marker);
       }
     }

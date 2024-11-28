@@ -194,11 +194,7 @@
         sphere.position.y = position.y;
         sphere.position.z = position.z;
         const prevPos = controller.userData.prevPos;
-        const prevQuat = controller.userData.prevQuat;
         const currPos = controller.position;
-        const currQuat = controller.quaternion;
-        const prevTime = controller.userData.currTime;
-        const currTime = Date.now() / 1000;
         // Change in Quaternion: From ChatGPT
         // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
         // let angularVelocity = {
@@ -208,11 +204,11 @@
         // }
         // console.log(angularVelocity);
         // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-        object.PHYSICS.xspeed = (currPos.x - prevPos.x) / (currTime - prevTime);
-        object.PHYSICS.zspeed = (currPos.z - prevPos.z) / (currTime - prevTime);
-        object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / (currTime - prevTime);
+        object.PHYSICS.xspeed = 3*((currPos.x - prevPos.x) / FPS);
+        object.PHYSICS.zspeed = 3*((currPos.z - prevPos.z) / FPS);
+        object.PHYSICS.yspeedint = 3*((currPos.y - prevPos.y) / FPS);
+        console.log(currPos, prevPos);
         document.getElementById("myInfo").innerHTML = JSON.stringify(object.PHYSICS);
-        console.log(currTime, prevTime);
         BALLS.push(object);
         console.log(object);
         controller.userData.selected = undefined;
@@ -237,7 +233,7 @@
         "time": 0,
       }
       PLATES.push(object);
-      for (let i = 1; i < 100; i++) {
+      for (let i = 0; i < 100; i++) {
         let geometry = new THREE.CircleGeometry(0.1, 16);
         let material = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: false });
         let marker = new THREE.Mesh(geometry, material);
@@ -249,11 +245,7 @@
     }
     function animate() {
       controller1.userData.prevPos = controller1.position.clone();
-      controller1.userData.prevQuat = controller1.quaternion.clone();
       controller2.userData.prevPos = controller2.position.clone();
-      controller2.userData.prevQuat = controller2.quaternion.clone();
-      controller1.userData.currTime = Date.now() / 1000; 
-      controller2.userData.currTime = Date.now() / 1000; 
       if (PLATES.length < MAX_PLATES && CURR_PLATE_CD <= 0) {
         CURR_PLATE_CD = PLATE_CD;
         createPlate();

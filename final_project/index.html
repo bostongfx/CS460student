@@ -194,7 +194,7 @@
         sphere.position.y = position.y;
         sphere.position.z = position.z;
         const prevPos = controller.userData.prevPos;
-        const currPos = controller.position;
+        const currPos = position;
         // Change in Quaternion: From ChatGPT
         // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
         // let angularVelocity = {
@@ -277,11 +277,11 @@
           let xdisplacement = ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
           let zdisplacement = ball_physics.zspeed * FPS;
+          ball.position.z += zdisplacement;
           ball_physics.time += FPS;
           let ydisplacement = 0;
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
           ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * (ball_physics.time * ball_physics.time));
-          ball.position.z += zdisplacement;
           if (ball.position.y + ydisplacement < FLOOR_LEVEL) {
             ball.position.y = FLOOR_LEVEL;
           } else {

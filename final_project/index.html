@@ -50,6 +50,7 @@
     let MAX_PLATES = 7;
     let PLATE_CD = 120;
     let CURR_PLATE_CD = 0;
+    let FLOOR_LEVEL = -10;
     function MeshObjects(mesh) {
       this.object = mesh;
       this.PHYSICS = {
@@ -144,7 +145,7 @@
       let floorMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: false });
       floorMaterial.side = THREE.BackSide;
       let floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.position.set(0, -10, 0);
+      floor.position.set(0, FLOOR_LEVEL, 0);
       floor.rotation.x = Math.PI / 2;
 
       scene.add(floor);
@@ -222,7 +223,7 @@
       let material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
       let plate = new THREE.Mesh(geometry, material);
       plate.translateZ(-2);
-      plate.translateY(20);
+      plate.translateY(2);
       scene.add(plate);
       let object = new MeshObjects(plate);
       object.PHYSICS = {
@@ -256,7 +257,7 @@
         let ball_mesh_object = BALLS[i];
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
-        if (ball.position.y > -1) {
+        if (ball.position.y > FLOOR_LEVEL) {
           let xdisplacement = ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
           let zdisplacement = ball_physics.zspeed * FPS;
@@ -265,8 +266,8 @@
           ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
           ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * (ball_physics.time * ball_physics.time));
           ball.position.z += zdisplacement;
-          if (ball.position.y - ydisplacement < -1) {
-            ball.position.y = -1;
+          if (ball.position.y + ydisplacement < FLOOR_LEVEL) {
+            ball.position.y = FLOOR_LEVEL;
           } else {
             ball.position.y += ydisplacement;
           }

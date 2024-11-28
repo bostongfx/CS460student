@@ -86,6 +86,7 @@
       // Configure VR Support
       document.body.appendChild(VRButton.createButton(renderer));
       renderer.xr.enabled = true;
+      renderer.xr.updateCamera(camera);
       renderer.setAnimationLoop(animate);
 
       const line = new THREE.Line(
@@ -258,12 +259,12 @@
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
         if (ball.position.y > FLOOR_LEVEL) {
-          let xdisplacement = ball_physics.xspeed * FPS;
+          let xdisplacement = 100 * ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
-          let zdisplacement = ball_physics.zspeed * FPS;
+          let zdisplacement = 100 * ball_physics.zspeed * FPS;
           ball_physics.time += FPS;
           let ydisplacement = 0;
-          ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
+          ball_physics.yspeed = 100 * ball_physics.yspeedint - GRAVITY * ball_physics.time;
           ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * (ball_physics.time * ball_physics.time));
           ball.position.z += zdisplacement;
           if (ball.position.y + ydisplacement < FLOOR_LEVEL) {

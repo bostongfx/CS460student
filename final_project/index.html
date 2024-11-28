@@ -204,11 +204,12 @@
         // }
         // console.log(angularVelocity);
         // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-        object.PHYSICS.xspeed = 3*((currPos.x - prevPos.x) / FPS);
-        object.PHYSICS.zspeed = 3*((currPos.z - prevPos.z) / FPS);
-        object.PHYSICS.yspeedint = 3*((currPos.y - prevPos.y) / FPS);
+        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
+        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
+        object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS);
         console.log(currPos, prevPos);
         document.getElementById("myInfo").innerHTML = JSON.stringify(object.PHYSICS);
+        document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
         BALLS.push(object);
         console.log(object);
         controller.userData.selected = undefined;
@@ -298,7 +299,7 @@
 </head>
 
 <body>
-  <div id="info">"The value for number is: " <span id="myInfo"></span></div>
+  <div id="info">"The value for number is: " <span id="myInfo"></span> <span id="controllerInfo"></span></div>
 </body>
 
 </html>

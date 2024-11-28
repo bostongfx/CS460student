@@ -44,7 +44,7 @@
     let controller1, controller1Grip, controller2, controller2Grip;
     let globalGroup = new THREE.Group();
     let FPS = 1 / 60;
-    let GRAVITY = .981;
+    let GRAVITY = 9.81;
     let BALLS = [];
     let PLATES = [];
     let MAX_PLATES = 7;
@@ -197,6 +197,8 @@
         const prevQuat = controller.userData.prevQuat;
         const currPos = controller.position;
         const currQuat = controller.quaternion;
+        const prevTime = controller.userData.currTime;
+        const currTime = Date.now() / 1000;
         // Change in Quaternion: From ChatGPT
         // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
         // let angularVelocity = {
@@ -206,11 +208,11 @@
         // }
         // console.log(angularVelocity);
         // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-        object.PHYSICS.xspeed = (currPos.x - prevPos.x) / FPS;
-        object.PHYSICS.zspeed = (currPos.z - prevPos.z) / FPS;
-        object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / FPS;
+        object.PHYSICS.xspeed = (currPos.x - prevPos.x) / (currTime - prevTime);
+        object.PHYSICS.zspeed = (currPos.z - prevPos.z) / (currTime - prevTime);
+        object.PHYSICS.yspeedint = (currPos.y - prevPos.y) / (currTime - prevTime);
         document.getElementById("myInfo").innerHTML = JSON.stringify(object.PHYSICS);
-        console.log(currPos, prevPos);
+        console.log(currTime, prevTime);
         BALLS.push(object);
         console.log(object);
         controller.userData.selected = undefined;
@@ -250,6 +252,8 @@
       controller1.userData.prevQuat = controller1.quaternion.clone();
       controller2.userData.prevPos = controller2.position.clone();
       controller2.userData.prevQuat = controller2.quaternion.clone();
+      controller1.userData.currTime = Date.now() / 1000; 
+      controller2.userData.currTime = Date.now() / 1000; 
       if (PLATES.length < MAX_PLATES && CURR_PLATE_CD <= 0) {
         CURR_PLATE_CD = PLATE_CD;
         createPlate();

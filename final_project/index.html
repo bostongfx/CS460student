@@ -257,7 +257,6 @@
         let ball = BALLS[i].object;
         let ball_physics = ball_mesh_object.PHYSICS;
         if (ball.position.y > -1) {
-          document.getElementById("myInfo").innerHTML = JSON.stringify(ball_physics);
           let xdisplacement = ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
           let zdisplacement = ball_physics.zspeed * FPS;

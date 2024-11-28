@@ -44,13 +44,13 @@
     let controller1, controller1Grip, controller2, controller2Grip;
     let globalGroup = new THREE.Group();
     let FPS = 1 / 60;
-    let GRAVITY = 9.81;
+    let GRAVITY = .981;
     let BALLS = [];
     let PLATES = [];
     let MAX_PLATES = 7;
     let PLATE_CD = 120;
     let CURR_PLATE_CD = 0;
-    let FLOOR_LEVEL = -10;
+    let FLOOR_LEVEL = -1;
     function MeshObjects(mesh) {
       this.object = mesh;
       this.PHYSICS = {

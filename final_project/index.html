@@ -242,6 +242,15 @@
         marker.translateZ(-i);
         scene.add(marker);
       }
+      for (let i = 0; i < 100; i++) {
+        let geometry = new THREE.CircleGeometry(0.1, 16);
+        let material = new THREE.MeshStandardMaterial({ color: 0x0000ff, wireframe: false });
+        let marker = new THREE.Mesh(geometry, material);
+        marker.translateY(0);
+        marker.translateZ(-1);
+        marker.translateX(i);
+        scene.add(marker);
+      }
     }
     function animate() {
       controller1.userData.prevPos = controller1.position.clone();

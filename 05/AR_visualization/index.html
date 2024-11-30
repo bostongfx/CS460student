@@ -1,0 +1,255 @@
+<html>
+  <head>
+    <style>
+      html, body { 
+        background-color:#000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;  
+      }
+    </style>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      }
+    }
+    </script>
+
+    <script type="module">
+
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';    
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; 
+      import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js'; 
+      import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+
+      var renderer, controls, scene, camera;
+      
+      // stats.js widget 
+      var stats = new Stats();
+      document.body.appendChild( stats.domElement );
+
+      window.onload = function() {
+
+        // Three.js code goes here
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 9);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+ 
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        // Load a binary glTF file
+        var loader = new GLTFLoader();
+        loader.load( 'shoes_mcqueen.glb', function ( gltf ) {
+
+            var poly = gltf.scenes[0].children[0];
+
+            // Stretch the poly (you can change x,y,z to see how stretch)
+            poly.scale.x = 10;
+            poly.scale.y = 10;
+            poly.scale.z = 10;
+
+            // Reset quarternion to identify (no rotation)
+            poly.quaternion.w = 1;
+            poly.quaternion.x = 0;
+            poly.quaternion.y = 0;
+            poly.quaternion.z = 0;
+
+            // Translate to avoid overlap
+            poly.translateX(3);
+
+            // Assign the PolyCam mesh to window.SCENE
+            window.SCENE.poly = poly;
+
+            // Add the wireframe checkbox to the UI (also in the callback) 
+            polyui.addBinding(window.SCENE.poly.material, 'wireframe');
+
+            scene.add( gltf.scene );
+
+        } );
+
+        // Load a binary glTF file, BUT this time load the edited version.
+        loader.load( 'shoes_mcqueen_finalVer.glb', function ( gltf ) {
+            
+            var blender = gltf.scenes[0].children[0];
+
+            blender.scale.x = 10;
+            blender.scale.y = 10;
+            blender.scale.z = 10;
+            
+            // Reset quaternion to identity (no rotation)
+            blender.quaternion.w = 1;
+            blender.quaternion.x = 0;
+            blender.quaternion.y = 0;
+            blender.quaternion.z = 0;
+
+            // Assign the Blender mesh to window.SCENE
+            window.SCENE.blender = blender;
+
+            // Set up the helper in the callback with a color of choice
+            var helper = new VertexNormalsHelper( blender, 0.1, 'pink' );
+            helper.visible = false;
+            scene.add(helper);
+
+            // Normal Visualization Checkbox
+            blenderui.addBinding(helper, 'visible', { label: 'Show normals!' });
+
+            // Assign the Blender mesh and helper to SCENE
+            window.SCENE.blender = blender;
+            window.SCENE.blender_helper = helper;
+
+            scene.add( gltf.scene );
+
+        } );
+
+        // Set up the user interface and configure the Scene panel (Tweakpane UI).
+        var pane = new Pane();
+        var sceneui = pane.addFolder({title: 'Scene'});
+
+        // SETTINGS and HELPER for TWEAKPANE
+        window['SCENE'] = {
+            'anaglyph' : false, // Default: standard rendering
+            'poly' : null, // Placeholder for PolyCam mesh
+            'rotate_poly' : false, // only true when the rotation is on-going
+            'do_rotate_poly' : function() { // toggles this flag
+                window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+            },
+
+            'blender' : null,
+            'rotate_blender' : false,
+            'do_rotate_blender' : function() {
+                window['SCENE']['rotate_blender'] = !window['SCENE']['rotate_blender'];
+            },
+
+            // We can use the window.SCENE helper to store a clone of the current material,
+            // overwrite it with a new THREE.MeshNormalMaterial,
+            // and re-store it when clicked again
+            'blender_old_material' : null,
+            'change_material' : function() {
+                if (!window['SCENE']['blender_old_material']) {
+                    window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+                    window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+                } else {
+                    window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+                    window['SCENE']['blender_old_material'] = null;
+                }
+            }
+        };
+
+        // addBinding format ("object", "property", "range")
+
+        // Add anaglyph toggle to the Scene panel
+        sceneui.addBinding(window.SCENE, 'anaglyph');
+
+        // Directional light position and intensity controls
+        sceneui.addBinding(light.position, 'x', { min: -100, max: 100, label: 'Light X' });
+        sceneui.addBinding(light.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+        sceneui.addBinding(light.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+        sceneui.addBinding(light, 'intensity', { min: 0, max: 10, label: 'Intensity' });
+
+        // Add AmbientLight color
+        const ambientParams = { 
+            color: {r: 0, g: 0, b: 0},
+        };
+
+        sceneui.addBinding(ambientParams, 'color', { label: 'AmbientLight Color' }).on('change', (ev) => {
+            // Update the ambient light color dynamically
+            ambientLight.color.setRGB(ev.value.r, ev.value.g, ev.value.b);
+        });
+
+        // PolyCam Mesh UI
+        var polyui = pane.addFolder({title: 'PolyCam Mesh'});
+
+        // Rotation Button
+        polyui.addButton({title:'rotate!'}).on('click', () => {
+            window.SCENE.do_rotate_poly();
+        });
+
+        // Blender Mesh UI
+        var blenderui = pane.addFolder({title: 'Blender Mesh'}); 
+
+        // Rotation Button
+        blenderui.addButton({title:'rotate!'}).on('click', () => {
+            window.SCENE.do_rotate_blender();
+        });
+
+        // Change Material Button
+        blenderui.addButton({title: 'Change Material!'}).on('click', () => {
+            window.SCENE.change_material();
+        });
+
+        // call animation/rendering loop
+        animate();
+        
+      };
+
+      function animate() {
+
+        requestAnimationFrame( animate );
+        renderer.render( scene, camera );
+        stats.update(); // Update performance stats
+
+        // Poly Mesh
+        if (window.SCENE.poly) {
+            if (window.SCENE.rotate_poly) {
+                // Create a quaternion for a 180-degree rotation around the Y-axis
+                const targetQuaternion = new THREE.Quaternion();
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+                // Smoothly rotate to the target quaternion
+                window.SCENE.poly.quaternion.slerp(targetQuaternion, 0.01);
+            } else {
+                // Reset quaternion to identity
+                const identityQuaternion = new THREE.Quaternion(); // Identity quaternion
+                window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.01);
+            }
+        }
+
+        // Blender Mesh
+        if (window.SCENE.blender) {
+            if (window.SCENE.rotate_blender) {
+                // Create a quaternion for a 180-degree rotation around the Y-axis
+                const targetQuaternion = new THREE.Quaternion();
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+                // Smoothly rotate to the target quaternion
+                window.SCENE.blender.quaternion.slerp(targetQuaternion, 0.01);
+            } else {
+                // Reset quaternion to identity
+                const identityQuaternion = new THREE.Quaternion();
+                window.SCENE.blender.quaternion.slerp(identityQuaternion, 0.01);
+            }
+
+            // Update the VertexNormalsHelper to match the mesh's new orientation
+            window.SCENE.blender_helper.update();
+        }
+
+      };
+    </script>
+  </head>
+  <body></body>
+</html>

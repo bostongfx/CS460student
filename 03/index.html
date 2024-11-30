@@ -11,7 +11,7 @@
     </style>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-
+ 
     <script type="importmap">
     {
       "imports": {
@@ -20,32 +20,168 @@
       }
     }
     </script>
-
+ 
     <script type="module">
-
+ 
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
-
+ 
+      // scene vars
       var renderer, controls, scene, camera;
+      
+      // resizing vars
+      var DELTA, LASTOBJECT, _resizing;
+ 
+      // color changing vars
+      var wireframe, base_material, pink_material, green_material, red, grn, blu;;
 
       window.onload = function() {
-
+ 
         // Three.js code goes here
+        scene = new THREE.Scene();
+ 
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+ 
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+ 
+        // init vars
+        DELTA = 0;
+        _resizing = false;
+        wireframe = false;
+
+        renderer.domElement.onmouseup = function( e ){
+          controls.enabled = true;
+          _resizing = false;
+        };
+ 
+        renderer.domElement.onmousemove = function( mouse_drag ) {
+          if (!_resizing) { return; }
+          console.log(DELTA);
+          DELTA = mouse_drag.movementY;
+          LASTOBJECT.scale.set(
+            LASTOBJECT.scale.x + DELTA,
+            LASTOBJECT.scale.y + DELTA,
+            LASTOBJECT.scale.z + DELTA
+          );
+
+          
+          // change color if necessary
+          if (LASTOBJECT.scale.x < 0) {
+            LASTOBJECT.material = green_material;
+          } else {
+            LASTOBJECT.material = pink_material;
+          }
+        };
+
+        renderer.domElement.onmousedown = function( down_event ){
+          
+            console.log('Yay! We clicked!');
+ 
+            var pixel_coords = new THREE.Vector2( down_event.clientX, down_event.clientY );
+ 
+            console.log('Pixel coords', pixel_coords);
+ 
+            var vp_coords = new THREE.Vector2( 
+                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+ 
+            console.log('Viewport coords', vp_coords);
+ 
+            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+ 
+ 
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vp_coords_near, camera);
+            var intersects = raycaster.intersectObject(invisible_plane);
+ 
+            console.log('Ray to Invisible Plane', intersects[0].point);
+
+            if (event.shiftKey) {
+              console.log("Shift Pressed - Disabling controls");
+              controls.enabled = false;
+              var new_torus = new THREE.Mesh(torus_geometry, base_material);
+              scene.add(new_torus);
+              new_torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+              new_torus.scale.set(10,10,10);
+              console.log("New Torus Placed");
+              LASTOBJECT = new_torus;
+              _resizing = true;
+            }
+        };
+        
+        document.addEventListener("keypress", key_down);
+
+        function key_down(e) {
+          console.log("key pressed");
+          console.log(base_material.color);
+          if (e.code == "KeyW") {
+            if (wireframe) {
+              //stop wireframe
+              green_material.wireframe = false;
+              pink_material.wireframe = false;
+              wireframe = false;
+              console.log("disabling wireframe");
+            } else {
+              //start wireframe
+              green_material.wireframe = true;
+              pink_material.wireframe = true;
+              wireframe = true;
+              console.log("enabling wireframe");
+            }
+          }
+        }
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+ 
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        // configure torus
+        var torus_geometry = new THREE.TorusKnotGeometry();
+        base_material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        green_material = new THREE.MeshStandardMaterial({ color: 0x7CFC00 });
+        pink_material = new THREE.MeshStandardMaterial({ color: 0xFF69B4 });
+        var torus = new THREE.Mesh(torus_geometry, base_material);
+        torus.scale.set(20,20,20);
+        scene.add(torus);
+
+        //
+        // The invisible plane
+        //
+        var geometry = new THREE.PlaneGeometry( 10000, 10000 );
+        var material = new THREE.MeshBasicMaterial( { visible: false });
+ 
+        var invisible_plane = new THREE.Mesh( geometry, material );
+ 
+        // add invisible plane
+        scene.add( invisible_plane );
+ 
+        // interaction
+        controls = new OrbitControls( camera, renderer.domElement );
  
         // call animation/rendering loop
         animate();
         
-      };
+      }
 
       function animate() {
-
+ 
         requestAnimationFrame( animate );
-
-        // and here..
-        
-      };
+        controls.update();
+        renderer.render( scene, camera );
+      }
     </script>
   </head>
   <body></body>
 </html>
-

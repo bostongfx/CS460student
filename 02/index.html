@@ -1,16 +1,158 @@
 <html>
   <head>
+    <!-- XTK library -->
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+
+    <!-- Set cube side length as a constant -->
+    <script>
+      var CUBE_SIDELENGTH = 20;
+    </script>
+
+    <!-- Load additional JavaScript file for scene management -->
+    <script src="./loader.js"></script>
+
     <title>CS460.org Assignment 2</title>
+
     <style>
       body {
-        background-color:#000;
+        background-color: #000;
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important; 
+        overflow: hidden !important;
       }
     </style>
+
+    <script>
+
+      var camera = false;  // Boolean flag to track camera rotation
+      var r, cube;  // Move r and cube declarations to a broader scope
+      var CAMERAS = [];
+      var isCycling = false;
+      var interval = null;  // Ensure the interval is declared properly
+
+      window.onload = function () {
+        // Create and initialize the 3D renderer
+        r = new X.renderer3D();  // Initialize the renderer globally
+        r.init();
+
+        // Create the first cube and set its color and position
+        cube = new X.cube();  // Initialize the cube globally
+        cube.color = [1, 1, 1];  // White
+        cube.center = [0, 0, 0];  // x, y, z position
+
+        // Add the cube to the renderer and render the scene
+        r.add(cube);
+        r.render();
+
+        // Add camera rotation logic
+        r.onRender = function () {
+          if (camera) {
+            r.camera.rotate([1,0]); // Rotate the camera by 1 degree in the X direction
+          }
+        }
+      };
+
+      // Key events for cube movements, color changes, and camera rotation
+      window.onkeypress = function (e) {
+        // Move the cube with WASDQE keys
+        if (e.code == 'KeyD') {
+          cube.transform.translateX(-10-2);  // Move right
+        } else if (e.code == 'KeyA') {
+          cube.transform.translateX(10+2);  // Move left
+        } else if (e.code == 'KeyW') {
+          cube.transform.translateZ(10+2);  // Move up
+        } else if (e.code == 'KeyS') {
+          cube.transform.translateZ(-10-2);  // Move down
+        } else if (e.code == 'KeyQ') {
+          cube.transform.translateY(10+2);  // Move forward
+        } else if (e.code == 'KeyE') {
+          cube.transform.translateY(-10-2);  // Move backward
+        }
+
+        // Change the cube's color with number keys 1-7, 0
+        if (e.code == 'Digit1') {
+          cube.color = [1, 1, 1];  // White
+        } else if (e.code == 'Digit2') {
+          cube.color = [1, 0, 0];  // Red
+        } else if (e.code == 'Digit3') {
+          cube.color = [0, 1, 0];  // Green
+        } else if (e.code == 'Digit4') {
+          cube.color = [0, 0, 1];  // Blue
+        } else if (e.code == 'Digit5') {
+          cube.color = [1, 1, 0];  // Yellow
+        } else if (e.code == 'Digit6') {
+          cube.color = [1, 0.75, 0.8];  // Pink
+        } else if (e.code == 'Digit7') {
+          cube.color = [0, 1, 1];  // Cyan
+        } else if (e.code == 'Digit0') {
+          cube.color = [0, 0, 0];  // Black
+        }
+
+        // Space key to add a new cube with the same properties as the current cube
+        if (e.code == "Space") {
+          var new_cube = new X.cube();  // Create a new cube
+          new_cube.color = cube.color;  // Assign the same color as the current cube
+          new_cube.transform.matrix = new Float32Array(cube.transform.matrix);  // Copy transformation
+          new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;  // Set cube size
+          r.add(new_cube);  // Add the new cube to the scene
+          r.render();  // Re-render the scene
+        }
+
+        // Save scene with the O key
+        if (e.code == "KeyO") {
+          download();
+        }
+
+        // Load scene with the L key
+        if (e.code == "KeyL") {
+          console.log("Uploading scene...");
+          upload("./scene2.json");
+        }
+
+        // KeyB to activate camera rotation on/off
+        if (e.code == "KeyB") {
+          camera = !camera;
+        }
+
+        // Store current camera view in CAMERAS list
+        if (e.code == "KeyC") {
+          CAMERAS[CAMERAS.length] = new Float32Array(r.camera.view); // Add the current camera view at the next available index
+          console.log('Camera view stored:', r.camera.view);
+        }
+
+        // Cycling through CAMERAS with the V key
+        if (e.code == "KeyV") {
+          console.log("V key pressed");
+
+          // Ensure there are views to cycle through
+          if (CAMERAS.length > 0) {
+            if (isCycling) {
+              console.log("Stopping cycling...");
+              clearInterval(interval);  // Stop the camera cycling
+              interval = null;  // Reset the interval
+              isCycling = false;  // Update the flag to indicate cycling has stopped
+              console.log("Cycling stopped");
+            } else {
+              var time = 0;
+              console.log("Starting cycling...");
+              interval = setInterval(function() {
+                console.log('Cycling to camera view:', CAMERAS[time % CAMERAS.length]);  // Log camera cycling
+                r.camera.view = new Float32Array(CAMERAS[time % CAMERAS.length]);  // Cycle through the camera views
+                time++;
+              }, 1000);  // Update camera every second
+              isCycling = true;  // Update the flag to indicate cycling is active
+              console.log("Cycling started");
+            }
+          } else {
+            console.log("No camera views stored in CAMERAS to cycle through.");
+          }
+        }
+      };
+    </script>
+
   </head>
+
   <body>
   </body>
 </html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Cube using GoXTK</title>
+</head>
+<body style="background-color: black;">
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript">
+        window.onload = function() {
+            // Create a renderer
+            var r = new X.renderer3D();
+            r.container = document.body;
+            r.bgColor = [0,0,0]; // Set background color to black
+            r.init();
+
+            // Create a cube
+            var cube = new X.cube();
+            cube.length = 3000
+            cube.color = [255/255, 127/255, 80/255];  // Set Coral
+            cube.center = [5, 5, 5];
+
+            // Add the cube to the renderer
+            r.add(cube);
+            r.render();
+
+        };
+           
+    </script>
+</body>
+</html>

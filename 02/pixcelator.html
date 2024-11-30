@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Image to 3D Pixel Art Converter</title>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <!-- Include the chroma.js library for color conversions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
+    <script type="text/javascript">
+        // Function to calculate the color distance in LAB space
+        function colorDistanceLAB(a, b) {
+            return Math.sqrt(
+                Math.pow(a[0] - b[0], 2) +
+                Math.pow(a[1] - b[1], 2) +
+                Math.pow(a[2] - b[2], 2)
+            );
+        }
+
+        const CUBE_SIDELENGTH = 10;
+        const GAP = 2;
+
+        function processImageToScene(imageFile, maxWidth, maxHeight, paletteSize, maxHeightInCubes) {
+            var img = new Image();
+
+            img.onload = function () {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+
+                // Calculate new dimensions while maintaining aspect ratio
+                var width = img.width;
+                var height = img.height;
+
+                if (width > maxWidth) {
+                    height = height * (maxWidth / width);
+                    width = maxWidth;
+                }
+
+                if (height > maxHeight) {
+                    width = width * (maxHeight / height);
+                    height = maxHeight;
+                }
+
+                // Round width and height to integers
+                width = Math.round(width);
+                height = Math.round(height);
+
+                canvas.width = width;
+                canvas.height = height;
+
+                ctx.drawImage(img, 0, 0, width, height);
+
+                var imageData = ctx.getImageData(0, 0, width, height);
+                var data = imageData.data;
+
+                // Collect all pixels in LAB color space
+                var pixelsLAB = [];
+                for (var i = 0; i < data.length; i += 4) {
+                    var r = data[i];
+                    var g = data[i + 1];
+                    var b = data[i + 2];
+                    var a = data[i + 3];
+
+                    // Ignore transparent pixels
+                    if (a < 128) continue;
+
+                    var lab = chroma(r, g, b).lab();
+                    pixelsLAB.push(lab);
+                }
+
+                // Perform K-means clustering to find dominant colors
+                var maxIterations = 10;
+                var paletteLAB = kMeans(pixelsLAB, paletteSize, maxIterations);
+
+                // Convert palette back to RGB
+                var paletteRGB = paletteLAB.map(function (lab) {
+                    var rgb = chroma.lab(lab[0], lab[1], lab[2]).rgb();
+                    return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255];
+                });
+
+                var scene = {};
+                var cubes = [];
+
+                // Calculate offsets to center the image
+                var offsetX = -((width - 1) * (CUBE_SIDELENGTH + GAP)) / 2;
+                var offsetY = ((height - 1) * (CUBE_SIDELENGTH + GAP)) / 2;
+
+                // Re-process image data to assign pixels to nearest palette color
+                for (var y = 0; y < height; y++) {
+                    for (var x = 0; x < width; x++) {
+                        var index = (y * width + x) * 4;
+                        var r = data[index];
+                        var g = data[index + 1];
+                        var b = data[index + 2];
+                        var a = data[index + 3];
+
+                        // Ignore transparent pixels
+                        if (a < 128) continue;
+
+                        var lab = chroma(r, g, b).lab();
+
+                        // Find the closest color in the palette
+                        var minDistance = Infinity;
+                        var closestColor = paletteRGB[0];
+
+                        for (var i = 0; i < paletteLAB.length; i++) {
+                            var distance = colorDistanceLAB(lab, paletteLAB[i]);
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                closestColor = paletteRGB[i];
+                            }
+                        }
+
+                        // Calculate brightness (lightness in LAB space)
+                        var brightness = lab[0]; // L in LAB (0 to 100)
+
+                        // Map brightness to number of cubes to stack
+                        var numCubes = Math.round((brightness / 100) * maxHeightInCubes);
+
+                        // Ensure at least one cube
+                        numCubes = Math.max(1, numCubes);
+
+                        for (var z = 0; z < numCubes; z++) {
+                            // Create the cube's transformation matrix
+                            var matrix = {
+                                "0": 1, "1": 0, "2": 0, "3": 0,
+                                "4": 0, "5": 1, "6": 0, "7": 0,
+                                "8": 0, "9": 0, "10": 1, "11": 0,
+                                "12": x * (CUBE_SIDELENGTH + GAP) + offsetX,
+                                "13": -y * (CUBE_SIDELENGTH + GAP) + offsetY,
+                                "14": z * (CUBE_SIDELENGTH + GAP), // Stack cubes along Z-axis
+                                "15": 1
+                            };
+
+                            cubes.push([closestColor, matrix]);
+                        }
+                    }
+                }
+
+                scene['cubes'] = cubes;
+
+                // Adjust the camera position to view the centered 3D scene
+                scene['camera'] = {
+                    "0": 1, "1": 0, "2": 0, "3": 0,
+                    "4": 0, "5": 1, "6": 0, "7": 0,
+                    "8": 0, "9": 0, "10": 1, "11": 0,
+                    "12": 0, // Centered on X-axis
+                    "13": 0, // Centered on Y-axis
+                    "14": -Math.max(width, height) * (CUBE_SIDELENGTH + GAP), // Move back along Z-axis
+                    "15": 1
+                };
+
+                // Download the scene.json file
+                var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scene));
+                var downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "scene.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            };
+
+            // Read the image file as a Data URL
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(imageFile);
+        }
+
+        // K-means clustering function (same as before)
+        function kMeans(data, k, maxIterations) {
+            // Randomly initialize centroids
+            let centroids = [];
+            for (let i = 0; i < k; i++) {
+                centroids.push(data[Math.floor(Math.random() * data.length)]);
+            }
+
+            let assignments = new Array(data.length);
+            for (let iteration = 0; iteration < maxIterations; iteration++) {
+                // Assign points to the nearest centroid
+                for (let i = 0; i < data.length; i++) {
+                    let minDistance = Infinity;
+                    let closestCentroid = 0;
+                    for (let j = 0; j < centroids.length; j++) {
+                        let distance = colorDistanceLAB(data[i], centroids[j]);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestCentroid = j;
+                        }
+                    }
+                    assignments[i] = closestCentroid;
+                }
+
+                // Update centroids
+                let sums = new Array(k).fill(null).map(() => [0, 0, 0]);
+                let counts = new Array(k).fill(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    let cluster = assignments[i];
+                    sums[cluster][0] += data[i][0];
+                    sums[cluster][1] += data[i][1];
+                    sums[cluster][2] += data[i][2];
+                    counts[cluster]++;
+                }
+
+                for (let j = 0; j < centroids.length; j++) {
+                    if (counts[j] === 0) continue; // Avoid division by zero
+                    centroids[j] = [
+                        sums[j][0] / counts[j],
+                        sums[j][1] / counts[j],
+                        sums[j][2] / counts[j]
+                    ];
+                }
+            }
+
+            return centroids;
+        }
+    </script>
+</head>
+
+<body>
+    <input type="file" id="imageFileInput" accept="image/*">
+    <br><br>
+    <label for="maxWidth">Max Width (pixels):</label>
+    <input type="number" id="maxWidth" value="50">
+    <br><br>
+    <label for="maxHeight">Max Height (pixels):</label>
+    <input type="number" id="maxHeight" value="50">
+    <br><br>
+    <label for="paletteSize">Palette Size (number of colors):</label>
+    <input type="number" id="paletteSize" value="8">
+    <br><br>
+    <label for="maxHeightInCubes">Max Cube Height (number of cubes):</label>
+    <input type="number" id="maxHeightInCubes" value="10">
+    <br><br>
+    <button onclick="handleFileUpload()">Convert Image</button>
+
+    <script type="text/javascript">
+        function handleFileUpload() {
+            var fileInput = document.getElementById('imageFileInput');
+            var file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            var maxWidth = parseInt(document.getElementById('maxWidth').value);
+            var maxHeight = parseInt(document.getElementById('maxHeight').value);
+            var paletteSize = parseInt(document.getElementById('paletteSize').value);
+            var maxHeightInCubes = parseInt(document.getElementById('maxHeightInCubes').value);
+
+            processImageToScene(file, maxWidth, maxHeight, paletteSize, maxHeightInCubes);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+        <style>
+            body {
+                background: linear-gradient(to bottom, #ff0000, #0000ff);
+            }
+        </style>
+
+        <script> 
+            window.onload = function() {
+                r = new X.renderer3D();
+                r.init();
+
+                // cube 1
+                c = new X.cube();
+                c.color = [1, 1, 1];
+                c.center = [0, 0, 0];
+                
+
+                // cube 2
+                c2 = new X.cube();
+                c.color = [1, 1, 1];
+                c.center = [50, 0, 0];
+
+                /*
+                for (var i = 0; i < 10; i++) {
+                    c = new X.cube();
+                    c.color = [1, 1, 1];
+                    c.center = [i * 50, i, i];
+                    r.add(c);
+                }
+                */
+
+                r.onRender = function() {
+                    r.camera.rotate([1, 0]);
+                    c.transform.rotateX(0.3);
+                }
+                
+                r.add(c);
+                r.add(c2);
+                r.render();
+                
+            };
+
+            r.onRender = function () {
+                    
+                };
+        </script>
+    </head>
+
+    <body>
+    </body>
+</html>

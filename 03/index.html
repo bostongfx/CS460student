@@ -7,6 +7,7 @@
         padding: 0;
         height: 100%;
         overflow: hidden !important;  
+        color: white;  
       }
     </style>
     
@@ -26,14 +27,190 @@
       import * as THREE from 'three';
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
 
+      var display = document.getElementById("scene_info");
       var renderer, controls, scene, camera;
+      var wireframeMode = false;
+      var toruses = [];
+      var LASTOBJECT = null;
+      var isDragging = false;
+
+      let totalVertices = 0;
+      let totalEdges = 0;
+      let totalFaces = 0;
+
+      var invisible_plane;
+      var raycaster;
+      var intersects;
+
+      var HOTPINK = 0xff69b4;
+      var GRASSGREEN = 0x7CFC00;
+
+      function scaleTorus(e, torus) {
+        const DELTA = e.movementY * 0.01; // Use movementY to scale the object
+        torus.scale.set(
+          torus.scale.x + DELTA,
+          torus.scale.y + DELTA,
+          torus.scale.z + DELTA
+        );
+      }
+
+      function toggleWireframeMode(wireframe) {
+        toruses.forEach(torus => {
+          torus.material.wireframe = wireframe;
+        });
+      }
+
+      function calculateGeometry() {
+        
+
+        toruses.forEach(torus => {
+          const geometry = torus.geometry;
+          totalVertices += geometry.attributes.position.count; // Vertices count
+          totalFaces += geometry.index.count / 3; // Each face is made up of 3 indices
+          totalEdges += totalFaces * 3; // Each face has 3 edges
+        });
+
+        display.innerHTML = "Vertices: " + totalVertices + "<br />" +
+        "Edges:" + totalEdges + "<br />" +
+        "Faces:" + totalFaces;
+
+        console.log(`Total vertices: ${totalVertices}`);
+        console.log(`Total edges: ${totalEdges}`);
+        console.log(`Total faces: ${totalFaces}`);
+
+        totalVertices = 0
+        totalFaces = 0
+        totalEdges = 0
+      }
 
       window.onload = function() {
-
+        
         // Three.js code goes here
- 
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+                //
+        // The invisible plane
+        //
+        geometry = new THREE.PlaneGeometry( 10000, 10000 );
+        material = new THREE.MeshBasicMaterial( {
+          visible: false
+        });
+
+        invisible_plane = new THREE.Mesh( geometry, material );
+
+        scene.add( invisible_plane );
+        //
+        //
+        //
+
+
+
+        renderer.domElement.onmousedown = function( e ){
+          if (e.shiftKey) {
+            isDragging = true; // Start tracking mouse drag
+            controls.enabled = false;
+            console.log('Yay! We clicked!');
+
+            var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
+
+            console.log('Pixel coords', pixel_coords);
+
+            var vp_coords = new THREE.Vector2( 
+                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+
+            console.log('Viewport coords', vp_coords);
+
+            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+
+
+            raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vp_coords_near, camera);
+            intersects = raycaster.intersectObject(invisible_plane);
+
+            console.log('Ray to Invisible Plane', intersects[0].point);
+
+            // // update cube position
+            // cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            LASTOBJECT = new THREE.Mesh(
+              new THREE.TorusKnotGeometry(10, 3, 100, 16),
+              new THREE.MeshStandardMaterial({ color: HOTPINK }) // hot pink
+            );
+            LASTOBJECT.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            toruses.push(LASTOBJECT)
+            scene.add(LASTOBJECT);
+            
+
+          }
+
+        };
+
+        renderer.domElement.onmouseup = function( e ){
+          console.log('onmouseUP')
+          controls.enabled = true;
+          isDragging = false; // Stop tracking mouse drag
+        }
+
+        renderer.domElement.onmousemove = function(e) {
+          if (isDragging && LASTOBJECT !== null) {
+            scaleTorus(e, LASTOBJECT); // Scale the last object while dragging
+          }
+
+          // Check if it flipped (scale crossed zero)
+          if (isDragging && LASTOBJECT.scale.x < 0 && LASTOBJECT.material.color.getHex() !== GRASSGREEN) {
+            LASTOBJECT.material.color.set(GRASSGREEN); // Switch to grass green
+          } else if (isDragging && LASTOBJECT.scale.x >= 0 && LASTOBJECT.material.color.getHex() !== HOTPINK) {
+            LASTOBJECT.material.color.set(HOTPINK); // Switch back to hot pink
+          };
+        }
+
+
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        // configure cube
+        var geometry = new THREE.TorusKnotGeometry( 10, 3, 100, 16 ); 
+        var material = new THREE.MeshStandardMaterial( { color: 0xffff00 } ); 
+        var torusKnot = new THREE.Mesh( geometry, material );
+        toruses.push(torusKnot);
+        scene.add( torusKnot );
+
+
+
+
+
+        // interaction
+        controls = new OrbitControls( camera, renderer.domElement );
+
+        window.addEventListener('keydown', function(e) {
+          if (e.key === 'w' || e.key === 'W') {
+            wireframeMode = !wireframeMode;
+            toggleWireframeMode(wireframeMode);
+            calculateGeometry(); // Calculate vertices, edges, and faces
+          }
+        });
+
         // call animation/rendering loop
         animate();
+        // display.innerHTML = `Vertices ${totalVertices}, Edges ${totalEdges}, Faces ${totalFaces}`;
         
       };
 
@@ -42,10 +219,14 @@
         requestAnimationFrame( animate );
 
         // and here..
+        controls.update();
+        renderer.render( scene, camera );
         
       };
     </script>
   </head>
-  <body></body>
+  <body>
+    <p>Scene Info </p>
+    <p id="scene_info"></p>
+  </body>
 </html>
-

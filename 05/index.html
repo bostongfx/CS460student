@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Boilerplate</title>
+    <style>
+        body, html {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.145.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.145.0/examples/jsm/",
+                "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.145.0/examples/jsm/loaders/GLTFLoader.js",
+                "three/examples/jsm/effects/AnaglyphEffect.js": "https://unpkg.com/three@0.145.0/examples/jsm/effects/AnaglyphEffect.js"
+                
+            }
+        }
+    </script>
+
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+</head>
+<body>
+    <script type="module">import * as THREE from 'three';
+        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        
+        let renderer, scene, camera; 
+        let controls, effect, loader, pane;
+        let statsPane, directionalLight, ambientLight;
+        
+        const CONFIG = {
+            SCENE: {
+                anaglyphMode: false,
+                polyMesh: null,
+                blenderMesh: null,
+                showNormals: null,
+                polyRotationActive: false,
+                blenderRotationActive: false,
+                blenderOriginalMaterial: null,
+                togglePolyRotation() {
+                    this.polyRotationActive = !this.polyRotationActive;
+                },
+                toggleBlenderRotation() {
+                    this.blenderRotationActive = !this.blenderRotationActive;
+                },
+                toggleMaterial() {
+                    if (!this.blenderOriginalMaterial) {
+                        this.blenderOriginalMaterial = this.blenderMesh.material.clone();
+                        this.blenderMesh.material = new THREE.MeshNormalMaterial();
+                    } else {
+                        this.blenderMesh.material = this.blenderOriginalMaterial.clone();
+                        this.blenderOriginalMaterial = null;
+                    }
+                },
+            },
+        };
+        
+        window.onload = function() {
+            setupRenderer();
+            setupStats();
+            setupScene();
+            setupCamera();
+            setupControls();
+            setupLighting();
+            initializePaneControls();
+            setupAnaglyphEffect();
+            load3DModels();
+            window.addEventListener('resize', handleResize);
+            animateScene();
+        }
+        
+        // setup renderer
+        function setupRenderer() {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+        }
+
+        // setup stats
+        function setupStats() {
+            statsPane = new Stats();
+            document.body.appendChild(statsPane.domElement);
+        }
+        
+        // setup scene and axes helper
+        function setupScene() {
+            scene = new THREE.Scene();
+            scene.add(new THREE.AxesHelper(5));
+        }
+        
+        // setup camera
+        function setupCamera() {
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 0);
+        }
+        
+        // setup controls
+        function setupControls() {
+            controls = new OrbitControls(camera, renderer.domElement);
+        }
+        
+        // setup lighting
+        function setupLighting() {
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+            directionalLight.position.set(10, 100, 10);
+            scene.add(ambientLight, directionalLight);
+        }
+        
+        // initialize pane controls
+        function initializePaneControls() {
+            pane = new Pane();
+            const sceneFolder = pane.addFolder({ title: 'Scene Settings' });
+        
+            // Anaglyph toggle and directional light controls
+            sceneFolder.addBinding(CONFIG.SCENE, 'anaglyphMode', { label: 'Enable Anaglyph' });
+            sceneFolder.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
+            sceneFolder.addBinding(directionalLight.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+            sceneFolder.addBinding(directionalLight.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+            sceneFolder.addBinding(directionalLight, 'intensity', { min: 0, max: 5, step: 0.1, label: 'Intensity' });
+            
+            // color controls for ambient light 
+            sceneFolder.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Color' });
+        }
+        
+        // setup anaglyph effect
+        function setupAnaglyphEffect() {
+            effect = new AnaglyphEffect(renderer);
+            effect.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // load blender and poly 3d models
+        function load3DModels() {
+            loader = new GLTFLoader();
+            
+            // poly model loader and controls setup
+            loader.load('poly-model.glb', (gltf) => {
+                const polyMesh = gltf.scenes[0].children[0];
+                polyMesh.scale.set(10, 10, 10);
+                polyMesh.translateY(1);
+                polyMesh.translateX(15)
+                CONFIG.SCENE.polyMesh = polyMesh;
+                setupPolyControls();
+                scene.add(gltf.scene);
+            }, undefined, (error) => console.error('Error loading model:', error));
+            
+            // blender model loader and controls setup
+            loader.load('blender-model.glb', (gltf) => {
+                const blenderMesh = gltf.scenes[0].children[0];
+                blenderMesh.scale.set(10, 10, 10);
+                blenderMesh.translateX(-1).translateY(1);
+                CONFIG.SCENE.blenderMesh = blenderMesh;
+                if (!blenderMesh.geometry.attributes.normal) {blenderMesh.geometry.computeVertexNormals();}
+                const normalsHelper = new VertexNormalsHelper(blenderMesh, 0.1, 'blue');
+                normalsHelper.visible = false;
+                CONFIG.SCENE.showNormals = normalsHelper;
+                scene.add(gltf.scene, normalsHelper);
+                setupBlenderControls();
+            }, undefined, (error) => console.error('Error loading model:', error));
+        }
+
+        // function called by poly loader to setup its controls
+        function setupPolyControls() {
+            const polyFolder = pane.addFolder({ title: 'Poly Mesh Controls' });
+            polyFolder.addBinding(CONFIG.SCENE.polyMesh.material, 'wireframe');
+            polyFolder.addButton({ title: 'Rotate Poly!' }).on('click', () => {
+                CONFIG.SCENE.togglePolyRotation();
+            });
+        }
+        
+        // function called by blender loader to setup its controls
+        function setupBlenderControls() {
+            const blenderFolder = pane.addFolder({ title: 'Blender Mesh Controls' });
+            blenderFolder.addBinding(CONFIG.SCENE.showNormals, 'visible', { label: 'Show Normals' });
+            blenderFolder.addButton({ title: 'Toggle Material' }).on('click', () => {
+                CONFIG.SCENE.toggleMaterial();
+            });
+            blenderFolder.addButton({ title: 'Rotate Blender!' }).on('click', () => {
+                CONFIG.SCENE.toggleBlenderRotation();
+            });
+        }
+        
+        // handles camera view
+        function handleResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            effect.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // animates the whole scene
+        function animateScene() {
+            requestAnimationFrame(animateScene);
+            statsPane.update();
+            controls.update();
+            const rotateToQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+            const initialQuaternion = new THREE.Quaternion();
+        
+            if (CONFIG.SCENE.polyMesh) {
+                CONFIG.SCENE.polyMesh.quaternion.slerp(
+                    CONFIG.SCENE.polyRotationActive ? rotateToQuaternion : initialQuaternion, 0.02
+                );
+            }
+        
+            if (CONFIG.SCENE.blenderMesh) {
+                CONFIG.SCENE.blenderMesh.quaternion.slerp(
+                    CONFIG.SCENE.blenderRotationActive ? rotateToQuaternion : initialQuaternion, 0.02
+                );
+        
+                CONFIG.SCENE.showNormals?.update();
+            }
+        
+            if (CONFIG.SCENE.anaglyphMode) {
+                effect.render(scene, camera);
+            } else {
+                renderer.render(scene, camera);
+            }
+        }
+        
+    </script>
+</body>
+</html>

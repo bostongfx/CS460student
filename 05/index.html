@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 5</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #fff;
+        }
+    </style>
+
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@latest/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+
+        let scene, camera, renderer, controls, stats, anaglyphEffect;
+
+        stats = new Stats();
+        document.body.appendChild(stats.domElement);
+
+        // Scene settings
+        window['SCENE'] = {
+            'anaglyph': false, // Default state for anaglyph rendering
+            'original': null,
+            'rotate_original': false,
+            'original_target_angle': 0,
+            'do_rotate_original': function () {
+                window['SCENE']['rotate_original'] = true;
+                window['SCENE']['original_target_angle'] += Math.PI;
+            },
+
+            'snoopy': null,
+            'rotate_snoopy': false,
+            'snoopy_target_angle': 0,
+            'do_rotate_snoopy': function () {
+                window['SCENE']['rotate_snoopy'] = true;
+                window['SCENE']['snoopy_target_angle'] += Math.PI;
+            },
+
+            'change_material': function (mesh) {
+                if (!mesh.originalMaterial) {
+                    mesh.originalMaterial = mesh.material.clone();
+                    mesh.material = new THREE.MeshNormalMaterial();
+                } else {
+                    mesh.material = mesh.originalMaterial;
+                    mesh.originalMaterial = null;
+                }
+            }
+        };
+
+        window.onload = function () {
+            // Initialize the Scene
+            scene = new THREE.Scene();
+
+            // Camera
+            const fov = 75;
+            const aspect = window.innerWidth / window.innerHeight;
+            const near = 0.1;
+            const far = 10000;
+            camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            camera.position.set(75, 75, 150);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Anaglyph Effect
+            anaglyphEffect = new AnaglyphEffect(renderer);
+            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
+
+            // Tweakpane UI
+            const pane = new Pane();
+            const sceneUI = pane.addFolder({ title: 'Scene' });
+            sceneUI.addBinding(directionalLight.position, 'x', { min: -100, max: 100, label: 'Light X' });
+            sceneUI.addBinding(directionalLight.position, 'y', { min: -100, max: 100, label: 'Light Y' });
+            sceneUI.addBinding(directionalLight.position, 'z', { min: -100, max: 100, label: 'Light Z' });
+            sceneUI.addBinding(directionalLight, 'intensity', { min: 0, max: 2, label: 'Light Intensity' });
+            sceneUI.addBinding(ambientLight, 'intensity', { min: 0, max: 2, label: 'Ambient Intensity' });
+            sceneUI.addBinding(ambientLight, 'color', { view: 'color', label: 'Ambient Color' });
+
+            // Anaglyph Toggle
+            sceneUI.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph' });
+
+            // Load GLTF Models
+            const loadpoly = new GLTFLoader();
+            loadpoly.load('original.glb', function (gltf) {
+                const original = gltf.scene.children[0];
+                window.SCENE.original = original;
+
+                original.scale.set(100, 100, 100);
+                original.rotation.set(0, 0, 0);
+                original.position.set(100, 0, -70);
+
+                scene.add(gltf.scene);
+
+                const originalUI = pane.addFolder({ title: 'PolyCam Mesh' });
+                originalUI.addBinding(window.SCENE.original.material, 'wireframe');
+                originalUI.addButton({ title: 'Rotate!' }).on('click', window.SCENE.do_rotate_original);
+            });
+
+            const loadblend = new GLTFLoader();
+            loadblend.load('snoopy.glb', function (gltf) {
+                const snoopy = gltf.scene.children[0];
+                window.SCENE.snoopy = snoopy;
+
+                snoopy.scale.set(100, 100, 100);
+                snoopy.rotation.set(0, 0, 0);
+                snoopy.position.set(-150, 0, 0);
+
+                scene.add(gltf.scene);
+
+                const helper = new VertexNormalsHelper(snoopy, 0.2, 'blue');
+                helper.visible = false;
+                scene.add(helper);
+
+                window.SCENE.snoopy.helper = helper;
+
+                const snoopyUI = pane.addFolder({ title: 'Blender Mesh' });
+                snoopyUI.addBinding(helper, 'visible', { label: 'Show Normals!' });
+                snoopyUI.addButton({ title: 'Rotate!' }).on('click', window.SCENE.do_rotate_snoopy);
+                snoopyUI.addButton({ title: 'Change Material!' }).on('click', () => {
+                    window.SCENE.change_material(snoopy);
+                });
+            });
+
+            window.addEventListener('resize', onWindowResize, false);
+            animate();
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            stats.update();
+
+            // Rotate Models
+            if (window.SCENE.original && window.SCENE.rotate_original) {
+                const targetQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), window.SCENE.original_target_angle);
+                window.SCENE.original.quaternion.slerp(targetQuaternion, 0.01);
+                if (window.SCENE.original.quaternion.angleTo(targetQuaternion) < 0.01) {
+                    window.SCENE.rotate_original = false;
+                }
+            }
+
+            if (window.SCENE.snoopy && window.SCENE.rotate_snoopy) {
+                const targetQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), window.SCENE.snoopy_target_angle);
+                window.SCENE.snoopy.quaternion.slerp(targetQuaternion, 0.01);
+                if (window.SCENE.snoopy.quaternion.angleTo(targetQuaternion) < 0.01) {
+                    window.SCENE.rotate_snoopy = false;
+                }
+
+                if (window.SCENE.snoopy.helper) {
+                    window.SCENE.snoopy.helper.update();
+                }
+            }
+
+            if (window.SCENE.anaglyph) {
+                anaglyphEffect.render(scene, camera);
+            } else {
+                renderer.render(scene, camera);
+            }
+
+            controls.update();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            anaglyphEffect.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
+

@@ -1,51 +1,121 @@
-<html>
-  <head>
-    <style>
-      html, body { 
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important;  
-      }
-    </style>
-    
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-
-    <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
-      }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment 5 - Three.js Scene</title>
+  <style>
+    html, body { 
+      background-color: #000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
     }
-    </script>
+  </style>
+  
+  <!-- Import Map for Three.js and Addons -->
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@latest/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+    }
+  }
+  </script>
 
-    <script type="module">
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+    let renderer, scene, camera, controls, effect;
 
-      var renderer, controls, scene, camera;
+    function init() {
+      // Scene and Camera setup
+      scene = new THREE.Scene();
 
-      window.onload = function() {
+      const fov = 75;
+      const aspect = window.innerWidth / window.innerHeight;
+      const zNear = 0.1;
+      const zFar = 10000;
+      camera = new THREE.PerspectiveCamera(fov, aspect, zNear, zFar);
+      camera.position.set(0, 10, 0); // Camera positioned as instructed
 
-        // Three.js code goes here
- 
-        // call animation/rendering loop
-        animate();
-        
-      };
+      // Renderer setup
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
-      function animate() {
+      // OrbitControls for camera
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
 
-        requestAnimationFrame( animate );
+      // AnaglyphEffect setup
+      effect = new AnaglyphEffect(renderer);
+      effect.setSize(window.innerWidth, window.innerHeight);
 
-        // and here..
-        
-      };
-    </script>
-  </head>
-  <body></body>
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(10, 10, 10);
+      scene.add(directionalLight);
+
+      // Load Model with GLTFLoader
+      loadModel();
+
+      // Handle window resize
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function loadModel() {
+      const loader = new GLTFLoader();
+      loader.load(
+        'poly.glb', // Ensure poly.glb is in the same directory or adjust the path as needed
+        function (gltf) {
+          console.log("Model loaded successfully");
+
+          // Access the first child of the loaded scene
+          const poly = gltf.scene.children[0];
+          
+          // Scale the model as per instructions
+          poly.scale.set(10, 10, 10);
+          
+          // Add the loaded model to the scene
+          scene.add(gltf.scene);
+
+          console.log("Model added to the scene");
+        },
+        undefined,
+        function (error) {
+          console.error('An error occurred while loading the model:', error);
+        }
+      );
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      effect.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      effect.render(scene, camera);
+    }
+
+    // Initialize scene on window load
+    window.onload = () => {
+      init();
+      animate();
+    };
+  </script>
+</head>
+<body></body>
 </html>
-

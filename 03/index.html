@@ -1,51 +1,173 @@
 <html>
-  <head>
-    <style>
-      html, body { 
-        background-color:#000;
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden !important;  
-      }
-    </style>
-    
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<head>
+  <style>
+    html, body {
+      background-color:#000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden !important;
+    }
+  </style>
 
-    <script type="importmap">
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+  <script type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three@latest/build/three.module.js",
         "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
       }
     }
-    </script>
+  </script>
 
-    <script type="module">
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-      import * as THREE from 'three';
-      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';      
+    /* Global variables */
+    var renderer, controls, scene, camera, DELTA;
+    var LAST_OBJECT = null;
+    var torus_array = []; // This array will store all the torus objects
 
-      var renderer, controls, scene, camera;
+    /* Flags */
+    var releaseFlag = true; // Checks whether the mouse button has been released
+    var alreadyRegistered = false; // Checks to see if the w key has already been recorded as down (prevents repeated calculations)
 
-      window.onload = function() {
+    window.onload = function() {
 
-        // Three.js code goes here
- 
-        // call animation/rendering loop
-        animate();
-        
+      /* Three.js code goes here */
+      scene = new THREE.Scene();
+
+      /* Camera setup */
+      var fov = 75;
+      var ratio = window.innerWidth / window.innerHeight;
+      var zNear = 1;
+      var zFar = 10000;
+      camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+      camera.position.set(0, 0, 100);
+
+      /* Create renderer and set up the canvas */
+      renderer = new THREE.WebGLRenderer({antialias: true});
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      renderer.domElement.onmousedown = function (e) {
+        releaseFlag = false; // Set the release flag to false when the onmouse down event is triggered
+
+        var pixel_coords = new THREE.Vector2(e.clientX, e.clientY);
+
+        console.log('Pixel coords', pixel_coords);
+
+        var vp_coords = new THREE.Vector2(
+                (pixel_coords.x / window.innerWidth) * 2 - 1,  // X
+                -(pixel_coords.y / window.innerHeight) * 2 + 1) // Y
+
+        console.log('Viewport coords', vp_coords);
+
+        var vp_coords_near = new THREE.Vector3(vp_coords.x, vp_coords.y, 0);
+
+        var raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(vp_coords_near, camera);
+        var intersects = raycaster.intersectObject(invisible_plane);
+
+        console.log('Ray to Invisible Plane', intersects[0].point);
+
+        /* If the shift key is pressed, disable the orbit controls, create a new torus, set its position, and add it to the scene */
+        if (e.shiftKey) {
+          controls.enabled = false;
+          var newGeometry = new THREE.TorusKnotGeometry(1, 0.4, 64, 8);
+          var newMaterial = new THREE.MeshStandardMaterial({color: 0xff69b4, wireframe: false});
+          var newTorus = new THREE.Mesh(newGeometry, newMaterial);
+          LAST_OBJECT = newTorus; // Set a pointer to the new torus
+          torus_array.push(LAST_OBJECT); // Add the torus to the torus array
+          newTorus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+          scene.add(newTorus);
+        }
       };
 
-      function animate() {
+      /* Re-activate Orbit controls if it is off using onmouseup */
+      renderer.domElement.onmouseup = function (e) {
+        releaseFlag = true; // Set the release flag to true when the onmouseup event is triggered
+        if (!controls.enabled) { // Enable orbit controls if they are off
+          controls.enabled = true;
+        }
+        LAST_OBJECT = null; // Set LAST_OBJECT to null so the user won't interact with the last torus again
+        console.log(torus_array.length);
+      }
 
-        requestAnimationFrame( animate );
+      /* Scale the newly placed torus */
+      renderer.domElement.onmousemove = function (e) {
+        if (!releaseFlag && LAST_OBJECT !== null) {
+          DELTA = e.movementY
+          LAST_OBJECT.scale.set(LAST_OBJECT.scale.x + DELTA, LAST_OBJECT.scale.y + DELTA, LAST_OBJECT.scale.z + DELTA);
+          if (LAST_OBJECT.scale.y + DELTA < 0) { // Switch the color of the new torus to green if the scale < 1
+            LAST_OBJECT.material.color.set(0x7cfc00);
+          } else { // Otherwise, switch the color back to hotpink
+            LAST_OBJECT.material.color.set(0xff69b4);
+          }
+        }
+      }
 
-        // and here..
-        
-      };
-    </script>
-  </head>
-  <body></body>
+      /* Enable wireframe for all placed toruses while w is pressed */
+      window.onkeydown = function (e) {
+        if (e.code === "KeyW" && !alreadyRegistered) {
+          for (let i = 0; i < torus_array.length; i++) {
+            torus_array[i].material.wireframe = true;
+          }
+          alreadyRegistered = true; // Set already registered to true
+        }
+      }
+
+      /* Disable wireframe for all placed toruses when w is released */
+      window.onkeyup = function (e) {
+        if (e.code === "KeyW") {
+          for (let i = 0; i < torus_array.length; i++) {
+            torus_array[i].material.wireframe = false;
+          }
+          alreadyRegistered = false; // Set already registered to false
+        }
+      }
+
+      /* Light setup */
+      var ambientLight = new THREE.AmbientLight();
+      scene.add( ambientLight );
+
+      var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+      light.position.set( 10, 100, 10 );
+      scene.add(light);
+
+      /* Configure torus */
+      var geometry = new THREE.TorusKnotGeometry(1, 0.4, 64, 8); // Change to torus knot geometry
+      var material = new THREE.MeshStandardMaterial({color: 0x0000ff, wireframe: false});
+      var torus = new THREE.Mesh( geometry, material );
+      scene.add(torus);
+
+      /* The invisible plane */
+      geometry = new THREE.PlaneGeometry( 10000, 10000 );
+      material = new THREE.MeshBasicMaterial( {
+        visible: false
+      });
+
+      var invisible_plane = new THREE.Mesh( geometry, material );
+      scene.add( invisible_plane );
+
+      /* Interaction */
+      controls = new OrbitControls( camera, renderer.domElement );
+
+      /* Call animation/rendering loop */
+      animate();
+    };
+
+    function animate() {
+
+      requestAnimationFrame( animate );
+
+      /* And here... */
+      controls.update();
+      renderer.render( scene, camera );
+    };
+  </script>
+</head>
+<body></body>
 </html>
-

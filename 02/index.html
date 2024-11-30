@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
   <head>
     <title>CS460.org Assignment 2</title>
     <style>
@@ -10,6 +10,125 @@
         overflow: hidden !important; 
       }
     </style>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+    <script type="text/javascript">
+      window.onload = function() {
+
+        /* Constants */
+        const CUBE_SIDELENGTH = 10; // Length of a side of a cube
+        const GAP = 0; // The gap between cubes
+
+        /* Global/Local Variables */
+        CAMERAS = [] // Global CAMERAS list
+        currentCamera = 0; // Index of the current camera
+        let intervalID; // Interval ID
+
+        /* Flags */
+        let rotateFlag = true; // Used for enabling/disabling rotation
+        let cameraFlag = true; // Used for enabling/disabling camera rotation
+
+        /* Initialize renderer and cube */
+        r = new X.renderer3D();
+        r.init();
+        c = new X.cube();
+        c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH;
+        r.add(c);
+        r.render();
+
+        /* Implement keyboard interactivity */
+        window.onkeypress = function(e) {
+
+          /* Movement */
+          if (e.code === "KeyD") {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP); // Move left
+          } else if (e.code === "KeyA") {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP); // Move right
+          } else if (e.code === "KeyS") {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP); // Move down
+          } else if (e.code === "KeyW") {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP); // Move up
+          } else if (e.code === "KeyQ") {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP); // Move forward
+          } else if (e.code === "KeyE") {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP); // Move backward
+          }
+
+          /* Colors */
+            else if (e.code === "Digit1") {
+            c.color = [1, 1, 1]; // Make cube white
+          } else if (e.code === "Digit2") {
+            c.color = [1, 0, 0]; // Make cube red
+          } else if (e.code === "Digit3") {
+            c.color = [0, 1, 0]; // Make cube green
+          } else if (e.code === "Digit4") {
+            c.color = [0, 0, 1]; // Make cube blue
+          } else if (e.code === "Digit5") {
+            c.color = [1, 1, 0]; // Make cube yellow
+          } else if (e.code === "Digit6") {
+            c.color = [1, 0, 1]; // Make cube pink
+          } else if (e.code === "Digit7") {
+            c.color = [0, 1, 1]; // Make cube cyan
+          } else if (e.code === "Digit0") {
+            c.color = [0, 0, 0]; // Make cube black
+          }
+
+          /* Make new cube*/
+            else if (e.code === "Space") {
+              let new_cube = new X.cube();
+              new_cube.color = c.color;
+              new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+              new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+              r.add(new_cube);
+          }
+
+          /* Upload/Download Scene */
+            else if (e.code === "KeyO") {
+            download();
+          } else if (e.code === "KeyL") {
+            upload("scene.json");
+          }
+
+          /* Rotate */
+            else if (e.code === "KeyB") {
+              if (rotateFlag) {
+                r.onRender = function() {
+                  r.camera.rotate([1, 0]);
+                  rotateFlag = false;
+                }
+              } else {
+                r.onRender = function() {
+                  r.camera.rotate([0, 0]);
+                  rotateFlag = true;
+              }
+            }
+          }
+
+          /* Store current camera/toggle camera loop */
+            else if (e.code === "KeyC") {
+              CAMERAS.push(new Float32Array(Object.values(r.camera.view)));
+          } else if (e.code === "KeyV") {
+              if (cameraFlag) {
+                intervalID = setInterval(camSwitch, 1000);
+                cameraFlag = false;
+              } else {
+                clearInterval(intervalID);
+                cameraFlag = true;
+              }
+
+              /* Helper function used to cycle through the cameras in the CAMERAS array */
+              function camSwitch() {
+                if (currentCamera <= CAMERAS.length - 1) {
+                  r.camera.view = new Float32Array(Object.values(CAMERAS[currentCamera++]));
+                } else if (currentCamera === CAMERAS.length) {
+                  currentCamera = 0;
+                  r.camera.view = CAMERAS[currentCamera++];
+                }
+              }
+          }
+        }
+      }
+    </script>
   </head>
   <body>
   </body>

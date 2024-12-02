@@ -56,7 +56,6 @@
       this.boxHelper = new THREE.BoxHelper();
       this.PHYSICS = {
         "yspeed": 0,
-        "yspeedint": 0,
         "xspeed": 0,
         "zspeed": 0,
         "time": 0,
@@ -216,7 +215,7 @@
         // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
         object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
         object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
-        object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS);
+        object.PHYSICS.yspeed = ((currPos.y - prevPos.y) / FPS);
         console.log(currPos, prevPos);
         // document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
         BALLS.push(object);
@@ -252,7 +251,6 @@
       let object = new MeshObjects(plate);
       object.PHYSICS = {
         "yspeed": 0,
-        "yspeedint": 0,
         "xspeed": plateSpeed,
         "zspeed": 0,
         "time": 0,
@@ -313,8 +311,7 @@
           let zdisplacement = ball_physics.zspeed * FPS;
           ball.position.z += zdisplacement;
           ball_physics.time += FPS;
-          ball_physics.yspeed = ball_physics.yspeedint + GRAVITY * ball_physics.time;
-          let ydisplacement = ball_physics.yspeed * ball_physics.time + (0.5 * GRAVITY * (ball_physics.time * ball_physics.time));
+          let ydisplacement = (ball_physics.yspeed * ball_physics.time) + (0.5 * GRAVITY * (ball_physics.time * ball_physics.time));
           if (ball.position.y + ydisplacement < FLOOR_LEVEL) {
             ball.position.y = FLOOR_LEVEL;
           } else {
@@ -322,7 +319,6 @@
           }
         } else {
           ball_physics.yspeed = 0;
-          ball_physics.yspeedint = 0;
           ball_physics.time = 0;
           // scene.remove(ball);
           // scene.remove(ball_mesh_object.boxHelper);

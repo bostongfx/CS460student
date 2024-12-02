@@ -42,32 +42,31 @@
 
     var renderer, controls, scene, camera;
     let controller1, controller1Grip, controller2, controller2Grip;
-    let globalGroup = new THREE.Group();
     let FPS = 1 / 60;
     let GRAVITY = 9.81;
-    let BALLS = [];
-    let PLATES = [];
+    let BALLS = []
+    let PLATES = []
     let MAX_PLATES = 7;
     let PLATE_CD = 120;
     let CURR_PLATE_CD = 0;
     let FLOOR_LEVEL = -1;
     function MeshObjects(mesh) {
       this.object = mesh;
+      this.box = new THREE.Box3(); 
+      this.boxHelper = new THREE.BoxHelper();
       this.PHYSICS = {
         "yspeed": 0,
         "yspeedint": 0,
         "xspeed": 0,
         "zspeed": 0,
         "time": 0,
+        "timeToLive": 0,
       }
     }
-
-
     window.onload = function () {
 
       // Three.js code goes here
       scene = new THREE.Scene({ antialias: true });
-      scene.add(globalGroup);
 
       // setup the camera
       var fov = 75;
@@ -161,7 +160,12 @@
       sphere.translateY(20);
       scene.add(sphere);
       let object = new MeshObjects(sphere);
+      sphere.geometry.computeBoundingBox();
+      object.box.copy(sphere.geometry.boundingBox).applyMatrix4(sphere.matrixWorld);
+      object.boxHelper = new THREE.BoxHelper(sphere, 0xff00ff);
+      scene.add(object.boxHelper);
       BALLS.push(object);
+      
       console.log(object);
 
       controls = new OrbitControls(camera, renderer.domElement);
@@ -175,6 +179,8 @@
       let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
       let ball = new THREE.Mesh(geometry, material);
       let object = new MeshObjects(ball);
+      const boxHelper = new THREE.BoxHelper(ball, 0xFF00FF);
+      scene.add(boxHelper);
       controller.add(ball);
       ball.position.set(0, 0, 0);
       controller.userData.prevPos = controller.position.clone();
@@ -189,7 +195,11 @@
         let sphere = object.object;
         let position = new THREE.Vector3();
         sphere.getWorldPosition(position);
-        globalGroup.add(sphere);
+        scene.add(sphere);
+        sphere.geometry.computeBoundingBox();
+        object.box.copy(sphere.geometry.boundingBox).applyMatrix4(sphere.matrixWorld);
+        object.boxHelper = new THREE.BoxHelper(sphere, 0xff00ff);
+        scene.add(object.boxHelper);
         sphere.position.x = position.x;
         sphere.position.y = position.y;
         sphere.position.z = position.z;
@@ -218,40 +228,41 @@
       }
     };
 
+    // Get Random from min to max: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    function getRandom(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
     function createPlate() {
-      let geometry = new THREE.CircleGeometry(0.5, 32);
+      let geometry = new THREE.CircleGeometry(0.35, 32);
       let material = new THREE.MeshStandardMaterial({ color: 0x7851A9, wireframe: false });
       let plate = new THREE.Mesh(geometry, material);
+      plate.geometry.computeBoundingBox();
+      let plateSpeed = getRandom(1, 3);
+      let layer = Math.floor(getRandom(1, 4));
+      plate.translateY(layer);
       plate.translateZ(-2);
-      plate.translateY(2);
+      if (layer % 2 == 0) {
+        plateSpeed *= -1;
+        plate.translateX(5);
+      } else {
+        plate.translateX(-5)
+      }
+      let timeToLive = Math.floor(getRandom(8, 12));
       scene.add(plate);
       let object = new MeshObjects(plate);
       object.PHYSICS = {
         "yspeed": 0,
         "yspeedint": 0,
-        "xspeed": 5,
+        "xspeed": plateSpeed,
         "zspeed": 0,
         "time": 0,
+        "timeToLive": timeToLive * 60,
       }
+      object.box.copy(plate.geometry.boundingBox).applyMatrix4(plate.matrixWorld);
+      object.boxHelper = new THREE.BoxHelper(plate, 0xff00ff);
+      scene.add(object.boxHelper);
       PLATES.push(object);
-      for (let i = 0; i < 100; i++) {
-        let geometry = new THREE.CircleGeometry(0.1, 16);
-        let material = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: false });
-        let marker = new THREE.Mesh(geometry, material);
-        marker.translateY(0);
-        marker.translateX(-1);
-        marker.translateZ(-i);
-        scene.add(marker);
-      }
-      for (let i = 0; i < 100; i++) {
-        let geometry = new THREE.CircleGeometry(0.1, 16);
-        let material = new THREE.MeshStandardMaterial({ color: 0x0000ff, wireframe: false });
-        let marker = new THREE.Mesh(geometry, material);
-        marker.translateY(0);
-        marker.translateZ(-1);
-        marker.translateX(i);
-        scene.add(marker);
-      }
     }
     function animate() {
       controller1.userData.prevPos = controller1.position.clone();
@@ -262,17 +273,38 @@
       } else if (CURR_PLATE_CD > 0) {
         CURR_PLATE_CD -= 1;
       }
-      // for (let i = 0; i < PLATES.length; i++) {
-      //   let plate_mesh_object = PLATES[i];
-      //   let plate = plate_mesh_object.object;
-      //   let plate_physics = plate_mesh_object.PHYSICS;
-      //   let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
-      //   plate.quaternion.slerp(qEnd, 0.1);
-      // }
+      for (let i = 0; i < PLATES.length; i++) {
+        let plate_mesh_object = PLATES[i];
+        let plate = plate_mesh_object.object;
+        let plate_physics = plate_mesh_object.PHYSICS;
+        let xdisplacement = plate_physics.xspeed * FPS;
+        plate_mesh_object.box.copy(plate.geometry.boundingBox).applyMatrix4(plate.matrixWorld);
+        plate_mesh_object.boxHelper.update();
+        plate.position.x += xdisplacement;
+        if (Math.abs(plate.position.x) > 5) {
+          plate_physics.xspeed *= -1;
+        }
+        plate_physics.time += 1;
+        let ttl = plate_physics.timeToLive;
+        let currTime = plate_physics.time;
+        if (ttl <= currTime) {
+          scene.remove(plate);
+          scene.remove(plate_mesh_object.boxHelper);
+          PLATES.splice(i, 1);
+        } else if (currTime/ttl > 0.33 && currTime/ttl < 0.66) {
+          plate.material.color.set(0x0000ff)
+        } else if (currTime/ttl > 0.66) {
+          plate.material.color.set(0xff0000);
+        }
+        // let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
+        // plate.quaternion.slerp(qEnd, 0.1);
+      }
       for (let i = 0; i < BALLS.length; i++) {
         let ball_mesh_object = BALLS[i];
-        let ball = BALLS[i].object;
+        let ball = ball_mesh_object.object;
         let ball_physics = ball_mesh_object.PHYSICS;
+        ball_mesh_object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+        ball_mesh_object.boxHelper.update();
         if (ball.position.y > FLOOR_LEVEL) {
           let xdisplacement = ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
@@ -291,6 +323,18 @@
           ball_physics.yspeed = 0;
           ball_physics.yspeedint = 0;
           ball_physics.time = 0;
+          // scene.remove(ball);
+          // scene.remove(ball_mesh_object.boxHelper);
+          // ball.material.opacity = 0.5;
+          BALLS.splice(i, 1);
+        }
+        let ball_box = ball_mesh_object.box;
+        for (let j = 0; j < PLATES.length; j++) {
+          let plate_mesh_object = PLATES[j];
+          let plate_box = plate_mesh_object.box;
+          if (ball_box.intersectsBox(plate_box)) {
+            ball.material.color.set(0x00ff00);
+          }
         }
       }
       renderer.render(scene, camera);

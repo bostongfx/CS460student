@@ -43,7 +43,7 @@
     var renderer, controls, scene, camera;
     let controller1, controller1Grip, controller2, controller2Grip;
     let FPS = 1 / 60;
-    let GRAVITY = 9.81;
+    let GRAVITY = -9.81;
     let BALLS = []
     let PLATES = []
     let MAX_PLATES = 7;
@@ -218,8 +218,7 @@
         object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
         object.PHYSICS.yspeedint = ((currPos.y - prevPos.y) / FPS);
         console.log(currPos, prevPos);
-        document.getElementById("myInfo").innerHTML = JSON.stringify(object.PHYSICS);
-        document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
+        // document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
         BALLS.push(object);
         console.log(object);
         controller.userData.selected = undefined;
@@ -306,14 +305,16 @@
         ball_mesh_object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
         ball_mesh_object.boxHelper.update();
         if (ball.position.y > FLOOR_LEVEL) {
+          let tempXSpeed = ball_physics.xspeed;
+          let tempZSpeed = ball_physics.zspeed;
+          document.getElementById("myInfo").innerHTML = JSON.stringify({xspeed: tempXSpeed, zspeed: tempZSpeed});
           let xdisplacement = ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
           let zdisplacement = ball_physics.zspeed * FPS;
           ball.position.z += zdisplacement;
           ball_physics.time += FPS;
-          let ydisplacement = 0;
-          ball_physics.yspeed = ball_physics.yspeedint - GRAVITY * ball_physics.time;
-          ydisplacement = ball_physics.yspeed * FPS + (0.5 * - GRAVITY * (ball_physics.time * ball_physics.time));
+          ball_physics.yspeed = ball_physics.yspeedint + GRAVITY * ball_physics.time;
+          let ydisplacement = ball_physics.yspeed * FPS + (0.5 * + GRAVITY * (ball_physics.time * ball_physics.time));
           if (ball.position.y + ydisplacement < FLOOR_LEVEL) {
             ball.position.y = FLOOR_LEVEL;
           } else {

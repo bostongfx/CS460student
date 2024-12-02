@@ -314,7 +314,7 @@
           ball.position.z += zdisplacement;
           ball_physics.time += FPS;
           let ydisplacement = (ball_physics.yspeed * ball_physics.time) + (0.5 * GRAVITY * (ball_physics.time * ball_physics.time));
-          if (ydisplacement < FLOOR_LEVEL) {
+          if (ydisplacement + ball_physics.inty < FLOOR_LEVEL) {
             ball.position.y = FLOOR_LEVEL;
           } else {
             ball.position.y = ball_physics.inty + ydisplacement;

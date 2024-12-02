@@ -265,7 +265,7 @@
     }
     function plateHit(ball_mesh_object, plate_mesh_object) {
       let ball = ball_mesh_object.object;
-      let plate = plate_mesh_object;
+      let plate = plate_mesh_object.object;
       let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), 3 * Math.PI);
       plate.quaternion.slerp(qEnd, 0.1);
       scene.remove(plate);

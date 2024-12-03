@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS460 Project 5</title>
+
+    <style>
+      body {
+        background-color: white;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;
+      }
+    </style>
+  </head>
+  <body>
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"
+    ></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@latest/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
+      }
+    </script> 
+
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"; 
+      import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';  
+      import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+      import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+
+      let renderer, controls, scene, camera, stats, effect;
+
+      window.onload = function () {
+        scene = new THREE.Scene(); 
+
+        stats = new Stats();
+        document.body.appendChild( stats.domElement);
+
+        // set up camera
+        let fov = 75;
+        let ratio = window.innerWidth / window.innerHeight;
+        let zNear = 0.1;
+        let zFar = 10000;
+        camera = new THREE.PerspectiveCamera(fov, ratio, zNear, zFar);
+        camera.position.set(0, 10, 0);
+
+        // create renderer and set up canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // now we need to set up the lights
+        let ambientLight = new THREE.AmbientLight();
+        scene.add(ambientLight);
+        let light = new THREE.DirectionalLight(0xffffff, 5.0);
+        light.position.set(10, 100, 10);
+        scene.add(light);
+
+        effect = new AnaglyphEffect(renderer);
+        effect.setSize(window.innerWidth, window.innerHeight);
+
+        // load poly.glb file
+        let loader = new GLTFLoader();
+        loader.load("blender_stuff/poly.glb", function (gltf) {
+          // add object to the scene
+          let poly = scene.add(gltf.scene);
+          poly = gltf.scenes[0].children[0];
+          poly.scale.x = 10;
+          poly.scale.y = 10;
+          poly.scale.z = 10;
+          
+
+          // identiy matrix for poly 
+          poly.quaternion.w = Math.sin(Math.PI/2) * 1;
+          poly.quaternion.x = Math.sin(Math.PI/2) * 0;
+          poly.quaternion.y = Math.sin(Math.PI/2) * 0;
+          poly.quaternion.z = Math.sin(Math.PI/2) * 0;  
+          window.SCENE.poly = poly; 
+          // window.SCENE.anaglyph =  
+
+          // add wireframe
+          let polyu1 = pane.addFolder({title: 'PolyCam Mesh'});
+          polyu1.addBinding(window.SCENE.poly.material, 'wireframe');
+          polyu1.addButton({title: 'rotate!'}).on('click', () => {
+            window.SCENE.do_rotate_poly();
+          });
+        });
+
+        loader.load("blender_stuff/project_5.glb", function (gltf) {
+          let editedPoly = scene.add(gltf.scene);
+          editedPoly = gltf.scenes[0].children[0];
+          editedPoly.scale.x = 10;
+          editedPoly.scale.y = 10;
+          editedPoly.scale.z = 10; 
+
+          // identity matrix for polyEdited 
+          editedPoly.quaternion.w = Math.sin(Math.PI/2) * 1;
+          editedPoly.quaternion.x = Math.sin(Math.PI/2) * 0;
+          editedPoly.quaternion.y = Math.sin(Math.PI/2) * 0;
+          editedPoly.quaternion.z = Math.sin(Math.PI/2) * 0;
+          window.SCENE.editedPoly = editedPoly; 
+
+          editedPoly.translateX(5);  
+
+          let helper = new VertexNormalsHelper( editedPoly, 0.1, 'blue');
+          helper.visible = false;  
+          scene.add(helper);
+
+          // setting up blender
+          let blenderu1 = pane.addFolder({title: 'Blender Mesh'});
+          blenderu1.addBinding(helper, 'visible', {label: "Show Normals"});
+          blenderu1.addButton({title: 'rotate!'}).on('click', () => {
+          window.SCENE.editedPoly = editedPoly;
+          window.SCENE.do_rotate_editedPoly();
+
+          });
+
+          // controls = new OrbitControls(camera, renderer.domElement);
+          // animate();
+        }); 
+
+        // adding pannel
+        let pane = new Pane();
+        let sceneui = pane.addFolder({title: 'Scene'}); 
+        sceneui.addBinding(light.position, 'x', {min: -100, max: 100, label: 'Light X'});
+        sceneui.addBinding(light.position, 'y', {min: -100, max: 100, label: 'Light Y'});
+        sceneui.addBinding(light.position, 'z', {min: -100, max: 100, label: 'Light Z'}); 
+        sceneui.addBinding(light, 'intensity', {min: 0, max: 10, step: 0.1, label: 'Intensity'});
+        sceneui.addBinding(ambientLight, 'intensity', {min: 0, max: 10, step: 0.1, label: 'Ambient Light'});
+
+        window['SCENE'] = {
+          'anaglyph': false, 
+          'poly': null, 
+          'editedPoly': null, 
+          'rotate_poly': false,   
+          'rotate_editedPoly': false,
+          'blender_old_material': null, 
+          'change_material': function() {
+            if (!window['SCENE']['blender_old_material']) {
+              window['SCENE']['blender_old_material'] = window['SCENE']['blender'].material.clone();
+              window['SCENE']['blender'].material = new THREE.MeshNormalMaterial();
+            } else {
+              window['SCENE']['blender'].material = window['SCENE']['blender_old_material'].clone();
+              window['SCENE']['blender_old_material'] = null;
+            }
+          }, 
+          // 'q': new THREE.Quaternion(),
+          'do_rotate_poly': function() { 
+            window['SCENE']['rotate_poly'] = !window['SCENE']['rotate_poly'];
+          },  
+          'do_rotate_editedPoly': function() {
+            window['SCENE']['rotate_editedPoly'] = !window['SCENE']['rotate_editedPoly'];
+          },
+          // other stuff
+        } 
+
+        sceneui.addBinding(window.SCENE, 'anaglyph'); 
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        animate();
+      }; 
+
+      // part of the setup
+      function animate() {
+
+        requestAnimationFrame(animate);
+
+        if (window.SCENE.anaglyph) {
+          effect.render(scene, camera);
+        } else {
+          renderer.render(scene, camera);
+        }
+
+        let q = new THREE.Quaternion (0, 0, 0, 1);
+
+        if (window.SCENE.poly) {
+          if (window.SCENE.rotate_poly) {
+            let q = new THREE.Quaternion ( Math.sin(Math.PI/2)*0, 
+                      Math.sin(Math.PI/2)*0, 
+                      Math.sin(Math.PI/2)*1, 
+                      Math.cos(Math.PI/2));
+            window.SCENE.poly.quaternion.slerp( q, 0.01);
+          } else {
+            window.SCENE.poly.quaternion.slerp( q, 0.01);
+          }
+        } 
+
+        if (window.SCENE.editedPoly) {
+          if (window.SCENE.rotate_editedPoly) {
+            let q = new THREE.Quaternion (Math.sin(Math.PI/2)*0, 
+                                        Math.sin(Math.PI/2)* 0, 
+                                        Math.sin(Math.PI/2)*1, 
+                                        Math.cos(Math.PI/2)); 
+            window.SCENE.editedPoly.quaternion.slerp( q, 0.01);
+          } else {
+            window.SCENE.editedPoly.quaternion.slerp(q, 0.01);
+          }
+        }
+
+        controls.update();
+        renderer.render(scene, camera);  
+        stats.update();
+      }
+
+      console.log("Project 5 is working just fine."); 
+      
+    </script>
+  </body>
+</html>

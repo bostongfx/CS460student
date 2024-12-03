@@ -1,0 +1,78 @@
+html,
+body {
+    background-color: #000;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden !important;
+}
+
+#gameboy {
+    background: url("gameboy_bg.jpg");
+    width: 1200px;
+    height: 675px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#c {
+    width: 600px;
+    height: 360px;
+    position: absolute;
+    top: 53%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.top_bar {
+    color: rgb(0, 255, 0);
+    font-size: 30px;
+    font-weight: bolder;
+}
+
+#score {
+    position: absolute;
+    top: 148px;
+    left: 520px;
+}
+
+#score_name {
+    position: absolute;
+    top: 148px;
+    left: 380px;
+}
+
+#lives {
+    position: absolute;
+    top: 148px;
+    left: 820px;
+}
+
+#lives_name {
+    position: absolute;
+    top: 148px;
+    left: 700px;
+}
+
+.result {
+    width: 300px;
+    height: 300px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+}
+
+#overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: none;
+}

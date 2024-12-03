@@ -61,6 +61,5 @@ function upload(scene) {
 
   };
   req.send(null);
-  
-}
 
+}

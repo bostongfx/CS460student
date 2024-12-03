@@ -46,7 +46,7 @@
     import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
 
-    var renderer, controls, scene, camera;
+    var renderer, controls, scene, camera, htmlGroup;
     let controller1, controller1Grip, controller2, controller2Grip;
     let FPS = 1 / 60;
     let GRAVITY = -9.81;
@@ -77,6 +77,8 @@
 
       // Three.js code goes here
       scene = new THREE.Scene({ antialias: true });
+      htmlGroup = new THREE.Group();
+      scene.add(htmlGroup);
 
       // setup the camera
       var fov = 75;
@@ -122,8 +124,6 @@
       controller2 = renderer.xr.getController(1);
       controller2.add(line.clone());
       scene.add(controller2);
-
-      console.log(controller1Grip);
 
       // Controller Squeeze event
       controller1.addEventListener('selectstart', (event) => {
@@ -177,11 +177,11 @@
       BALLS.push(object);
       
       // GUI Setup
-      const interactiveGroup = new InteractiveGroup();
-			interactiveGroup.listenToPointerEvents( renderer, camera );
-			interactiveGroup.listenToXRControllerEvents( controller1 );
-			interactiveGroup.listenToXRControllerEvents( controller2 );
-      scene.add(interactiveGroup);
+      // const interactiveGroup = new InteractiveGroup();
+			// interactiveGroup.listenToPointerEvents( renderer, camera );
+			// interactiveGroup.listenToXRControllerEvents( controller1 );
+			// interactiveGroup.listenToXRControllerEvents( controller2 );
+      // scene.add(interactiveGroup);
 
       // Tweakpane
       let pane = new Pane();
@@ -189,13 +189,17 @@
       paneDomElemet.style.visibility = 'hidden';
       let sceneui = pane.addFolder({title:"Options"});
       sceneui.addBinding(floor.material, 'color', {label: "Color"});
+      sceneui.addButton({title:'Change Material!'}).on('click', () => {
+        console.log("Clicked");
+        floor.material.color.set(0xff0000);
+      });
 
       let htmlMesh = new HTMLMesh(paneDomElemet);
-      htmlMesh.position.set(0, 0, -0.5);
+      htmlMesh.position.set(0, 2, -0.5);
       htmlMesh.scale.setScalar(2);
       // htmlMesh.rotation.x = Math.PI;
       console.log(htmlMesh);
-      interactiveGroup.add(htmlMesh);
+      htmlGroup.add(htmlMesh);
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enable;
@@ -204,6 +208,19 @@
     };
     function onSelectStart(event) {
       let controller = event.target;
+      // Raycasting code logic inspired by InteractiveGroup.js (Three.js - Mr doob)
+      let raycaster = new THREE.Raycaster();
+      raycaster.setFromXRController(controller);
+      let intersects = raycaster.intersectObjects(htmlGroup.children, false);
+      if (intersects.length > 0) {
+        let intersectObject = intersects[0];
+        let htmlObject = intersectObject.object;
+        let uvCoords = intersectObject.uv;
+
+        let pointerEvent = { type: 'mousedown', data: new THREE.Vector2(uvCoords.x, 1 - uvCoords.y)};
+        htmlObject.dispatchEvent(pointerEvent);
+        console.log(htmlObject);
+      }
       let geometry = new THREE.SphereGeometry(0.2, 32, 16);
       let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
       let ball = new THREE.Mesh(geometry, material);
@@ -247,10 +264,8 @@
         object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
         object.PHYSICS.yspeed = ((currPos.y - prevPos.y) / FPS);
         object.PHYSICS.inty = position.y;
-        console.log(currPos, prevPos);
         // document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
         BALLS.push(object);
-        console.log(object);
         controller.userData.selected = undefined;
         controller.userData.prevPos = new THREE.Vector3();
         controller.userData.prevQuat = new THREE.Quaternion();

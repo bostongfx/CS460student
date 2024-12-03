@@ -39,6 +39,12 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { VRButton } from 'three/addons/webxr/VRButton.js';
     import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+    import { createText } from 'three/addons/webxr/Text2D.js';
+
+    import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
+    import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
+    import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+
 
     var renderer, controls, scene, camera;
     let controller1, controller1Grip, controller2, controller2Grip;
@@ -50,10 +56,14 @@
     let PLATE_CD = 120;
     let CURR_PLATE_CD = 0;
     let FLOOR_LEVEL = -1;
+    let SCORE = 0;
+    let TIME = 0;
+    let ms = 0;
     function MeshObjects(mesh) {
       this.object = mesh;
       this.box = new THREE.Box3(); 
       this.boxHelper = new THREE.BoxHelper();
+      this.score = 0;
       this.PHYSICS = {
         "inty": 0,
         "yspeed": 0,
@@ -166,7 +176,26 @@
       scene.add(object.boxHelper);
       BALLS.push(object);
       
-      console.log(object);
+      // GUI Setup
+      const interactiveGroup = new InteractiveGroup();
+			interactiveGroup.listenToPointerEvents( renderer, camera );
+			interactiveGroup.listenToXRControllerEvents( controller1 );
+			interactiveGroup.listenToXRControllerEvents( controller2 );
+      scene.add(interactiveGroup);
+
+      // Tweakpane
+      let pane = new Pane();
+      let paneDomElemet = pane.containerElem_;
+      paneDomElemet.style.visibility = 'hidden';
+      let sceneui = pane.addFolder({title:"Options"});
+      sceneui.addBinding(floor.material, 'color', {label: "Color"});
+
+      let htmlMesh = new HTMLMesh(paneDomElemet);
+      htmlMesh.position.set(0, 0, -0.5);
+      htmlMesh.scale.setScalar(2);
+      // htmlMesh.rotation.x = Math.PI;
+      console.log(htmlMesh);
+      interactiveGroup.add(htmlMesh);
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enable;
@@ -258,6 +287,7 @@
         "time": 0,
         "timeToLive": timeToLive * 60,
       }
+      object.score = layer + Math.round(plateSpeed);
       object.box.copy(plate.geometry.boundingBox).applyMatrix4(plate.matrixWorld);
       object.boxHelper = new THREE.BoxHelper(plate, 0xff00ff);
       scene.add(object.boxHelper);
@@ -266,9 +296,15 @@
     function plateHit(ball_mesh_object, plate_mesh_object) {
       let ball = ball_mesh_object.object;
       let plate = plate_mesh_object.object;
-      let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), 3 * Math.PI);
-      plate.quaternion.slerp(qEnd, 0.1);
+      let ttlBuff = 1;
+      if (plate_mesh_object.PHYSICS.time / plate_mesh_object.PHYSICS.timeToLive > 0.66) {
+        ttlBuff = 1.5;
+      }
+      SCORE += (plate_mesh_object.score * ttlBuff);
       scene.remove(plate);
+      scene.remove(plate_mesh_object.boxHelper);
+      // let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
+      // plate.quaternion.slerp(qEnd, 0.1);
     }
 
     function animate() {
@@ -330,9 +366,9 @@
         } else {
           ball_physics.yspeed = 0;
           ball_physics.time = 0;
-          // scene.remove(ball);
-          // scene.remove(ball_mesh_object.boxHelper);
-          // ball.material.opacity = 0.5;
+          scene.remove(ball);
+          scene.remove(ball_mesh_object.boxHelper);
+          ball.material.opacity = 0.5;
           BALLS.splice(i, 1);
         }
         let ball_box = ball_mesh_object.box;
@@ -346,7 +382,20 @@
           }
         }
       }
+      ms += 1;
+      if (ms == 60) {
+        TIME += 1;
+        ms = 0;
+      }
+      let timeMesh = createText("Time: " + TIME.toString(), 1);
+      let scoreMesh = createText("Score: " + SCORE.toString(), 1);
+      timeMesh.position.set(0, 5, -10);
+      scoreMesh.position.set(0, 3.5, -10);
+      scene.add(timeMesh);
+      scene.add(scoreMesh);
       renderer.render(scene, camera);
+      scene.remove(timeMesh);
+      scene.remove(scoreMesh);
     };
   </script>
 </head>

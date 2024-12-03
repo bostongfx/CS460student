@@ -1,0 +1,109 @@
+<html>
+  <head>
+    <style>
+      html, body { 
+        background-color:#000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;  
+      }
+    </style>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      }
+    }
+    </script>
+
+    <script type="module">
+
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';    
+
+
+      var scene, camera, renderer, ambientLight, light, controls, sphere, texture, video;
+
+      window.start = function() {
+
+
+        document.getElementById('clicker').style.display = 'none';
+
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.set( 0, 0, 500);
+
+        renderer = new THREE.WebGLRenderer({ });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+        
+        ambientLight = new THREE.AmbientLight(0x000000);
+        scene.add( ambientLight );
+
+        light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+
+
+
+
+        // TODO
+
+        var geometry = new THREE.SphereGeometry( 500, 60, 40 );
+
+
+        video = document.getElementById( 'video' );
+        video.play();
+
+        texture = new THREE.VideoTexture( video );
+
+        var material = new THREE.MeshBasicMaterial({  map:texture, side: THREE.BackSide });
+
+        sphere = new THREE.Mesh( geometry, material );
+
+        scene.add(sphere);
+
+
+
+
+
+        controls = new OrbitControls( camera, renderer.domElement );
+
+
+        animate();
+
+
+      };
+
+      function animate() {
+
+        requestAnimationFrame( animate );
+
+        controls.update();
+        renderer.render( scene, camera );
+
+      };
+
+
+    </script>
+  </head>
+  <body>
+
+<video id="video" loop crossOrigin="anonymous" webkit-playsinline style="display:none">
+  <source src="jump.mov" type='video/mp4'>
+</video>
+
+    <div id='clicker' style='width:100%;height:100%'>
+      <span style='position:absolute;top:45%;left:45%;width:10%;padding:20px;border:solid thick white;color:white;font-family: sans-serif;text-align:center' onclick='javascript:window.start();'>Click to start!</span>
+    </div>
+    
+  </body>
+</html>

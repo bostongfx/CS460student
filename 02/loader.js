@@ -31,7 +31,6 @@ function download() {
 }
 
 function upload(scene) {
-
   var req = new XMLHttpRequest();
   req.responseType = 'json';
   req.open('GET', scene, true);

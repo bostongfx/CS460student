@@ -10,6 +10,96 @@
         overflow: hidden !important; 
       }
     </style>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="./loader.js"></script>
+    <script>
+      window.onload = function() {
+        CUBE_SIDELENGTH = 10;
+        var GAP = 2;
+        var spin = false;
+        r = new X.renderer3D();
+        r.init();
+        var c = new X.cube();
+        c.lengthX = c.lengthY = c.lengthZ = CUBE_SIDELENGTH;
+        r.add(c);
+        r.render();
+        
+        r.onRender = function() {
+          
+          
+          if (spin) {
+            r.camera.rotate([1, 0]);
+          }
+        }
+        
+        window.onkeypress = function(e) {
+
+          switch (e.code) {
+            case ('KeyD'):
+              c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+              break;
+            case ('KeyA'):
+              c.transform.translateX(CUBE_SIDELENGTH + GAP);
+              break;
+            case ('KeyS'): 
+              c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+              break;
+            case ('KeyW'): 
+              c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+              break;
+            case ('KeyE'):
+              c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+              break;
+            case ('KeyQ'): 
+              c.transform.translateY(CUBE_SIDELENGTH + GAP);
+              break;
+            case('KeyO'):
+              download();
+              break;
+            case('KeyL'): 
+              upload("scene.json");
+              break;
+            case('KeyB'): 
+              spin = !spin
+              break;
+          }
+          
+          switch(e.code) {
+            case ('Digit1'):
+              c.color = [1, 1, 1];
+              break;
+            case ('Digit2'):
+              c.color = [1, 0, 0];
+              break;
+            case ('Digit3'):
+              c.color = [0, 1, 0];
+              break;
+            case ('Digit4'):
+              c.color = [0, 0, 1];
+              break;
+            case ('Digit5'):
+              c.color = [252/255, 186/255, 3/255];
+              break;
+            case ('Digit6'):
+              c.color = [173/255, 3/255, 168/255];
+              break;
+            case ('Digit7'):
+              c.color = [13/255, 223/255, 1];
+              break;
+            case ('Digit0'):
+              c.color = [0, 0, 0];
+              break;
+          }
+          if (e.code == 'Space') {
+            new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+            r.add(new_cube);
+          }
+        }
+      }
+    </script>
   </head>
   <body>
   </body>

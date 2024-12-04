@@ -10,7 +10,124 @@
         overflow: hidden !important; 
       }
     </style>
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js">
+    </script>
+    <script type="text/javascript" src="loader.js">
+    </script>
   </head>
   <body>
+    <script>
+      let CAMERAS = [];
+      let CUBE_IDS = {};
+      let CUBE_SIDELENGTH = 10;
+      let GAP = 0;
+      let SPINSPINSPIN = false;
+      let CAM_CYCLE = false;
+      let current_cam = 0;
+      let interval_id = 0;
+      window.onload = function() {
+        r = new X.renderer3D();
+        r.init();
+        cube = new X.cube();
+        cube.lengthZ = CUBE_SIDELENGTH + 0.1;
+        cube.lengthY = CUBE_SIDELENGTH + 0.1;
+        cube.lengthX = CUBE_SIDELENGTH + 0.1;
+        r.add(cube);
+        r.onRender = function() {
+          if (SPINSPINSPIN) {
+            r.camera.rotate([1, 0]);
+          }
+        }
+        r.render();
+      }
+      window.onkeypress = function(e) {
+        switch(e.code) {
+          case "KeyD":
+            cube.transform.translateX(-CUBE_SIDELENGTH - GAP);
+            break;
+          case "KeyA":
+            cube.transform.translateX(CUBE_SIDELENGTH + GAP);
+            break;
+          case "KeyS":
+            cube.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+            break;
+          case "KeyW":
+            cube.transform.translateZ(CUBE_SIDELENGTH + GAP);
+            break;
+          case "KeyQ":
+            cube.transform.translateY(CUBE_SIDELENGTH + GAP);
+            break;
+          case "KeyE":
+            cube.transform.translateY(-CUBE_SIDELENGTH - GAP);
+            break;
+          case "Digit0":
+            cube.color = [0, 0, 0];
+            break;
+          case "Digit1":
+            cube.color = [1, 1, 1];
+            break;
+          case "Digit2":
+            cube.color = [1, 0, 0];
+            break;
+          case "Digit3":
+            cube.color = [0, 1, 0];
+            break;
+          case "Digit4":
+            cube.color = [0, 0, 1];
+            break;
+          case "Digit5":
+            cube.color = [1, 1, 0];
+            break;
+          case "Digit6":
+            cube.color = [1, 0, 1];
+            break;
+          case "Digit7":
+            cube.color = [0, 1, 1];
+            break;
+          case "Space":
+            new_cube = new X.cube();
+            new_cube.color = cube.color;
+            new_cube.transform.matrix = new Float32Array(cube.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+            r.add(new_cube);
+            break;
+          case "KeyO":
+            download();
+            break;
+          case "KeyL":
+            upload("scene.json");
+            break;
+          case "KeyB":
+            SPINSPINSPIN = !(SPINSPINSPIN);
+            break;
+          case "KeyC":
+            new_cam_value = new Float32Array(Object.values(r.camera.view));
+            CAMERAS.push(new_cam_value);
+            console.log(new_cam_value);
+            break;
+          case "KeyV":
+            CAM_CYCLE = !(CAM_CYCLE);
+            if (CAM_CYCLE) {
+              interval_id = setInterval(
+                function() {
+                  console.log(CAMERAS[current_cam]);
+                  r.camera.view = new Float32Array(Object.values(CAMERAS[current_cam++]));
+                  if (current_cam >= CAMERAS.length) {
+                    current_cam = 0;
+                  }
+                  console.log("Cam Shift");
+                  console.log(r.camera.view);
+                }, 1000
+              )
+            } else if (interval_id) {
+              clearInterval(interval_id);
+              interval_id = 0;
+            }
+            break;
+          default:
+            console.log(e.code);
+        }
+      }
+    </script>
   </body>
 </html>

@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <style>
+            body {
+                background: black;
+            }
+        </style>
+        <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+        <!-- <script type="text/javascript" src="https://get.goXTK.com/xtk_xdat.gui.js"></script> -->
+
+        <script type="module">
+            import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.3/dist/tweakpane.min.js';
+            window.onload = function() {
+                var r = new X.renderer3D();
+                r.init();
+
+                var c = new X.cube();
+
+                r.add(c);
+
+                r.render();
+
+                let controller = {
+                    'rotateX': function() {
+                        c.transform.rotateX(45)
+                    },
+                    'color': 'rgb(255, 255, 255)'
+                };
+
+                function parseColor(input) {
+                    return input.split("(")[1].split(")")[0].split(",");
+                }
+                var gui = new Pane();
+                gui.addBinding(c, 'visible');
+                gui.addBinding(c, 'opacity', {min: 0, max: 1})
+                gui.addBinding(controller, 'color').on('change', function(e) {
+                    var rgb = parseColor(e.value);
+                    var r = parseInt(rgb[0]) / 255;
+                    var g = parseInt(rgb[1]) / 255;
+                    var b = parseInt(rgb[2]) / 255;
+
+                    c.color = [r, g, b];
+                });
+
+                // var gui = new dat.GUI();
+                // gui.add(c, 'visible');
+                // gui.add(c, 'opacity', 0, 1);
+                // gui.add(c, 'lengthX', 0, 100).onChange(function(){c.modified();});
+                // gui.addColor(c, 'color')
+                // gui.add(c, 'rotateX');
+            }
+        </script>
+    </head>
+    <body></body>
+</html>

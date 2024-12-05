@@ -52,13 +52,17 @@
     let GRAVITY = -9.81;
     let BALLS = []
     let PLATES = []
-    let MAX_PLATES = 7;
-    let PLATE_CD = 120;
+    let GAME_SETTINGS = {
+      MAX_PLATES: 7,
+      PLATE_CD_SEC: 3,
+    }
     let CURR_PLATE_CD = 0;
     let FLOOR_LEVEL = -1;
     let SCORE = 0;
     let TIME = 0;
     let ms = 0;
+    let pointerEvent = {target: '',type: 'mousedown', data: new THREE.Vector2()};
+    let mousedown = false;
     function MeshObjects(mesh) {
       this.object = mesh;
       this.box = new THREE.Box3(); 
@@ -175,30 +179,28 @@
       object.boxHelper = new THREE.BoxHelper(sphere, 0xff00ff);
       scene.add(object.boxHelper);
       BALLS.push(object);
-      
-      // GUI Setup
-      // const interactiveGroup = new InteractiveGroup();
-			// interactiveGroup.listenToPointerEvents( renderer, camera );
-			// interactiveGroup.listenToXRControllerEvents( controller1 );
-			// interactiveGroup.listenToXRControllerEvents( controller2 );
-      // scene.add(interactiveGroup);
 
       // Tweakpane
       let pane = new Pane();
       let paneDomElemet = pane.containerElem_;
-      paneDomElemet.style.visibility = 'hidden';
+      // paneDomElemet.style.visibility = 'hidden';
       let sceneui = pane.addFolder({title:"Options"});
-      sceneui.addBinding(floor.material, 'color', {label: "Color"});
-      sceneui.addButton({title:'Change Material!'}).on('click', () => {
-        console.log("Clicked");
-        floor.material.color.set(0xff0000);
-      });
+      sceneui.addButton({title:'Reset'}).on('click', reset);
+      sceneui.addBinding(GAME_SETTINGS, 'MAX_PLATES', {
+        step: 1,
+        min: 0,
+        max: 15,
+      })
+      sceneui.addBinding(GAME_SETTINGS, 'PLATE_CD_SEC', {
+        step: 0.5,
+        min: 0.5,
+        max: 5,
+      })
 
       let htmlMesh = new HTMLMesh(paneDomElemet);
-      htmlMesh.position.set(0, 2, -0.5);
-      htmlMesh.scale.setScalar(2);
-      // htmlMesh.rotation.x = Math.PI;
-      console.log(htmlMesh);
+      htmlMesh.position.set(0, 2, 1);
+      htmlMesh.scale.setScalar(5);
+      htmlMesh.rotation.y += Math.PI;
       htmlGroup.add(htmlMesh);
 
       controls = new OrbitControls(camera, renderer.domElement);
@@ -206,6 +208,28 @@
       controls.update();
 
     };
+    function reset() {
+      BALLS.forEach((ball_mesh_object) => {
+        deleteMeshObject(ball_mesh_object);
+      });
+      PLATES.forEach((plate_mesh_object) => {
+        deleteMeshObject(plate_mesh_object);
+      });
+      BALLS = [];
+      PLATES = [];
+      CURR_PLATE_CD = 0;
+      TIME = 0;
+      SCORE = 0;
+      ms = 0;
+    }
+    function deleteMeshObject(mesh_object) {
+      let object = mesh_object.object;
+      let boxHelper = mesh_object.boxHelper;
+      scene.remove(object);
+      scene.remove(boxHelper);
+      object.geometry.dispose();
+      object.material.dispose();
+    }
     function onSelectStart(event) {
       let controller = event.target;
       // Raycasting code logic inspired by InteractiveGroup.js (Three.js - Mr doob)
@@ -216,10 +240,11 @@
         let intersectObject = intersects[0];
         let htmlObject = intersectObject.object;
         let uvCoords = intersectObject.uv;
-
-        let pointerEvent = { type: 'mousedown', data: new THREE.Vector2(uvCoords.x, 1 - uvCoords.y)};
-        htmlObject.dispatchEvent(pointerEvent);
-        console.log(htmlObject);
+        let pointer = new THREE.Vector2();
+        pointer.set(uvCoords.x, 1 - uvCoords.y);
+        pointerEvent = {target: htmlObject, type: 'click', data: pointer};
+        mousedown = true;
+        return;
       }
       let geometry = new THREE.SphereGeometry(0.2, 32, 16);
       let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
@@ -237,6 +262,13 @@
     function onSelectEnd(event) {
       let controller = event.target;
       let object = controller.userData.selected;
+      if (mousedown) {
+        let htmlObject = pointerEvent.target;
+        htmlObject.dispatchEvent(pointerEvent);
+        mousedown = false;
+        console.log(pointerEvent);
+        return;
+      }
       if (object !== undefined) {
         let sphere = object.object;
         let position = new THREE.Vector3();
@@ -316,8 +348,7 @@
         ttlBuff = 1.5;
       }
       SCORE += (plate_mesh_object.score * ttlBuff);
-      scene.remove(plate);
-      scene.remove(plate_mesh_object.boxHelper);
+      deleteMeshObject(plate_mesh_object);
       // let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
       // plate.quaternion.slerp(qEnd, 0.1);
     }
@@ -325,8 +356,8 @@
     function animate() {
       controller1.userData.prevPos = controller1.position.clone();
       controller2.userData.prevPos = controller2.position.clone();
-      if (PLATES.length < MAX_PLATES && CURR_PLATE_CD <= 0) {
-        CURR_PLATE_CD = PLATE_CD;
+      if (PLATES.length < GAME_SETTINGS.MAX_PLATES && CURR_PLATE_CD <= 0) {
+        CURR_PLATE_CD = GAME_SETTINGS.PLATE_CD_SEC * 60;
         createPlate();
       } else if (CURR_PLATE_CD > 0) {
         CURR_PLATE_CD -= 1;
@@ -346,8 +377,7 @@
         let ttl = plate_physics.timeToLive;
         let currTime = plate_physics.time;
         if (ttl <= currTime) {
-          scene.remove(plate);
-          scene.remove(plate_mesh_object.boxHelper);
+          deleteMeshObject(plate_mesh_object);
           PLATES.splice(i, 1);
         } else if (currTime/ttl > 0.33 && currTime/ttl < 0.66) {
           plate.material.color.set(0x0000ff)
@@ -381,9 +411,8 @@
         } else {
           ball_physics.yspeed = 0;
           ball_physics.time = 0;
-          scene.remove(ball);
-          scene.remove(ball_mesh_object.boxHelper);
           ball.material.opacity = 0.5;
+          deleteMeshObject(ball_mesh_object);
           BALLS.splice(i, 1);
         }
         let ball_box = ball_mesh_object.box;

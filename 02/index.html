@@ -3,14 +3,183 @@
     <title>CS460.org Assignment 2</title>
     <style>
       body {
-        background-color:#000;
+        background-color: white; /* Set background to white */
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden !important; 
+        overflow: hidden !important;
+      }
+
+      /* Style for the instructions overlay */
+      #instructionsOverlay {
+        position: fixed;
+        width: auto;
+        height: auto;
+        background-color: rgba(0, 0, 0, 0.9); /* Dark background color with opacity */
+        color: white; /* White text */
+        padding: 15px;
+        top: 10px;
+        right: 10px; /* Place at the top-right corner */
+        border-radius: 8px;
+        z-index: 1000;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Shadow effect */
+      }
+
+      #instructionsOverlay img {
+        max-width: 800px; /* Make the instruction image bigger */
+        max-height: 800px; /* Set a larger height */
+        border: none; /* Remove border */
+      }
+
+      #instructionsOverlay span {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 20px;
+        color: white;
+        cursor: pointer;
       }
     </style>
-  </head>
+
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+
+    <script>
+      // Define constants for movement
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+      let rotationActive = false;  // To toggle camera rotation
+      var CAMERAS = []; // Store multiple camera views
+      var cameraLoop; // Reference for the camera loop
+      var currentCameraIndex = 0; // Track current camera view
+
+      // Define color map for keys 1-7 and 0
+      const colorMap = {
+        'Digit1': [1, 1, 1],    // white
+        'Digit2': [1, 0, 0],    // red
+        'Digit3': [0, 1, 0],    // green
+        'Digit4': [0, 0, 1],    // blue
+        'Digit5': [1, 1, 0],    // yellow
+        'Digit6': [1, 0, 1],    // pink
+        'Digit7': [0, 1, 1],    // cyan
+        'Digit0': [0, 0, 0]     // black
+      };
+
+      var r;
+      
+      // wait until everything is loaded
+      window.onload = function() {
+        // Show the instructions overlay when the page is first loaded
+        document.getElementById('instructionsOverlay').style.display = 'block';
+
+        // create a new X.renderer
+        r = new X.renderer3D();
+        r.init();
+          
+        var c = new X.cube();
+        c.color = [0, 1, 1];  // cyan cube
+        c.center = [50, 0, 0];
+
+        // add the cube
+        r.add(c);
+
+        // Listen for keypress events to move the cube, rotate camera, and toggle features
+        window.onkeypress = function(e) {
+          switch(e.code) {
+            case 'KeyA': // Move left (x-axis positive)
+              c.transform.translateX(CUBE_SIDELENGTH - GAP);
+              break;
+            case 'KeyD': // Move right (x-axis negative)
+              c.transform.translateX(-(CUBE_SIDELENGTH + GAP));
+              break;
+            case 'KeyQ': // Move forward (y-axis positive)
+              c.transform.translateY(CUBE_SIDELENGTH - GAP);
+              break;
+            case 'KeyE': // Move backward (y-axis negative)
+              c.transform.translateY(-(CUBE_SIDELENGTH + GAP));
+              break;
+            case 'KeyW': // Move up(z-axis positive)
+              c.transform.translateZ(CUBE_SIDELENGTH - GAP);
+              break;
+            case 'KeyS': // Move down (z-axis negative)
+              c.transform.translateZ(-(CUBE_SIDELENGTH + GAP));
+              break;
+            // Change color based on keypress
+            case 'Digit1': 
+            case 'Digit2': 
+            case 'Digit3': 
+            case 'Digit4': 
+            case 'Digit5': 
+            case 'Digit6': 
+            case 'Digit7': 
+            case 'Digit0':
+              c.color = colorMap[e.code]; // Update color based on key
+              break;
+            case 'KeyB': // Toggle rotation on/off with B key
+              rotationActive = !rotationActive;
+              break;
+            case 'KeyO': // Save scene to JSON
+              download();
+              break;
+            case 'KeyL': // Load scene from JSON
+              upload('scene.json');
+              break;
+            case 'KeyC': // Save current camera view
+              CAMERAS.push(r.camera.view.slice()); // Save the current camera view
+              console.log("Camera saved. Total views: " + CAMERAS.length);
+              break;
+            case 'KeyV': // Toggle automatic camera switching
+              if (cameraLoop) {
+                clearInterval(cameraLoop); // Stop the loop
+                cameraLoop = null;
+                console.log("Camera loop stopped.");
+              } else {
+                cameraLoop = setInterval(function() {
+                  if (CAMERAS.length > 0) {
+                    currentCameraIndex = (currentCameraIndex + 1) % CAMERAS.length;
+                    r.camera.view = new Float32Array(CAMERAS[currentCameraIndex]);
+                    console.log("Switched to camera: " + currentCameraIndex);
+                  }
+                }, 1000); // Switch camera every 1 second
+                console.log("Camera loop started.");
+              }
+              break;
+          }
+
+          if (e.code === 'Space') {
+            // Create a new cube with the same color and position as the current one
+            var new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix); // Copy current cube's position
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH; // Set cube size
+            r.add(new_cube); // Add the new cube to the scene
+          }
+        };
+
+        // Modify the onRender function to rotate the camera if rotationActive is true
+        r.onRender = function() {
+          if (rotationActive) {
+            // Spin the camera in X direction by 1 degree
+            r.camera.rotate([1, 0]);
+          }
+        };
+
+        // Render the scene with the cube
+        r.render();
+      };
+
+      // Function to close the instructions overlay
+      function closeInstructions() {
+        document.getElementById('instructionsOverlay').style.display = 'none';
+      }
+    </script>
+  </head> 
+
   <body>
+    <!-- Instructions overlay -->
+    <div id="instructionsOverlay">
+      <span onclick="closeInstructions()">✖</span>
+      <img src="image/instruction.png" alt="Key Controls">
+    </div>
   </body>
 </html>

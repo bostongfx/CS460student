@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js GLTFLoader 3D Models</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #F5F5F5; /* White Smoke background */
+        }
+    </style>
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@latest/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+
+<body>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Pane } from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
+        import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+        
+        // Help:
+        // ChatGPT
+        // Lorenzo gave me an adivce to use function calls for each task.
+        // Doing so, I was able to debug much easier.
+        let scene, camera, renderer, controls, effect, stats, loader, pane;
+        let ambientLight, directionalLight;
+
+        window['SCENE'] = {
+            anaglyph: false,
+            ambientColor: '#f5f5f5',
+            poly: null,
+            blender: null,
+            blender_helper: null,
+            blender_old_material: null,
+            rotate_poly: false,
+            rotate_blender: false,
+            do_rotate_poly: function () {
+                window.SCENE.rotate_poly = !window.SCENE.rotate_poly;
+            },
+            do_rotate_blender: function () {
+                window.SCENE.rotate_blender = !window.SCENE.rotate_blender;
+            },
+            change_material: function () {
+                if (!window.SCENE.blender_old_material) {
+                    window.SCENE.blender_old_material = window.SCENE.blender.material.clone();
+                    window.SCENE.blender.material = new THREE.MeshNormalMaterial();
+                } else {
+                    window.SCENE.blender.material = window.SCENE.blender_old_material.clone();
+                    window.SCENE.blender_old_material = null;
+                }
+            },
+        };
+
+        const SCENE_PARAMS = {
+            ambientIntensity: 1,
+            directionalIntensity: 1,
+            directionalX: 10,
+            directionalY: 10,
+            directionalZ: 10,
+        };
+
+        window.onload = () => {
+            initScene();
+            setupLights();
+            setpane();
+            loadModels();
+            animate();
+        };
+
+        function initScene() {
+            scene = new THREE.Scene();
+
+            stats = new Stats();
+            document.body.appendChild(stats.domElement);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(-21, 50, -13);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Orbit Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            // Anaglyph Effect
+            effect = new AnaglyphEffect(renderer);
+            effect.setSize(window.innerWidth, window.innerHeight);
+
+            // Handle Resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function setupLights() {
+            // Ambient Light
+            ambientLight = new THREE.AmbientLight(0xf5f5f5, SCENE_PARAMS.ambientIntensity);
+            scene.add(ambientLight);
+
+            // Directional Light
+            directionalLight = new THREE.DirectionalLight(0xf5f5f5, SCENE_PARAMS.directionalIntensity);
+            directionalLight.position.set(
+                SCENE_PARAMS.directionalX,
+                SCENE_PARAMS.directionalY,
+                SCENE_PARAMS.directionalZ
+            );
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+        }
+
+        function setpane() {
+            pane = new Pane();
+
+            // Scene Folder
+            const sceneFolder = pane.addFolder({ title: 'Scene' });
+            sceneFolder.addBinding(window.SCENE, 'anaglyph', { label: 'Anaglyph Effect' });
+
+            // PolyCam Mesh Folder
+            const polyFolder = pane.addFolder({ title: 'PolyCam Mesh' });
+            polyFolder.addButton({ title: 'Rotate!' }).on('click', () => {
+                window.SCENE.do_rotate_poly();
+            });
+            window.SCENE.polyFolder = polyFolder;
+
+
+            const blenderFolder = pane.addFolder({ title: 'Blender Mesh' });
+            blenderFolder.addButton({ title: 'Rotate!' }).on('click', () => {
+                window.SCENE.do_rotate_blender();
+            });
+            blenderFolder.addButton({ title: 'Change Material!' }).on('click', () => {
+                window.SCENE.change_material();
+            });
+            window.SCENE.blenderFolder = blenderFolder;
+
+
+            // Ambient Light Intensity
+            sceneFolder.addBinding(SCENE_PARAMS, 'ambientIntensity', {
+                min: 0,
+                max: 5,
+                label: 'Ambient Light Intensity',
+            }).on('change', () => {
+                ambientLight.intensity = SCENE_PARAMS.ambientIntensity;
+            });
+
+            // Ambient Light Color
+            sceneFolder.addBinding(window.SCENE, 'ambientColor', {
+                view: 'color',
+                label: 'Ambient Light Color',
+            }).on('change', () => {
+                ambientLight.color.set(window.SCENE.ambientColor);
+            });
+
+            // Directional Light Intensity
+            sceneFolder.addBinding(SCENE_PARAMS, 'directionalIntensity', {
+                min: 0,
+                max: 5,
+                label: 'Directional Light Intensity',
+            }).on('change', () => {
+                directionalLight.intensity = SCENE_PARAMS.directionalIntensity;
+            });
+
+            // Directional Light Position
+            sceneFolder.addBinding(SCENE_PARAMS, 'directionalX', {
+                min: -50,
+                max: 50,
+                label: 'Directional Light X',
+            }).on('change', () => {
+                directionalLight.position.x = SCENE_PARAMS.directionalX;
+            });
+
+            sceneFolder.addBinding(SCENE_PARAMS, 'directionalY', {
+                min: -50,
+                max: 50,
+                label: 'Directional Light Y',
+            }).on('change', () => {
+                directionalLight.position.y = SCENE_PARAMS.directionalY;
+            });
+
+            sceneFolder.addBinding(SCENE_PARAMS, 'directionalZ', {
+                min: -50,
+                max: 50,
+                label: 'Directional Light Z',
+            }).on('change', () => {
+                directionalLight.position.z = SCENE_PARAMS.directionalZ;
+            });
+        }
+
+
+        function loadModels() {
+            loader = new GLTFLoader();
+
+            // Load camera1 Model
+            loader.load(
+                './part1/camera.glb', 
+                function (gltf) {
+                    const poly = gltf.scene.children[0];
+                    poly.scale.set(10, 10, 10); // Scale mesh
+                    poly.position.set(-10, 0, 0); // Offset to the left
+                    window.SCENE.poly = poly; // Assign to SCENE.poly
+                    scene.add(gltf.scene);  
+                    if (window.SCENE.polyFolder) {
+                        window.SCENE.polyFolder.addBinding(window.SCENE.poly.material, 'wireframe', { label: 'Wireframe' });
+                    }
+                },
+                undefined,
+                function (error) {
+                    console.error('An error occurred while loading poly.glb:', error);
+                }
+            );
+
+            // Load camera2 Model
+            loader.load(
+                './part2/camera.glb', 
+                function (gltf) {
+                    let croc = null;
+
+                    // Traverse the scene to find the mesh
+                    gltf.scene.traverse((child) => {
+                        if (child.isMesh) {
+                            croc = child;
+                        }
+                    });
+
+                    if (croc) {
+                        croc.scale.set(10, 10, 10); // Scale appropriately
+                        croc.position.set(0, 3, -13); // Offset to the right
+                        croc.rotation.set(0.3, 0, 0); // Rotate slightly for better view
+
+                        // Correct helper creation
+                        const helper = new VertexNormalsHelper(croc, 0.5, 'blue');
+                        helper.visible = false;
+
+                        // Assign croc and helper to SCENE
+                        window.SCENE.blender = croc;
+                        window.SCENE.blender_helper = helper;
+
+                        // Add objects to the scene
+                        scene.add(croc);
+                        scene.add(helper);
+                    } else {
+                        console.error('No mesh found in croc.glb');
+                    }
+                },
+                undefined,
+                function (error) {
+                    console.error('An error occurred while loading croc.glb:', error);
+                }
+            );
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            effect.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate PolyCam Mesh
+            if (window.SCENE.poly) {
+                if (window.SCENE.rotate_poly) {
+                    const targetQuaternion = new THREE.Quaternion();
+                    targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees
+                    window.SCENE.poly.quaternion.slerp(targetQuaternion, 0.01); // Interpolate
+                } else {
+                    const identityQuaternion = new THREE.Quaternion(); // Identity rotation
+                    window.SCENE.poly.quaternion.slerp(identityQuaternion, 0.01); // Interpolate
+                }
+            }
+            if (window.SCENE.blender) {
+                const targetQuaternion = new THREE.Quaternion();
+                if (window.SCENE.rotate_blender) {
+                    targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                }
+                window.SCENE.blender.quaternion.slerp(targetQuaternion, 0.01);
+                window.SCENE.blender_helper.update();
+            }
+
+            // Update controls
+            controls.update();
+
+            stats.update();
+
+            // Render scene
+            renderer.render(scene, camera);
+
+        }
+    </script>
+</body>
+
+</html>

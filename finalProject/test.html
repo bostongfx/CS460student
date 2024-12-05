@@ -1,0 +1,46 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShaderPark Sphere</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "shaderpark": "https://unpkg.com/shaderpark",
+              }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+    <script type="module">
+        import { ShadertoyCanvas } from "shaderpark";
+        
+        // Define the ShaderPark scene code
+        const sceneCode = `
+            
+
+            sphere(.1);
+        `;
+
+        // Get the canvas element
+        const canvas = document.getElementById("myCanvas");
+
+        // Set the canvas to match the screen size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Use ShaderPark to render the scene
+        ShadertoyCanvas(canvas, sceneCode);
+    </script>
+</body>
+</html>

@@ -19,7 +19,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createSculptureWithGeometry } from 'https://unpkg.com/shader-park-core/dist/shader-park-core.esm.js';
-import { generateshaderparkcode } from '/generateshaderparkcode.js';
+import { generateshaderparkcode } from './generateshaderparkcode.js';
 import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js'
 import {RenderPass} from 'three/addons/postprocessing/RenderPass'
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer'

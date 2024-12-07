@@ -453,17 +453,20 @@
       let ballPowerup = ball_mesh_object.powerup;
       let platePowerup = plate_mesh_object.powerup;
       let ttlBuff = 1;
+      let powerUpBuff = 1;
       if (plate_mesh_object.PHYSICS.time / plate_mesh_object.PHYSICS.timeToLive > 0.66) {
-        ttlBuff = 1.5;
+        ttlBuff = 2;
       }
       if (ballPowerup != '') {
         let powerupFunction = ballPowerup.function;
         powerupFunction(ball_mesh_object);
+        currPowerUp = '';
       }
       if (platePowerup != '') {
         currPowerUp = platePowerup;
+        powerUpBuff = 2;
       }
-      SCORE += (plate_mesh_object.score * ttlBuff);
+      SCORE += (plate_mesh_object.score * ttlBuff * powerUpBuff);
       deleteMeshObject(plate_mesh_object);
       // let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
       // plate.quaternion.slerp(qEnd, 0.1);
@@ -476,7 +479,7 @@
         scene.add(freezeLight);
       }
       GAME_STATE.isFrozen = true;
-      GAME_STATE.freezeTime = 5;
+      GAME_STATE.freezeTime = 3;
       return;
     }
 
@@ -580,7 +583,8 @@
       });
       if (GAME_STATE.freezeTime < 0) {
         GAME_STATE.isFrozen = false;
-        currPowerUp = '';
+        GAME_STATE.freezeTime = 3;
+        GAME_STATE.freezeMs = 0;
         scene.remove(freezeLight);
         scene.add(ambientLight);
       }

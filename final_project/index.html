@@ -93,7 +93,7 @@
         function: freeze,
         string: 'Freeze',
         color: 0xbddeec,
-        activationChance: 0.75,
+        activationChance: 0.9,
       },
       bomb: {
         function: bomb,
@@ -403,13 +403,16 @@
       let powerupFactor = Math.random();
       let platePower = '';
       let color = 0x7851A9;
-      if (powerupFactor < 0.5) {
+      if (powerupFactor < 1) {
         let randomInt = Math.floor(getRandom(0, POWERUPS.length));
         let activationChance = Math.random();
-        if (activationChance < POWERUPS[randomInt].activationChance) {
-          platePower = POWERUPS[randomInt];
-          color = platePower.color;
-        }
+        platePower = POWERUP_MAP.freeze;
+        color = platePower.color;
+        // if (activationChance < POWERUPS[randomInt].activationChance) {
+        //   // platePower = POWERUPS[randomInt];
+        //   platePower = POWERUP_MAP.freeze;
+        //   color = platePower.color;
+        // }
       }
       let geometry = new THREE.CircleGeometry(0.35, 32);
       let material = new THREE.MeshStandardMaterial({ color: color, wireframe: false });
@@ -458,7 +461,7 @@
         powerupFunction(ball_mesh_object);
       }
       if (platePowerup != '') {
-        currPowerUp = powerup;
+        currPowerUp = platePowerup;
       }
       SCORE += (plate_mesh_object.score * ttlBuff);
       deleteMeshObject(plate_mesh_object);
@@ -467,11 +470,13 @@
     }
 
     function freeze(object) {
+      if (!GAME_STATE.isFrozen) {
+        GAME_STATE.freezeMs = 0;
+        scene.remove(ambientLight);
+        scene.add(freezeLight);
+      }
       GAME_STATE.isFrozen = true;
       GAME_STATE.freezeTime = 5;
-      GAME_STATE.freezeMs = 0;
-      scene.remove(ambientLight);
-      scene.add(freezeLight);
       return;
     }
 
@@ -551,6 +556,7 @@
           } else {
             ball.position.y = ball_physics.inty + ydisplacement;
           }
+          // plateHit(ball_mesh_object, PLATES[0]);
         } else {
           ball_physics.yspeed = 0;
           ball_physics.time = 0;

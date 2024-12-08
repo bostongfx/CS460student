@@ -46,13 +46,16 @@
     import {Pane} from 'https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js';
 
 
-    var renderer, controls, scene, camera, htmlGroup, light, freezeLight, ambientLight;
+    var renderer, controls, scene, camera, htmlGroup, sunlight, freezeLight, ambientLight;
     let controller1, controller1Grip, controller2, controller2Grip;
-    let timeMesh, scoreMesh;
+    let timeMesh, scoreMesh, powerUpMesh;
     let FPS = 1 / 60;
     let GRAVITY = -9.81;
     let BALLS = []
     let PLATES = []
+    let EXPLOSION = '';
+    let BOMB = '';
+    let SPIRIT_BOMB_CONTROLLER = '';
     let GAME_SETTINGS = {
       MAX_PLATE_SPEED: 2,
       MAX_PLATES: 7,
@@ -72,7 +75,6 @@
       freezeTime: 0,
       freezeMs: 0,
     }
-    let currPowerUp = '';
     function MeshObjects(mesh) {
       this.object = mesh;
       this.box = new THREE.Box3(); 
@@ -86,26 +88,27 @@
         "zspeed": 0,
         "time": 0,
         "timeToLive": 0,
+        "gravity": GRAVITY,
       }
     }
     let POWERUP_MAP = {
       freeze: {
         function: freeze,
         string: 'Freeze',
-        color: 0xbddeec,
-        activationChance: 0.9,
+        color: 0x008080,
+        activationChance: 0.75,
       },
       bomb: {
         function: bomb,
         string: 'Bomb',
         color: 0xffbf00,
-        activationChance: 0.65,
+        activationChance: 0.50,
       },
       rocket: {
         function: rocket,
         string: 'Rocket',
         color: 0x748b97,
-        activationChance: 0.80,
+        activationChance: 0.90,
       },
       spirit_bomb: {
         function: spirit_bomb,
@@ -127,6 +130,7 @@
       POWERUP_MAP.hollow_purple,
       POWERUP_MAP.spirit_bomb
     ]
+    let currPowerUp = POWERUP_MAP.spirit_bomb;
     window.onload = function () {
 
       // Three.js code goes here
@@ -199,9 +203,9 @@
       ambientLight = new THREE.AmbientLight();
       scene.add(ambientLight);
 
-      light = new THREE.DirectionalLight(0xeeaf61, 5.0);
-      light.position.set(100, 20, 0);
-      scene.add(light);
+      sunlight = new THREE.DirectionalLight(0xeeaf61, 5.0);
+      sunlight.position.set(100, 20, 0);
+      scene.add(sunlight);
 
       freezeLight = new THREE.AmbientLight(0x739bd0);
       freezeLight.position.set(0, 5, -2);
@@ -252,6 +256,27 @@
         max: 5,
       })
       sceneui.addButton({title: "Freeze Debug"}).on('click', freeze);
+      sceneui.addButton({title: "It's time for a..."}).on('click', () => {
+        spirit_bomb(controller1);
+      });
+      sceneui.addButton({title: "Bomb Debug"}).on('click', () => {
+        let geometry = new THREE.SphereGeometry(0.2, 32, 16);
+        let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
+        let ball = new THREE.Mesh(geometry, material);
+        ball.position.set(-1, 2, -3);
+        let object = new MeshObjects(ball);
+        bomb(object);
+        deleteMeshObject(object);
+      });
+      sceneui.addButton({title: "Rocket Debug"}).on('click', () => {
+        let geometry = new THREE.SphereGeometry(0.2, 32, 16);
+        let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
+        let ball = new THREE.Mesh(geometry, material);
+        ball.position.set(0, 2, -3);
+        let object = new MeshObjects(ball);
+        rocket(object);
+        deleteMeshObject(object);
+      });
       sceneui.addButton({title: 'Toggle Hit Boxes'}).on('click', hitboxtoggle);
       sceneui.addButton({title:'Reset'}).on('click', reset);
 
@@ -307,13 +332,18 @@
       let boxHelper = mesh_object.boxHelper;
       scene.remove(object);
       scene.remove(boxHelper);
-      object.geometry.dispose();
-      object.material.dispose();
+      if (mesh_object.powerup != POWERUP_MAP.spirit_bomb.string) {
+        object.geometry.dispose();
+        object.material.dispose();
+      } else {
+        scene.add(ambientLight);
+        scene.add(sunlight);
+      }
       boxHelper.dispose();
     }
     function onSelectStart(event) {
       let controller = event.target;
-      // Raycasting code logic inspired by InteractiveGroup.js (Three.js - Mr doob)
+      // Raycasting code logic learned from InteractiveGroup.js (Three.js - Mr doob)
       let raycaster = new THREE.Raycaster();
       raycaster.setFromXRController(controller);
       let intersects = raycaster.intersectObjects(htmlGroup.children, false);
@@ -333,6 +363,11 @@
         powerup = currPowerUp;
         currPowerUp = '';
         color = powerup.color;
+      }
+      if (powerup.string == POWERUP_MAP.spirit_bomb.string) {
+        currPowerUp = '';
+        controller.userData.selected = spirit_bomb(controller);
+        return;
       }
       let geometry = new THREE.SphereGeometry(0.2, 32, 16);
       let material = new THREE.MeshStandardMaterial({ color: color, wireframe: false });
@@ -357,6 +392,28 @@
         console.log(pointerEvent);
         return;
       }
+      if (controller1 == SPIRIT_BOMB_CONTROLLER) {
+        let sbGroup = object.object;
+        let sb = sbGroup.children[1];
+        sb.geometry.computeBoundingBox();
+        object.box.copy(sb.geometry.boundingBox).applyMatrix4(sb.matrixWorld);
+        if (GAME_SETTINGS.SHOW_HIT_BOX) {
+          object.boxHelper = new THREE.BoxHelper(sb, 0xff00ff);
+          scene.add(object.boxHelper);
+        }
+        const prevPos = controller.userData.prevPos;
+        const currPos = controller.position;
+        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
+        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
+        object.PHYSICS.yspeed = ((currPos.y - prevPos.y) / FPS);
+        object.PHYSICS.inty = sbGroup.position.y;
+        BALLS.push(object);
+        controller.userData.selected = undefined;
+        controller.userData.prevPos = new THREE.Vector3();
+        controller.userData.prevQuat = new THREE.Quaternion();
+        SPIRIT_BOMB_CONTROLLER = '';
+        return;
+      }
       if (object !== undefined) {
         let sphere = object.object;
         let position = new THREE.Vector3();
@@ -373,18 +430,13 @@
         sphere.position.z = position.z;
         const prevPos = controller.userData.prevPos;
         const currPos = position;
-        // Change in Quaternion: From ChatGPT
-        // let deltaQuat =  new THREE.Quaternion().multiplyQuaternions(currQuat.clone(), prevQuat.clone().invert())
-        // let angularVelocity = {
-        //   x: 2 * deltaQuat.x / FPS,
-        //   y: 2 * deltaQuat.y / FPS,
-        //   z: 2 * deltaQuat.z / FPS,
-        // }
-        // console.log(angularVelocity);
-        // let crossProd = new THREE.Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z).cross(new THREE.Vector3(position.x, position.y, position.z));
-        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS);
-        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS);
-        object.PHYSICS.yspeed = ((currPos.y - prevPos.y) / FPS);
+        let rocketSpeedScalar = 1;
+        if (object.powerup == POWERUP_MAP.rocket) {
+          rocketSpeedScalar == 3;
+        }
+        object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) * rocketSpeedScalar;
+        object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) * rocketSpeedScalar;
+        object.PHYSICS.yspeed = ((currPos.y - prevPos.y) / FPS) * rocketSpeedScalar;
         object.PHYSICS.inty = position.y;
         // document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
         BALLS.push(object);
@@ -403,16 +455,13 @@
       let powerupFactor = Math.random();
       let platePower = '';
       let color = 0x7851A9;
-      if (powerupFactor < 1) {
+      if (powerupFactor < 0.5) {
         let randomInt = Math.floor(getRandom(0, POWERUPS.length));
         let activationChance = Math.random();
-        platePower = POWERUP_MAP.freeze;
-        color = platePower.color;
-        // if (activationChance < POWERUPS[randomInt].activationChance) {
-        //   // platePower = POWERUPS[randomInt];
-        //   platePower = POWERUP_MAP.freeze;
-        //   color = platePower.color;
-        // }
+        if (activationChance < POWERUPS[randomInt].activationChance) {
+          platePower = POWERUPS[randomInt];
+          color = platePower.color;
+        }
       }
       let geometry = new THREE.CircleGeometry(0.35, 32);
       let material = new THREE.MeshStandardMaterial({ color: color, wireframe: false });
@@ -457,14 +506,17 @@
       if (plate_mesh_object.PHYSICS.time / plate_mesh_object.PHYSICS.timeToLive > 0.66) {
         ttlBuff = 2;
       }
-      if (ballPowerup != '') {
+      if (typeof ballPowerup === 'function') {
         let powerupFunction = ballPowerup.function;
         powerupFunction(ball_mesh_object);
         currPowerUp = '';
       }
+      if (ballPowerup == 'EXPLODE' || ballPowerup == POWERUP_MAP.spirit_bomb.string) {
+        powerUpBuff += 1;
+      }
       if (platePowerup != '') {
         currPowerUp = platePowerup;
-        powerUpBuff = 2;
+        powerUpBuff += 1;
       }
       SCORE += (plate_mesh_object.score * ttlBuff * powerUpBuff);
       deleteMeshObject(plate_mesh_object);
@@ -476,6 +528,7 @@
       if (!GAME_STATE.isFrozen) {
         GAME_STATE.freezeMs = 0;
         scene.remove(ambientLight);
+        scene.remove(sunlight);
         scene.add(freezeLight);
       }
       GAME_STATE.isFrozen = true;
@@ -484,15 +537,56 @@
     }
 
     function bomb(object) {
+      let geometry = new THREE.SphereGeometry(3, 32, 16);
+      let material = new THREE.MeshStandardMaterial({ color: POWERUP_MAP.bomb.color, wireframe: true });
+      let explosion = new THREE.Mesh(geometry, material);
+      explosion.position.copy(object.object.position);
+      BOMB = new MeshObjects(explosion);
+      BOMB.PHYSICS.timeToLive = 30;
+      PLATES.forEach((plate_mesh_object) => {
+        plateHit(object, plate_mesh_object);
+      })
+      scene.add(explosion);
       return;
     }
 
     function rocket(object) {
+      let geometry = new THREE.SphereGeometry(1.5, 32, 16);
+      let material = new THREE.MeshStandardMaterial({ color: POWERUP_MAP.bomb.color, wireframe: true });
+      let explosion = new THREE.Mesh(geometry, material);
+      explosion.position.copy(object.object.position);
+      explosion.geometry.computeBoundingBox();
+      EXPLOSION = new MeshObjects(explosion);
+      EXPLOSION.box.copy(explosion.geometry.boundingBox).applyMatrix4(explosion.matrixWorld);
+      EXPLOSION.PHYSICS.timeToLive = 30;
+      EXPLOSION.powerup = 'EXPLODE';
+      if (GAME_SETTINGS.SHOW_HIT_BOX) {
+        EXPLOSION.boxHelper = new THREE.BoxHelper(explosion, 0xff00ff);
+        scene.add(EXPLOSION.boxHelper);
+      }
+      scene.add(explosion);
       return;
     }
 
-    function spirit_bomb(object) {
-      return;
+    function spirit_bomb(controller) {
+      let SPIRIT_BOMB_GROUP = new THREE.Group();
+      SPIRIT_BOMB_CONTROLLER = controller;
+      const light = new THREE.PointLight( POWERUP_MAP.spirit_bomb.color, 500, 1000 );
+      light.position.set(0, 0, 0);
+      SPIRIT_BOMB_GROUP.add(light);
+      let geometry = new THREE.SphereGeometry(10, 32, 16);
+      let material = new THREE.MeshStandardMaterial({ color: POWERUP_MAP.spirit_bomb.color, emissive:POWERUP_MAP.spirit_bomb.color, emissiveIntensity: 1 });
+      let spiritBomb = new THREE.Mesh(geometry, material);
+      spiritBomb.position.set(0, 0, 0);
+      SPIRIT_BOMB_GROUP.position.set(0, 17, 0);
+      let object = new MeshObjects(SPIRIT_BOMB_GROUP);
+      object.powerup = POWERUP_MAP.spirit_bomb.string;
+      object.PHYSICS.gravity = GRAVITY/10;
+      SPIRIT_BOMB_GROUP.add(spiritBomb);
+      scene.add(SPIRIT_BOMB_GROUP);
+      scene.remove(ambientLight);
+      scene.remove(sunlight);
+      return object;
     }
 
     function hollow_purple(object) {
@@ -539,8 +633,15 @@
       for (let i = 0; i < BALLS.length; i++) {
         let ball_mesh_object = BALLS[i];
         let ball = ball_mesh_object.object;
+        console.log(ball_mesh_object);
+        if (ball_mesh_object.powerup == POWERUP_MAP.spirit_bomb.string) {
+          let sb = ball_mesh_object.object.children[1];
+          ball_mesh_object.box.copy(sb.geometry.boundingBox).applyMatrix4(sb.matrixWorld);
+          console.log(ball);
+        } else {
+          ball_mesh_object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+        }
         let ball_physics = ball_mesh_object.PHYSICS;
-        ball_mesh_object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
         if (GAME_SETTINGS.SHOW_HIT_BOX) {
           ball_mesh_object.boxHelper.update();
         }
@@ -559,11 +660,9 @@
           } else {
             ball.position.y = ball_physics.inty + ydisplacement;
           }
-          // plateHit(ball_mesh_object, PLATES[0]);
         } else {
           ball_physics.yspeed = 0;
           ball_physics.time = 0;
-          ball.material.opacity = 0.5;
           deleteMeshObject(ball_mesh_object);
           BALLS.splice(i, 1);
         }
@@ -572,7 +671,7 @@
           let plate_mesh_object = PLATES[j];
           let plate_box = plate_mesh_object.box;
           if (ball_box.intersectsBox(plate_box)) {
-            ball.material.color.set(0x00ff00);
+            if(ball_mesh_object.powerup != POWERUP_MAP.spirit_bomb.string) ball.material.color.set(0x00ff00);
             PLATES.splice(j, 1);
             plateHit(ball_mesh_object, plate_mesh_object);
           }
@@ -587,6 +686,37 @@
         GAME_STATE.freezeMs = 0;
         scene.remove(freezeLight);
         scene.add(ambientLight);
+        scene.add(sunlight);
+      }
+      if (BOMB != '') {
+        let currTime = BOMB.PHYSICS.time;
+        let ttl = BOMB.PHYSICS.timeToLive;
+        if (currTime >= ttl) {
+          deleteMeshObject(BOMB);
+          BOMB = '';
+        }  else {
+          BOMB.PHYSICS.time += 1;
+        }
+      }
+      if (EXPLOSION != '') {
+        let currTime = EXPLOSION.PHYSICS.time;
+        let ttl = EXPLOSION.PHYSICS.timeToLive;
+        let explosion = EXPLOSION.object;
+        EXPLOSION.box.copy(explosion.geometry.boundingBox).applyMatrix4(explosion.matrixWorld);
+        if (currTime >= ttl) {
+          deleteMeshObject(EXPLOSION);
+          EXPLOSION = '';
+        } else {
+          EXPLOSION.PHYSICS.time += 1;
+          for (let i = 0; i < PLATES.length; i++) {
+            let plate_mesh_object = PLATES[i];
+            let plate_box = plate_mesh_object.box;
+            if (plate_box.intersectsBox(EXPLOSION.box)) {
+              PLATES.splice(i, 1);
+              plateHit(EXPLOSION, plate_mesh_object);
+            }
+          };
+        }
       }
       if (!GAME_STATE.isFrozen) {
         ms += 1;
@@ -604,13 +734,27 @@
         }
       }
       scoreMesh = createText("Score: " + SCORE.toString(), 1);
+      let currPowerUpText = "None";
+      if (currPowerUp != '') {
+        currPowerUpText = currPowerUp.string;
+      } 
+      powerUpMesh = createText("Current Powerup: " + currPowerUpText, 1);
       timeMesh.position.set(0, 5, -10);
       scoreMesh.position.set(0, 3.5, -10);
+      powerUpMesh.position.set(10, 4, -10);
       scene.add(timeMesh);
       scene.add(scoreMesh);
+      scene.add(powerUpMesh);
       renderer.render(scene, camera);
+      timeMesh.material.dispose();
+      timeMesh.geometry.dispose();
+      scoreMesh.material.dispose();
+      scoreMesh.geometry.dispose();
+      powerUpMesh.material.dispose();
+      powerUpMesh.geometry.dispose();
       scene.remove(timeMesh);
       scene.remove(scoreMesh);
+      scene.remove(powerUpMesh);
     };
   </script>
 </head>

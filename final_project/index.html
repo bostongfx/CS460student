@@ -130,7 +130,7 @@
       POWERUP_MAP.hollow_purple,
       POWERUP_MAP.spirit_bomb
     ]
-    let currPowerUp = POWERUP_MAP.spirit_bomb;
+    let currPowerUp = '';
     window.onload = function () {
 
       // Three.js code goes here
@@ -255,28 +255,11 @@
         min: 0.5,
         max: 5,
       })
-      sceneui.addButton({title: "Freeze Debug"}).on('click', freeze);
-      sceneui.addButton({title: "It's time for a..."}).on('click', () => {
-        spirit_bomb(controller1);
-      });
-      sceneui.addButton({title: "Bomb Debug"}).on('click', () => {
-        let geometry = new THREE.SphereGeometry(0.2, 32, 16);
-        let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
-        let ball = new THREE.Mesh(geometry, material);
-        ball.position.set(-1, 2, -3);
-        let object = new MeshObjects(ball);
-        bomb(object);
-        deleteMeshObject(object);
-      });
-      sceneui.addButton({title: "Rocket Debug"}).on('click', () => {
-        let geometry = new THREE.SphereGeometry(0.2, 32, 16);
-        let material = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
-        let ball = new THREE.Mesh(geometry, material);
-        ball.position.set(0, 2, -3);
-        let object = new MeshObjects(ball);
-        rocket(object);
-        deleteMeshObject(object);
-      });
+      POWERUPS.forEach((powerup) => {
+        sceneui.addButton({title: 'Give: ' + powerup.string}).on('click', () => {
+          currPowerUp = powerup;
+        })
+      })
       sceneui.addButton({title: 'Toggle Hit Boxes'}).on('click', hitboxtoggle);
       sceneui.addButton({title:'Reset'}).on('click', reset);
 
@@ -326,6 +309,10 @@
       TIME = 0;
       SCORE = 0;
       ms = 0;
+      EXPLOSION = '';
+      BOMB = '';
+      SPIRIT_BOMB_CONTROLLER = '';
+      currPowerUp = '';
     }
     function deleteMeshObject(mesh_object) {
       let object = mesh_object.object;
@@ -379,6 +366,9 @@
       const boxHelper = new THREE.BoxHelper(ball, 0xFF00FF);
       controller.add(ball);
       ball.position.set(0, 0, 0);
+      controller.userData.selected = object;
+        controller.userData.prevPos = controller.position.clone();
+        controller.userData.prevQuat = controller.quaternion.clone();
     };
 
     function onSelectEnd(event) {
@@ -391,7 +381,7 @@
         console.log(pointerEvent);
         return;
       }
-      if (controller1 == SPIRIT_BOMB_CONTROLLER) {
+      if (controller == SPIRIT_BOMB_CONTROLLER) {
         let sbGroup = object.object;
         let sb = sbGroup.children[1];
         sb.geometry.computeBoundingBox();
@@ -510,8 +500,10 @@
         powerupFunction(ball_mesh_object);
         currPowerUp = '';
       }
-      if (ballPowerup == 'EXPLODE' || ballPowerup == POWERUP_MAP.spirit_bomb.string) {
+      if (ballPowerup == 'EXPLODE') {
         powerUpBuff += 1;
+      } else if (ballPowerup == POWERUP_MAP.spirit_bomb.string) {
+        powerUpBuff += 2;
       }
       if (platePowerup != '') {
         currPowerUp = platePowerup;
@@ -519,8 +511,6 @@
       }
       SCORE += (plate_mesh_object.score * ttlBuff * powerUpBuff);
       deleteMeshObject(plate_mesh_object);
-      // let qEnd = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0).normalize(), Math.PI);
-      // plate.quaternion.slerp(qEnd, 0.1);
     }
 
     function freeze(object) {

@@ -469,7 +469,7 @@
           scene.add(groupObject.object)
           deleteGroupMeshObject(groupObject);
         }
-        HOLLOW_PURPLE_MANAGER.isHollowPurple = false;
+        HOLLOW_PURPLE_MANAGER = BASE_HOLLOW_PURPLE_MANAGER;
         controller1.userData.selected = undefined;
         controller2.userData.selected = undefined;
         currPowerUp = '';
@@ -751,6 +751,7 @@
           let box1 = obj1.box;
           let box2 = obj2.box;
           if (box1.intersectsBox(box2)) {
+            currPowerUp = '';
             HOLLOW_PURPLE_MANAGER.controller1Ready = false;
             HOLLOW_PURPLE_MANAGER.controller2Ready = false;
             controller1.userData.selected = undefined;

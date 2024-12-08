@@ -70,6 +70,14 @@
     let ms = 0;
     let pointerEvent = {target: '',type: 'mousedown', data: new THREE.Vector2()};
     let mousedown = false;
+    let HOLLOW_PURPLE_MANAGER = {
+      isHollowPurple: false,
+      controller1Ready: false,
+      controller2Ready: false,
+      controller1: '',
+      controller2: '',
+      hollowPurple: '',
+    }
     let GAME_STATE = {
       isFrozen: false,
       freezeTime: 0,
@@ -348,7 +356,6 @@
       let powerup = '';
       if (currPowerUp != '') {
         powerup = currPowerUp;
-        currPowerUp = '';
         color = powerup.color;
       }
       if (powerup.string == POWERUP_MAP.spirit_bomb.string) {
@@ -356,6 +363,20 @@
         controller.userData.selected = spirit_bomb(controller);
         controller.userData.prevPos = controller.position.clone();
         controller.userData.prevQuat = controller.quaternion.clone();
+        return;
+      }
+      if (powerup.string == POWERUP_MAP.hollow_purple.string) {
+        if (!HOLLOW_PURPLE_MANAGER.controller1Ready) {
+          HOLLOW_PURPLE_MANAGER.isHollowPurple = true;
+          HOLLOW_PURPLE_MANAGER.controller1Ready = true;
+          HOLLOW_PURPLE_MANAGER.controller1 = controller;
+          controller.userData.selected = hollow_purple(controller, 1);
+        } else {
+          currPowerUp = '';
+          HOLLOW_PURPLE_MANAGER.controller2Ready = true;
+          HOLLOW_PURPLE_MANAGER.controller2 = controller;
+          controller.userData.selected = hollow_purple(controller, 2);
+        }
         return;
       }
       let geometry = new THREE.SphereGeometry(0.2, 32, 16);
@@ -367,8 +388,8 @@
       controller.add(ball);
       ball.position.set(0, 0, 0);
       controller.userData.selected = object;
-        controller.userData.prevPos = controller.position.clone();
-        controller.userData.prevQuat = controller.quaternion.clone();
+      controller.userData.prevPos = controller.position.clone();
+      controller.userData.prevQuat = controller.quaternion.clone();
     };
 
     function onSelectEnd(event) {
@@ -403,6 +424,11 @@
         SPIRIT_BOMB_CONTROLLER = '';
         return;
       }
+      if (HOLLOW_PURPLE_MANAGER.isHollowPurple && HOLLOW_PURPLE_MANAGER.hollowPurple == '') {
+        scene.add(object.object);
+        deleteMeshObject(object);
+        return;
+      } 
       if (object !== undefined) {
         let sphere = object.object;
         let position = new THREE.Vector3();
@@ -580,8 +606,26 @@
       return object;
     }
 
-    function hollow_purple(object) {
-      return;
+    function hollow_purple(controller, step) {
+      let geometry = new THREE.SphereGeometry(0.7, 32, 16);
+      let color = '';
+      if (step == 1) {
+        color = 0x330000;
+      } else {
+        color = 0x000055;
+      }
+      let material = new THREE.MeshStandardMaterial({ color: color, emissive:color, emissiveIntensity: 1});
+      let ball = new THREE.Mesh(geometry, material);
+      let object = new MeshObjects(ball);
+      controller.add(ball);
+      ball.position.set(0, 0, -1);
+      ball.geometry.computeBoundingBox();
+      object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+      object.boxHelper = new THREE.BoxHelper(ball, 0xff00ff);
+      if (GAME_SETTINGS.SHOW_HIT_BOX) {
+        scene.add(object.boxHelper);
+      }
+      return object;
     }
 
     function animate() {

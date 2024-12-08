@@ -74,9 +74,15 @@
       isHollowPurple: false,
       controller1Ready: false,
       controller2Ready: false,
-      controller1: '',
-      controller2: '',
       hollowPurple: '',
+      inScene: false,
+    }
+    const BASE_HOLLOW_PURPLE_MANAGER = {
+      isHollowPurple: false,
+      controller1Ready: false,
+      controller2Ready: false,
+      hollowPurple: '',
+      inScene: false,
     }
     let GAME_STATE = {
       isFrozen: false,
@@ -127,7 +133,7 @@
       hollow_purple: {
         function: hollow_purple,
         string: 'Hollow Purple',
-        color: 0x330055,
+        color: 0x663399,
         activationChance: 0.20,
       },
     }
@@ -336,6 +342,24 @@
       }
       boxHelper.dispose();
     }
+    function deleteGroupMeshObject(mesh_object) {
+      let group = mesh_object.object;
+      let boxHelper = mesh_object.boxHelper;
+      scene.remove(group);
+      scene.remove(boxHelper);
+      group.children.forEach((child) => {
+        if (child.isLight) {
+          child.dispose();
+        } else {
+          child.geometry.dispose();
+          child.material.dispose();
+        }
+      })
+      boxHelper.dispose();
+      scene.add(ambientLight);
+      scene.add(sunlight);
+    }
+
     function onSelectStart(event) {
       let controller = event.target;
       // Raycasting code logic learned from InteractiveGroup.js (Three.js - Mr doob)
@@ -367,14 +391,22 @@
       }
       if (powerup.string == POWERUP_MAP.hollow_purple.string) {
         if (!HOLLOW_PURPLE_MANAGER.controller1Ready) {
+          scene.remove(ambientLight);
+          scene.remove(sunlight);
           HOLLOW_PURPLE_MANAGER.isHollowPurple = true;
-          HOLLOW_PURPLE_MANAGER.controller1Ready = true;
-          HOLLOW_PURPLE_MANAGER.controller1 = controller;
+          if (controller == controller1) {
+            HOLLOW_PURPLE_MANAGER.controller1Ready = true;
+          } else {
+            HOLLOW_PURPLE_MANAGER.controller2Ready = true;
+          }
           controller.userData.selected = hollow_purple(controller, 1);
         } else {
           currPowerUp = '';
-          HOLLOW_PURPLE_MANAGER.controller2Ready = true;
-          HOLLOW_PURPLE_MANAGER.controller2 = controller;
+          if (HOLLOW_PURPLE_MANAGER.controller1Ready) {
+            HOLLOW_PURPLE_MANAGER.controller2Ready = true;
+          } else {
+            HOLLOW_PURPLE_MANAGER.controller1Ready = true;
+          }
           controller.userData.selected = hollow_purple(controller, 2);
         }
         return;
@@ -425,10 +457,32 @@
         return;
       }
       if (HOLLOW_PURPLE_MANAGER.isHollowPurple && HOLLOW_PURPLE_MANAGER.hollowPurple == '') {
-        scene.add(object.object);
-        deleteMeshObject(object);
+        if (HOLLOW_PURPLE_MANAGER.controller1Ready) {
+          let groupObject = controller1.userData.selected;
+          HOLLOW_PURPLE_MANAGER.controller1Ready = false;
+          scene.add(groupObject.object)
+          deleteGroupMeshObject(groupObject);
+        }
+        if (HOLLOW_PURPLE_MANAGER.controller2Ready) {
+          let groupObject = controller2.userData.selected;
+          HOLLOW_PURPLE_MANAGER.controller2Ready = false;
+          scene.add(groupObject.object)
+          deleteGroupMeshObject(groupObject);
+        }
+        HOLLOW_PURPLE_MANAGER.isHollowPurple = false;
+        controller1.userData.selected = undefined;
+        controller2.userData.selected = undefined;
+        currPowerUp = '';
         return;
-      } 
+      } else if (HOLLOW_PURPLE_MANAGER.hollowPurple != '') {
+        controller1.userData.selected = undefined;
+        let hollow_purple = HOLLOW_PURPLE_MANAGER.hollowPurple;
+        let position = new THREE.Vector3();
+        hollow_purple.object.getWorldPosition(position);
+        scene.add(hollow_purple.object);
+        hollow_purple.object.position.copy(position);
+        HOLLOW_PURPLE_MANAGER.inScene = true;
+      }
       if (object !== undefined) {
         let sphere = object.object;
         let position = new THREE.Vector3();
@@ -530,6 +584,8 @@
         powerUpBuff += 1;
       } else if (ballPowerup == POWERUP_MAP.spirit_bomb.string) {
         powerUpBuff += 2;
+      } else if (ballPowerup == POWERUP_MAP.hollow_purple.string) {
+        powerUpBuff += 3;
       }
       if (platePowerup != '') {
         currPowerUp = platePowerup;
@@ -606,22 +662,51 @@
       return object;
     }
 
-    function hollow_purple(controller, step) {
+    function hollow_purple(controller) {
       let geometry = new THREE.SphereGeometry(0.7, 32, 16);
       let color = '';
-      if (step == 1) {
-        color = 0x330000;
+      let group = new THREE.Group();
+      if (controller == controller1) {
+        color = 0x660000;
       } else {
-        color = 0x000055;
+        color = 0x000099;
       }
+      const light = new THREE.PointLight(color, 500, 1000 );
+      group.add(light);
       let material = new THREE.MeshStandardMaterial({ color: color, emissive:color, emissiveIntensity: 1});
       let ball = new THREE.Mesh(geometry, material);
-      let object = new MeshObjects(ball);
-      controller.add(ball);
-      ball.position.set(0, 0, -1);
+      group.add(ball);
+      let object = new MeshObjects(group);
+      controller.add(group);
+      group.position.set(0, 0, -1);
       ball.geometry.computeBoundingBox();
       object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
-      object.boxHelper = new THREE.BoxHelper(ball, 0xff00ff);
+      object.boxHelper = new THREE.BoxHelper(group, 0xff00ff);
+      if (GAME_SETTINGS.SHOW_HIT_BOX) {
+        scene.add(object.boxHelper);
+      }
+      return object;
+    }
+
+    function big_hollow_purple(controller) {
+      scene.remove(ambientLight);
+      scene.remove(sunlight);
+      let geometry = new THREE.SphereGeometry(2, 32, 16);
+      let color = 0x660099;
+      let group = new THREE.Group();
+      const light = new THREE.PointLight(color, 500, 1000 );
+      group.add(light);
+      let material = new THREE.MeshStandardMaterial({ color: color, emissive:color, emissiveIntensity: 1});
+      let ball = new THREE.Mesh(geometry, material);
+      group.add(ball);
+      let object = new MeshObjects(group);
+      object.PHYSICS.zspeed = -10;
+      object.PHYSICS.timeToLive = 2 * 60;
+      controller.add(group);
+      group.position.set(0, 0, -2);
+      ball.geometry.computeBoundingBox();
+      object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+      object.boxHelper = new THREE.BoxHelper(group, 0xff00ff);
       if (GAME_SETTINGS.SHOW_HIT_BOX) {
         scene.add(object.boxHelper);
       }
@@ -631,6 +716,86 @@
     function animate() {
       controller1.userData.prevPos = controller1.position.clone();
       controller2.userData.prevPos = controller2.position.clone();
+      if (HOLLOW_PURPLE_MANAGER.isHollowPurple) {
+        if (HOLLOW_PURPLE_MANAGER.controller1Ready) {
+          let object = controller1.userData.selected;
+          let group = object.object;
+          let ball;
+          group.children.forEach((child) =>{
+            if (!child.isLight) {
+              ball = child;
+            }
+          })
+          object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+          if (GAME_SETTINGS.SHOW_HIT_BOX) {
+            object.boxHelper.update();
+          }
+        }
+        if (HOLLOW_PURPLE_MANAGER.controller2Ready) {
+          let object = controller2.userData.selected;
+          let group = object.object;
+          let ball;
+          group.children.forEach((child) =>{
+            if (!child.isLight) {
+              ball = child;
+            }
+          })
+          object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+          if (GAME_SETTINGS.SHOW_HIT_BOX) {
+            object.boxHelper.update();
+          }
+        }
+        if (HOLLOW_PURPLE_MANAGER.controller1Ready && HOLLOW_PURPLE_MANAGER.controller2Ready) {
+          let obj1 = controller1.userData.selected;
+          let obj2 = controller2.userData.selected;
+          let box1 = obj1.box;
+          let box2 = obj2.box;
+          if (box1.intersectsBox(box2)) {
+            HOLLOW_PURPLE_MANAGER.controller1Ready = false;
+            HOLLOW_PURPLE_MANAGER.controller2Ready = false;
+            controller1.userData.selected = undefined;
+            controller2.userData.selected = undefined;
+            scene.add(obj1.object);
+            scene.add(obj2.object);
+            deleteGroupMeshObject(obj1);
+            deleteGroupMeshObject(obj2);
+            let hollowPurple = big_hollow_purple(controller1);
+            HOLLOW_PURPLE_MANAGER.hollowPurple = hollowPurple;
+          }
+        }
+        if (HOLLOW_PURPLE_MANAGER.inScene) {
+          let hpObject = HOLLOW_PURPLE_MANAGER.hollowPurple;
+          let hpPhysics = hpObject.PHYSICS;
+          let hp = hpObject.object;
+          let zdisplacement = hpPhysics.zspeed * FPS;
+          let ball;
+          hp.children.forEach((child) =>{
+            if (!child.isLight) {
+              ball = child;
+            }
+          })
+          hp.position.z += zdisplacement;
+          hpPhysics.time += 1;
+          hpObject.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
+          if (GAME_SETTINGS.SHOW_HIT_BOX) {
+            hpObject.boxHelper.update();
+          }
+          if (hpPhysics.time > hpPhysics.timeToLive) {
+            deleteGroupMeshObject(hpObject);
+            HOLLOW_PURPLE_MANAGER = BASE_HOLLOW_PURPLE_MANAGER;
+          } else {
+            let hpBox = hpObject.box;
+            for (let j = 0; j < PLATES.length; j++) {
+            let plate_mesh_object = PLATES[j];
+            let plate_box = plate_mesh_object.box;
+            if (hpBox.intersectsBox(plate_box)) {
+              PLATES.splice(j, 1);
+              plateHit(hpObject, plate_mesh_object);
+            }
+          }
+        } 
+      }
+    }
       if (!GAME_STATE.isFrozen) {
         if (PLATES.length < GAME_SETTINGS.MAX_PLATES && CURR_PLATE_CD <= 0) {
           CURR_PLATE_CD = GAME_SETTINGS.PLATE_CD_SEC * 60;
@@ -671,7 +836,6 @@
         if (ball_mesh_object.powerup == POWERUP_MAP.spirit_bomb.string) {
           let sb = ball_mesh_object.object.children[1];
           ball_mesh_object.box.copy(sb.geometry.boundingBox).applyMatrix4(sb.matrixWorld);
-          console.log(ball);
         } else {
           ball_mesh_object.box.copy(ball.geometry.boundingBox).applyMatrix4(ball.matrixWorld);
         }
@@ -697,7 +861,11 @@
         } else {
           ball_physics.yspeed = 0;
           ball_physics.time = 0;
-          deleteMeshObject(ball_mesh_object);
+          if (ball_mesh_object.powerup == POWERUP_MAP.spirit_bomb.string) {
+            deleteGroupMeshObject(ball_mesh_object);
+          } else {
+            deleteMeshObject(ball_mesh_object);
+          }
           BALLS.splice(i, 1);
         }
         let ball_box = ball_mesh_object.box;

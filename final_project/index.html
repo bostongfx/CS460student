@@ -526,14 +526,16 @@
     }
 
     function bomb(object) {
+      console.log("boom!");
       let geometry = new THREE.SphereGeometry(3, 32, 16);
       let material = new THREE.MeshStandardMaterial({ color: POWERUP_MAP.bomb.color, wireframe: true });
       let explosion = new THREE.Mesh(geometry, material);
       explosion.position.copy(object.object.position);
       BOMB = new MeshObjects(explosion);
       BOMB.PHYSICS.timeToLive = 30;
+      BOMB.powerup = 'EXPLODE';
       PLATES.forEach((plate_mesh_object) => {
-        plateHit(object, plate_mesh_object);
+        plateHit(BOMB, plate_mesh_object);
       })
       scene.add(explosion);
       return;

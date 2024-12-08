@@ -502,7 +502,8 @@
         const currPos = position;
         let rocketSpeedScalar = 1;
         if (object.powerup == POWERUP_MAP.rocket) {
-          rocketSpeedScalar == 10;
+          rocketSpeedScalar = 10;
+          currPowerUp = '';
         }
         object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) * rocketSpeedScalar;
         object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) * rocketSpeedScalar;

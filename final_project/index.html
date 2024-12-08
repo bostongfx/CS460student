@@ -367,6 +367,8 @@
       if (powerup.string == POWERUP_MAP.spirit_bomb.string) {
         currPowerUp = '';
         controller.userData.selected = spirit_bomb(controller);
+        controller.userData.prevPos = controller.position.clone();
+        controller.userData.prevQuat = controller.quaternion.clone();
         return;
       }
       let geometry = new THREE.SphereGeometry(0.2, 32, 16);
@@ -377,9 +379,6 @@
       const boxHelper = new THREE.BoxHelper(ball, 0xFF00FF);
       controller.add(ball);
       ball.position.set(0, 0, 0);
-      controller.userData.prevPos = controller.position.clone();
-      controller.userData.prevQuat = controller.quaternion.clone();
-      controller.userData.selected = object;
     };
 
     function onSelectEnd(event) {
@@ -633,7 +632,6 @@
       for (let i = 0; i < BALLS.length; i++) {
         let ball_mesh_object = BALLS[i];
         let ball = ball_mesh_object.object;
-        console.log(ball_mesh_object);
         if (ball_mesh_object.powerup == POWERUP_MAP.spirit_bomb.string) {
           let sb = ball_mesh_object.object.children[1];
           ball_mesh_object.box.copy(sb.geometry.boundingBox).applyMatrix4(sb.matrixWorld);

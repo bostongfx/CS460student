@@ -421,7 +421,7 @@
         const currPos = position;
         let rocketSpeedScalar = 1;
         if (object.powerup == POWERUP_MAP.rocket) {
-          rocketSpeedScalar == 3;
+          rocketSpeedScalar == 10;
         }
         object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) * rocketSpeedScalar;
         object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) * rocketSpeedScalar;
@@ -495,7 +495,7 @@
       if (plate_mesh_object.PHYSICS.time / plate_mesh_object.PHYSICS.timeToLive > 0.66) {
         ttlBuff = 2;
       }
-      if (typeof ballPowerup === 'function') {
+      if (typeof ballPowerup !== 'string') {
         let powerupFunction = ballPowerup.function;
         powerupFunction(ball_mesh_object);
         currPowerUp = '';

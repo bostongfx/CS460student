@@ -429,23 +429,18 @@
         return;
       }
       if (powerup.string == POWERUP_MAP.hollow_purple.string) {
-        if (!HOLLOW_PURPLE_MANAGER.controller1Ready) {
+        if (!HOLLOW_PURPLE_MANAGER.controller1Ready && !HOLLOW_PURPLE_MANAGER.controller2Ready) {
           scene.remove(ambientLight);
           scene.remove(sunlight);
           HOLLOW_PURPLE_MANAGER.isHollowPurple = true;
-          if (controller == controller1) {
-            HOLLOW_PURPLE_MANAGER.controller1Ready = true;
-          } else {
-            HOLLOW_PURPLE_MANAGER.controller2Ready = true;
-          }
-          controller.userData.selected = hollow_purple(controller, 1);
         } else {
           currPowerUp = '';
-          if (HOLLOW_PURPLE_MANAGER.controller1Ready) {
-            HOLLOW_PURPLE_MANAGER.controller2Ready = true;
-          } else {
-            HOLLOW_PURPLE_MANAGER.controller1Ready = true;
-          }
+        }
+        if (controller == controller1) {
+          HOLLOW_PURPLE_MANAGER.controller1Ready = true;
+          controller.userData.selected = hollow_purple(controller, 1);
+        } else {
+          HOLLOW_PURPLE_MANAGER.controller2Ready = true;
           controller.userData.selected = hollow_purple(controller, 2);
         }
         return;
@@ -548,7 +543,7 @@
         const currPos = position;
         let rocketSpeedScalar = 1;
         if (object.powerup == POWERUP_MAP.rocket) {
-          rocketSpeedScalar = 10;
+          rocketSpeedScalar = 5;
           currPowerUp = '';
         }
         object.PHYSICS.xspeed = ((currPos.x - prevPos.x) / FPS) * rocketSpeedScalar;

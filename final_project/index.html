@@ -350,8 +350,8 @@
       BOMB = '';
       SPIRIT_BOMB_CONTROLLER = '';
       currPowerUp = '';
-      HOLLOW_PURPLE_MANAGER = BASE_HOLLOW_PURPLE_MANAGER;
-      SWORD_MANAGER = BASE_SWORD_MANAGER;
+      HOLLOW_PURPLE_MANAGER = {...BASE_HOLLOW_PURPLE_MANAGER};
+      SWORD_MANAGER = {...BASE_SWORD_MANAGER};
     }
     function deleteMeshObject(mesh_object) {
       let object = mesh_object.object;
@@ -394,6 +394,7 @@
         subtitleMesh.material.dispose();
         scene.remove(titleMesh);
         scene.remove(subtitleMesh);
+        return;
       }
       let controller = event.target;
       // Raycasting code logic learned from InteractiveGroup.js (Three.js - Mr doob)
@@ -450,6 +451,7 @@
       let ball = new THREE.Mesh(geometry, material);
       let object = new MeshObjects(ball);
       object.powerup = powerup;
+      currPowerUp = '';
       const boxHelper = new THREE.BoxHelper(ball, 0xFF00FF);
       controller.add(ball);
       ball.position.set(0, 0, 0);
@@ -472,7 +474,7 @@
         scene.add(object.object);
         deleteMeshObject(object);
         controller.userData.selected = undefined;
-        SWORD_MANAGER = BASE_SWORD_MANAGER;
+        SWORD_MANAGER = {...BASE_SWORD_MANAGER};
         return;
       }
       if (controller == SPIRIT_BOMB_CONTROLLER) {
@@ -510,7 +512,7 @@
           scene.add(groupObject.object)
           deleteGroupMeshObject(groupObject);
         }
-        HOLLOW_PURPLE_MANAGER = BASE_HOLLOW_PURPLE_MANAGER;
+        HOLLOW_PURPLE_MANAGER = {...BASE_HOLLOW_PURPLE_MANAGER};
         controller1.userData.selected = undefined;
         controller2.userData.selected = undefined;
         currPowerUp = '';
@@ -550,7 +552,6 @@
         object.PHYSICS.zspeed = ((currPos.z - prevPos.z) / FPS) * rocketSpeedScalar;
         object.PHYSICS.yspeed = ((currPos.y - prevPos.y) / FPS) * rocketSpeedScalar;
         object.PHYSICS.inty = position.y;
-        // document.getElementById("controllerInfo").innerHTML = controller.position.toArray().toString();
         BALLS.push(object);
         controller.userData.selected = undefined;
         controller.userData.prevPos = new THREE.Vector3();
@@ -652,7 +653,6 @@
     }
 
     function bomb(object) {
-      console.log("boom!");
       let geometry = new THREE.SphereGeometry(3, 32, 16);
       let material = new THREE.MeshStandardMaterial({ color: POWERUP_MAP.bomb.color, wireframe: true });
       let explosion = new THREE.Mesh(geometry, material);
@@ -797,7 +797,7 @@
         SWORD_MANAGER.swordTime -= 1;
         if (SWORD_MANAGER.swordTime < 0) {
           SWORD_MANAGER.controller.userData.selected = undefined;
-          SWORD_MANAGER = BASE_SWORD_MANAGER;
+          SWORD_MANAGER ={...BASE_SWORD_MANAGER};
           scene.add(sword);
           deleteMeshObject(sword_mesh_object);
         } else {
@@ -880,7 +880,7 @@
           }
           if (hpPhysics.time > hpPhysics.timeToLive) {
             deleteGroupMeshObject(hpObject);
-            HOLLOW_PURPLE_MANAGER = BASE_HOLLOW_PURPLE_MANAGER;
+            HOLLOW_PURPLE_MANAGER = {...BASE_HOLLOW_PURPLE_MANAGER};
           } else {
             let hpBox = hpObject.box;
             for (let j = 0; j < PLATES.length; j++) {
@@ -944,7 +944,6 @@
         if (ball.position.y > FLOOR_LEVEL) {
           let tempXSpeed = ball_physics.xspeed;
           let tempZSpeed = ball_physics.zspeed;
-          document.getElementById("myInfo").innerHTML = JSON.stringify({xspeed: tempXSpeed, zspeed: tempZSpeed});
           let xdisplacement = ball_physics.xspeed * FPS;
           ball.position.x += xdisplacement;
           let zdisplacement = ball_physics.zspeed * FPS;
@@ -1063,7 +1062,6 @@
 </head>
 
 <body>
-  <div id="info">"The value for number is: " <span id="myInfo"></span> <span id="controllerInfo"></span></div>
 </body>
 
 </html>

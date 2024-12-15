@@ -1,4 +1,4 @@
-### Super Ultimate Throwing Game!
+# Super Ultimate Throwing Game!
 
 ![Game image](image.png)
 
@@ -28,7 +28,7 @@ This project was done for the University of Massachuetts Boston Course CS460: ht
 7. In the top left of the **WebXR** tab, open the drop down box and select **Oculus Quest**
 8. You should be able to move around the Headset and Controllers in the 3D space using the Emulator
 
-# Emulator Tips:
+### Emulator Tips:
 
 1. Press an element in the emulator once to translate along axis'
 2. Press an element twice to rotate along axis'
@@ -36,11 +36,9 @@ This project was done for the University of Massachuetts Boston Course CS460: ht
 4. The space bar will be tied to the last Select/Squeeze button you pressed on a controller. To test throwing, click select on the controller's options and now the space bar should be tied to that controller's select option.
 5. Move the controller around and press space bar to create and throw balls
 
-## Options
+### Tweakpane Options
 
-- Tweakpane options. This panel appears in flatscreen. The panel is also behind the player in VR however the sliders do not work, though the buttons do work
-
-# Tweakpane Options
+This panel appears in flatscreen and is also behind the player in VR however the sliders do not work.
 
 - MAX_PLATES: Maximum number of plates on the screen at once. Default: 7
 - MAX_PLATE_SP: Max speed a plate can spawn with. Default: 2.0
@@ -59,15 +57,16 @@ This project was done for the University of Massachuetts Boston Course CS460: ht
 - Spirit Bomb: Inspired by the move of the same name from Dragonball Z. Press select on a controller and a giant light blue orb will spawn above you. This orb will be treated like any other ball. Deselecting will release the orb and start applying physics to it based on the player's throwing speed and direction.
 - Sword: While empowered with Sword, selecting and holdind select will turn the controller into a long sword that can destroy plates it comes in contact with. This state will last for a few seconds. Deselecting while the sword is activate will end the sword state early. (New balls cannot be created by a controller in Sword state)
 
-## Possible Future Work
+## Future Work
 
 - Add textures and more detailed models. Possibly keeping this more simple design but still giving it its own flavor.
 - Add sound effects and background music.
+- Add support for sliders on Tweakpane and have the HTML model be more reactive with clicks
 - Fix bugs. I've played test with a few people and while it can play well, bugs can pop up on occasion.
 - Refactor code to make scalability even easier.
 - Revamp and port to Unity.
 
-## Used Soruces:
+### Used Soruces:
 
 https://threejs.org/docs/#api/en/math/Box3
 https://threejs.org/docs/#api/en/helpers/BoxHelper

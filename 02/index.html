@@ -1,6 +1,10 @@
 <html>
   <head>
     <title>CS460.org Assignment 2</title>
+
+    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+
     <style>
       body {
         background-color:#000;
@@ -10,6 +14,137 @@
         overflow: hidden !important; 
       }
     </style>
+
+    <script>
+      // Define constants
+      const CUBE_SIDELENGTH = 10;
+      const GAP = 2;
+
+      // Define boolean variable rotating for rotation state
+      var rotating = false;
+ 
+      // Function to create a 3D cube & rotate it
+      window.onload = function() {
+      
+          r = new X.renderer3D();
+          r.init();
+
+          c = new X.cube();
+          c.color = [255, 255, 255]
+
+          r.add(c);
+          r.render();
+
+          // Rotating function (depends on the rotation state)
+          r.onRender = function() {
+            if(rotating) {
+              // spin the camera in X direction by 1 degree
+              r.camera.rotate([1, 0]);
+            }
+          }
+      } 
+
+      //Function that is listening to keyboard events
+      window.onkeypress = function(e) {
+
+          // Type D means moving to the right 
+          if (e.code == 'KeyD') {
+            c.transform.translateX(-CUBE_SIDELENGTH - GAP);
+          }
+
+          // Type A means moving to the left
+          else if (e.code == 'KeyA') {
+            c.transform.translateX(CUBE_SIDELENGTH + GAP);
+          }
+
+          // Type W means moving up 
+          else if (e.code == 'KeyW') {
+            c.transform.translateZ(CUBE_SIDELENGTH + GAP);
+          } 
+
+          // Type S means moving down 
+          else if (e.code == 'KeyS') {
+            c.transform.translateZ(-CUBE_SIDELENGTH - GAP);
+          } 
+
+          // Type Q means moving forward 
+          else if (e.code == 'KeyQ') {
+            c.transform.translateY(CUBE_SIDELENGTH + GAP);
+          } 
+
+          // Type E means moving backward 
+          else if (e.code == 'KeyE') {
+            c.transform.translateY(-CUBE_SIDELENGTH - GAP);
+          } 
+
+          // Type 1 means changing the color of the cube to white
+          else if (e.code == 'Digit1') {
+            c.color = [255, 255, 255];
+          }
+
+          // Type 2 means changing the color of the cube to red
+          else if (e.code == 'Digit2') {
+            c.color = [255, 0, 0];
+          }
+
+          // Type 3 means changing the color of the cube to green
+          else if (e.code == 'Digit3') {
+            c.color = [0, 128, 0];
+          }
+
+          // Type 4 means changing the color of the cube to blue
+          else if (e.code == 'Digit4') {
+            c.color = [0, 0, 255];
+          }
+
+          // Type 5 means changing the color of the cube to yellow
+          else if (e.code == 'Digit5') {
+            c.color = [255, 255, 0];
+          }
+
+          // Type 6 means changing the color of the cube to pink 
+          else if (e.code == 'Digit6') {
+            c.color = [1, 0, 1];
+          } 
+
+          // Type 7 means changing the color of the cube to cyan
+          else if (e.code == 'Digit7') {
+            c.color = [0, 1, 1];
+          }
+
+          // Type 0 means changing the color of the cube to black
+          else if (e.code == 'Digit0') {
+            c.color = [0, 0, 0];
+          }
+
+          // Type Space means creating a new cube with the selected color and position
+          else if (e.code == 'Space') {
+            new_cube = new X.cube();
+            new_cube.color = c.color;
+            new_cube.transform.matrix = new Float32Array(c.transform.matrix);
+            new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+
+            r.add(new_cube);
+          }
+
+          // Type Key O means downloading the scene
+          else if (e.code == 'KeyO') {
+            download();
+          }
+
+          // Type Key L means uploading the scene
+          else if (e.code == 'KeyL') {
+            upload("scene.json");
+          }
+
+          // Type Key B means rotating on/off the scene
+          else if (e.code == 'KeyB') {
+            rotating = !rotating;
+          }
+
+      }
+    </script>
+
   </head>
   <body>
   </body>

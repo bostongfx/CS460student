@@ -1,0 +1,183 @@
+<html>
+  <head>
+    <style>
+      html, body { 
+        background-color:#000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;  
+      }
+    </style>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
+      }
+    }
+    </script>
+
+    <script type="module">
+
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'       
+
+      var renderer, controls, scene, camera, loader, geometry, material;
+      var T = Math.PI/2;
+      var displacement = 5;
+
+      window.onload = function() {
+
+        // Three.js code goes here
+        scene = new THREE.Scene();
+
+        // setup the camera
+        var fov = 75;
+        var ratio = window.innerWidth / window.innerHeight;
+        var zNear = 1;
+        var zFar = 10000;
+        camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
+        camera.position.set(0, 0, 100);
+
+        // create renderer and setup the canvas
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+
+
+        renderer.domElement.onclick = function( e ){
+          
+            console.log('Yay! We clicked!');
+
+            var pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
+
+            console.log('Pixel coords', pixel_coords);
+
+            var vp_coords = new THREE.Vector2( 
+                        ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
+                        -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
+
+            console.log('Viewport coords', vp_coords);
+
+            var vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
+
+
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(vp_coords_near, camera);
+            var intersects = raycaster.intersectObject(invisible_plane);
+
+            console.log('Ray to Invisible Plane', intersects[0].point);
+
+            // update cube position
+            //cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+
+          };
+
+        // setup lights
+        var ambientLight = new THREE.AmbientLight();
+        scene.add( ambientLight );
+
+        var light = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        light.position.set( 10, 100, 10 );
+        scene.add( light );
+
+        
+        // load gltf file
+        loader = new GLTFLoader();
+        loader.load( 'hobbes.glb', function ( gltf ) 
+        {
+          var poly = gltf.scenes[0].children[0];
+          poly.quaternion.w = Math.cos(T/2);
+          poly.quaternion.x = Math.sin(T/2)*1;
+          poly.quaternion.y = Math.sin(T/2)*0;
+          poly.quaternion.z = Math.sin(T/2)*0;
+          scene.add( gltf.scene );
+          window.onkeypress = function(f)
+        {
+        if (f.code == 'KeyD') 
+        {
+          poly.translateX(-displacement);
+        }
+        else if (f.code == 'KeyA') 
+        {
+          poly.translateX(displacement);
+        }
+        else if (f.code == 'KeyW') 
+        {
+          poly.translateZ(displacement);
+        }
+        else if (f.code == 'KeyS') 
+        {
+          poly.translateZ(-displacement);
+        }
+        }
+        } );
+        window.onkeypress = function(f)
+        {
+        if (f.code == 'Space') 
+        {
+          loader.load( 'hobbes.glb', function ( gltf ) 
+        {
+          var poly = gltf.scenes[0].children[0];
+          poly.quaternion.w = Math.cos(T/2);
+          poly.quaternion.x = Math.sin(T/2)*1;
+          poly.quaternion.y = Math.sin(T/2)*0;
+          poly.quaternion.z = Math.sin(T/2)*0;
+          scene.add( gltf.scene );
+        });
+          //new_cube.color = c0.color;
+          //new_cube.transform.matrix = new Float32Array(c0.transform.matrix);
+          //new_cube.lengthX = new_cube.lengthY = new_cube.lengthZ = CUBE_SIDELENGTH;
+          scene.add(gltf.scene);
+        }
+      };
+
+        //
+        // The plane
+        //
+        geometry = new THREE.PlaneGeometry( 100, 100 );
+        material = new THREE.MeshBasicMaterial( {
+          visible: true
+        });
+
+        var plane = new THREE.Mesh( geometry, material );
+        
+        plane.quaternion.w = Math.cos(T/2);
+        plane.quaternion.x = Math.sin(T/2)*0;
+        plane.quaternion.y = Math.sin(T/2)*0;
+        plane.quaternion.z = Math.sin(T/2)*1;
+        
+        scene.add( plane );
+        //
+        //
+        //
+
+        // interaction
+        controls = new OrbitControls( camera, renderer.domElement );
+
+        // call animation/rendering loop
+        animate();
+        
+      };
+
+
+
+      function animate() {
+
+        requestAnimationFrame( animate );
+
+        // and here..
+        controls.update();
+        renderer.render( scene, camera );
+        
+      };
+    </script>
+  </head>
+  <body></body>
+</html>
